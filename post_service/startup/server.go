@@ -2,11 +2,13 @@ package startup
 
 import (
 	"fmt"
-	"github.com/tamararankovic/microservices_demo/catalogue_service/application"
-	"github.com/tamararankovic/microservices_demo/catalogue_service/domain"
-	"github.com/tamararankovic/microservices_demo/catalogue_service/infrastructure/api"
-	"github.com/tamararankovic/microservices_demo/catalogue_service/infrastructure/persistence"
-	"github.com/tamararankovic/microservices_demo/catalogue_service/startup/config"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/api"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/persistence"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/startup/config"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/tamararankovic/microservices_demo/common/interceptors"
 	post "github.com/tamararankovic/microservices_demo/common/proto/post_service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
@@ -68,7 +70,13 @@ func (server *Server) startGrpcServer(productHandler *api.PostHandler) {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(
+			grpc_middleware.ChainUnaryServer(
+				interceptors.TokenAuthInterceptor,
+			),
+		),
+	)
 	post.RegisterPostServiceServer(grpcServer, productHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)

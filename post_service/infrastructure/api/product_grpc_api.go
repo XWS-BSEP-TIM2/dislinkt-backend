@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"github.com/tamararankovic/microservices_demo/catalogue_service/application"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application"
 	pb "github.com/tamararankovic/microservices_demo/common/proto/post_service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

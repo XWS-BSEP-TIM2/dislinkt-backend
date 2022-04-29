@@ -1,12 +1,14 @@
 package api
 
 import (
-	"api_gateway/infrastructure/services"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/services"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	authService "github.com/tamararankovic/microservices_demo/common/proto/auth_service"
 	post "github.com/tamararankovic/microservices_demo/common/proto/post_service"
+	grpcMetadata "google.golang.org/grpc/metadata"
 	"net/http"
 )
 
@@ -21,7 +23,7 @@ func NewPostHandler(orderingClientAddress string) Handler {
 }
 
 func (handler *PostHandler) Init(mux *runtime.ServeMux) {
-	err := mux.HandlePath("GET", "/post/{postId}", handler.GetDetails)
+	err := mux.HandlePath("GET", "/post-gateway/{postId}", handler.GetDetails)
 	if err != nil {
 		panic(err)
 	}
@@ -29,10 +31,14 @@ func (handler *PostHandler) Init(mux *runtime.ServeMux) {
 
 func (handler *PostHandler) GetDetails(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 	id := pathParams["postId"]
+	data := authService.UserData{Username: "", Password: ""}
+	print(data.Username)
 	fmt.Println("ID: ", id)
-
 	postClient := services.NewPostClient(handler.postClientAddress)
-	post, err := postClient.Get(context.TODO(), &post.GetRequest{Id: id})
+	var ctx = context.TODO()
+	ctx = grpcMetadata.AppendToOutgoingContext(ctx, "authorization", r.Header.Get("authorization"))
+
+	post, err := postClient.Get(ctx, &post.GetRequest{Id: id})
 	if err != nil {
 		w.WriteHeader(http.StatusAlreadyReported) //208
 		fmt.Println("POST: ", post)

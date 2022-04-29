@@ -3,14 +3,16 @@ package startup
 import (
 	"context"
 	"fmt"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/api"
 	"log"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	//cfg "github.com/tamararankovic/microservices_demo/api_gateway/startup/config"
-	cfg "api_gateway/startup/config"
+	cfg "github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 
+	authGw "github.com/tamararankovic/microservices_demo/common/proto/auth_service"
 	postGw "github.com/tamararankovic/microservices_demo/common/proto/post_service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -41,6 +43,12 @@ func (server *Server) initHandlers() {
 		panic(err)
 	}
 
+	AuthEndpoint := fmt.Sprintf("%s:%s", server.config.AuthHost, server.config.AuthPort)
+	err = authGw.RegisterAuthServiceHandlerFromEndpoint(context.TODO(), server.mux, AuthEndpoint, opts)
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 func (server *Server) initCustomHandlers() {
@@ -50,10 +58,10 @@ func (server *Server) initCustomHandlers() {
 		orderingEmdpoint := fmt.Sprintf("%s:%s", server.config.OrderingHost, server.config.OrderingPort)
 		shippingEmdpoint := fmt.Sprintf("%s:%s", server.config.ShippingHost, server.config.ShippingPort)
 	*/
-	/*
-		orderingHandler := api.NewPostHandler("localhost:8000")
-		orderingHandler.Init(server.mux)
-	*/
+
+	orderingHandler := api.NewPostHandler("localhost:8080")
+	orderingHandler.Init(server.mux)
+
 }
 
 func (server *Server) Start() {

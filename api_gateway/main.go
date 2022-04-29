@@ -1,8 +1,8 @@
 package main
 
 import (
-	"api_gateway/startup"
-	"api_gateway/startup/config"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 )
 
 func main() {

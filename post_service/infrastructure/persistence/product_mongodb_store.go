@@ -2,7 +2,7 @@ package persistence
 
 import (
 	"context"
-	"github.com/tamararankovic/microservices_demo/catalogue_service/domain"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

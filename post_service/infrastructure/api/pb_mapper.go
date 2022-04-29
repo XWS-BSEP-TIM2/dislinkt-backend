@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/tamararankovic/microservices_demo/catalogue_service/domain"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	pb "github.com/tamararankovic/microservices_demo/common/proto/post_service"
 )
 
