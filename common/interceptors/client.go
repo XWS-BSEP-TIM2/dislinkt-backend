@@ -2,7 +2,7 @@ package interceptors
 
 import (
 	"fmt"
-	authService "github.com/tamararankovic/microservices_demo/common/proto/auth_service"
+	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"

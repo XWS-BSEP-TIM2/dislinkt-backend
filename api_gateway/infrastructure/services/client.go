@@ -2,8 +2,8 @@ package services
 
 import (
 	"fmt"
-	authService "github.com/tamararankovic/microservices_demo/common/proto/auth_service"
-	post "github.com/tamararankovic/microservices_demo/common/proto/post_service"
+	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	post "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"

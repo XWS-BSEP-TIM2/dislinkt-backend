@@ -2,11 +2,12 @@ module github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service
 
 go 1.18
 
-replace github.com/tamararankovic/microservices_demo/common => ../common
+replace github.com/XWS-BSEP-TIM2/dislinkt-backend/common => ../common
 
 replace github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service => ../auth_service
 
 require (
+	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-00010101000000-000000000000
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	go.mongodb.org/mongo-driver v1.8.4
 	google.golang.org/grpc v1.45.0
@@ -26,7 +27,6 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/compress v1.14.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/tamararankovic/microservices_demo/common v1.0.0
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.0.2 // indirect
 	github.com/xdg-go/stringprep v1.0.2 // indirect

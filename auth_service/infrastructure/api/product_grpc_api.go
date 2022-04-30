@@ -5,7 +5,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/utils"
-	pb "github.com/tamararankovic/microservices_demo/common/proto/auth_service"
+	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )

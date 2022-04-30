@@ -2,14 +2,14 @@ package startup
 
 import (
 	"fmt"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/interceptors"
+	post "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/startup/config"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/tamararankovic/microservices_demo/common/interceptors"
-	post "github.com/tamararankovic/microservices_demo/common/proto/post_service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"log"

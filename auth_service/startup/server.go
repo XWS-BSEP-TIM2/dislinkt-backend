@@ -8,7 +8,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/startup/config"
-	auth "github.com/tamararankovic/microservices_demo/common/proto/auth_service"
+	auth "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"log"

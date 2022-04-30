@@ -1,13 +1,10 @@
-module common
+module github.com/XWS-BSEP-TIM2/dislinkt-backend/common
 
 go 1.17
-
-replace github.com/tamararankovic/microservices_demo/common => ./
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0
 	github.com/nats-io/nats.go v1.13.1-0.20220308171302-2f2f6968e98d
-	github.com/tamararankovic/microservices_demo/common v0.0.0-20220326142530-97bfd7810e53
 	google.golang.org/genproto v0.0.0-20220314164441-57ef72a4c106
 	google.golang.org/grpc v1.45.0
 	google.golang.org/protobuf v1.27.1

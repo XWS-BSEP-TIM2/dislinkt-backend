@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/services"
+	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	post "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	authService "github.com/tamararankovic/microservices_demo/common/proto/auth_service"
-	post "github.com/tamararankovic/microservices_demo/common/proto/post_service"
 	grpcMetadata "google.golang.org/grpc/metadata"
 	"net/http"
 )

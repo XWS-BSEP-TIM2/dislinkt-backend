@@ -1,8 +1,8 @@
 package api
 
 import (
+	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
-	pb "github.com/tamararankovic/microservices_demo/common/proto/post_service"
 )
 
 func mapProduct(product *domain.Post) *pb.Post {

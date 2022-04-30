@@ -9,11 +9,10 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
-	//cfg "github.com/tamararankovic/microservices_demo/api_gateway/startup/config"
 	cfg "github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 
-	authGw "github.com/tamararankovic/microservices_demo/common/proto/auth_service"
-	postGw "github.com/tamararankovic/microservices_demo/common/proto/post_service"
+	authGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	postGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
