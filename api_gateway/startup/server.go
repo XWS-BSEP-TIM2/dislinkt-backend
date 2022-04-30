@@ -12,6 +12,7 @@ import (
 	cfg "github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 
 	authGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	connectionGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	postGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -44,6 +45,12 @@ func (server *Server) initHandlers() {
 
 	AuthEndpoint := fmt.Sprintf("%s:%s", server.config.AuthHost, server.config.AuthPort)
 	err = authGw.RegisterAuthServiceHandlerFromEndpoint(context.TODO(), server.mux, AuthEndpoint, opts)
+	if err != nil {
+		panic(err)
+	}
+
+	ConnectionEndpoint := fmt.Sprintf("%s:%s", server.config.ConnectionHost, server.config.ConnectionPort)
+	err = connectionGw.RegisterConnectionServiceHandlerFromEndpoint(context.TODO(), server.mux, ConnectionEndpoint, opts)
 	if err != nil {
 		panic(err)
 	}

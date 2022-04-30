@@ -32,6 +32,7 @@ func (handler *PostHandler) Init(mux *runtime.ServeMux) {
 func (handler *PostHandler) GetDetails(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 	id := pathParams["postId"]
 	data := authService.UserData{Username: "", Password: ""}
+
 	print(data.Username)
 	fmt.Println("ID: ", id)
 	postClient := services.NewPostClient(handler.postClientAddress)

@@ -25,7 +25,7 @@ func (w *JwtWrapper) GenerateToken(user *domain.User) (signedToken string, err e
 		Id:       user.Id.Hex(),
 		Username: user.Username,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(1)).Unix(),
+			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(8)).Unix(),
 			Issuer:    w.Issuer,
 		},
 	}
