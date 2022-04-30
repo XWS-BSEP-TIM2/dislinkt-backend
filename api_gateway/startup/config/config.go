@@ -11,6 +11,8 @@ type Config struct {
 
 	ProfileHost string
 	ProfilePort string
+	ConnectionHost string
+	ConnectionPort string
 }
 
 func NewConfig() *Config {
@@ -22,5 +24,9 @@ func NewConfig() *Config {
 		AuthPort:    "8081",
 		ProfileHost: "localhost",
 		ProfilePort: "8082",
+		ConnectionHost: "localhost",
+		ConnectionPort: "8001",
+		
+		
 	}
 }

@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+option go_package = "common/proto/connection_service";
+
+package connection_service;
+
+import "google/api/annotations.proto";
+
+service ConnectionService{
+
+  rpc GetFriends(GetRequest) returns(Users) {
+    option (google.api.http) = {
+      get: "/connection/user/{userID}/friends"
+    };
+  }
+
+  rpc GetBlockeds(GetRequest) returns(Users) {
+    option (google.api.http) = {
+      get: "/connection/user/{userID}/blockeds"
+    };
+  }
+
+  rpc Register(RegisterRequest) returns (ActionResult) {
+    option (google.api.http) = {
+      put: "/connection/register"
+      body:"user"
+    };
+  }
+
+  rpc AddFriend(AddFriendRequest) returns (ActionResult) {
+    option (google.api.http) = {
+      post: "/connection/friend"
+      body:"addFriendDTO"
+    };
+  }
+
+  rpc AddBlockUser(AddBlockUserRequest) returns (ActionResult) {
+    option (google.api.http) = {
+      post: "/connection/block"
+      body:"addBlockUserDTO"
+    };
+  }
+
+
+}
+
+message RegisterRequest{
+    User user = 1;
+}
+
+message AddFriendRequest{
+  UserAction addFriendDTO = 1;
+}
+
+message AddBlockUserRequest{
+  UserAction addBlockUserDTO = 1;
+}
+
+
+
+
+message ActionResult{
+  int64 status = 1;
+  string msg = 2;
+}
+
+message GetRequest {
+  string userID = 1;
+}
+
+message UserAction{
+  string userIDa = 1;
+  string userIDb = 2;
+}
+
+message User {
+  string userID = 1;
+  bool isPublic = 2;
+}
+
+message Users{
+  repeated User users = 1;
+}
+
+message UsersID{
+  repeated string userID = 1;
+}
+
+
+
