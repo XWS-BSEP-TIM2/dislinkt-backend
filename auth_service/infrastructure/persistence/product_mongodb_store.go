@@ -39,13 +39,13 @@ func (store *UserMongoDBStore) GetAll() ([]*domain.User, error) {
 	return store.filter(filter)
 }
 
-func (store *UserMongoDBStore) Insert(product *domain.User) error {
+func (store *UserMongoDBStore) Insert(product *domain.User) (error, string) {
 	result, err := store.users.InsertOne(context.TODO(), product)
 	if err != nil {
-		return err
+		return err, ""
 	}
 	product.Id = result.InsertedID.(primitive.ObjectID)
-	return nil
+	return nil, product.Id.Hex()
 }
 
 func (store *UserMongoDBStore) DeleteAll() {

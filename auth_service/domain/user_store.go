@@ -7,7 +7,7 @@ import (
 type UserStore interface {
 	Get(id primitive.ObjectID) (*User, error)
 	GetAll() ([]*User, error)
-	Insert(product *User) error
+	Insert(product *User) (error, string)
 	DeleteAll()
 	GetByUsername(Username string) (*User, error)
 }

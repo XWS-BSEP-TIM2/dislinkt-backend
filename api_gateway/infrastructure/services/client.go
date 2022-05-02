@@ -30,3 +30,12 @@ func NewAuthClient(address string) authService.AuthServiceClient {
 	}
 	return authService.NewAuthServiceClient(conn)
 }
+
+func NewProfileClient(address string) authService.AuthServiceClient {
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("ProfileService faild to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Catalogue service: %v", err)
+	}
+	return authService.NewAuthServiceClient(conn)
+}

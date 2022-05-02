@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+option go_package = "common/proto/profile_service";
+
+package catalogue;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service ProfileService{
+  rpc Get(GetRequest) returns (GetResponse){
+    option(google.api.http) = {
+      get: "/profile/{id}"
+    };
+  }
+
+  rpc GetAll(EmptyRequest) returns (GetAllResponse){
+    option(google.api.http)={
+      get:"/profile"
+    };
+  }
+  rpc CreateProfile(CreateProfileRequest) returns(CreateProfileResponse){
+    option(google.api.http)={
+      post:"/profile",
+      body:"profile"
+    };
+  }
+  rpc UpdateProfile(CreateProfileRequest) returns(CreateProfileResponse){
+    option(google.api.http)={
+      put:"/profile",
+      body:"profile"
+    };
+  }
+}
+
+  message GetAllResponse{
+    repeated Profile profiles=1;
+  }
+
+  message EmptyRequest{
+
+  }
+
+  message GetRequest{
+      string id=1;
+  }
+
+  message GetResponse{
+      Profile profile=1;
+  }
+
+  message Profile{
+    string id=1;
+    string name=2;
+    string surname=3;
+    string username=4;
+    string email=5;
+    string biography=6;
+    string gender=7;
+    string phoneNumber=8;
+    google.protobuf.Timestamp birthDate=9;
+    bool isPrivate=10;
+    repeated Skill skills=11;
+    repeated Experience experiences=12;
+  }
+
+  message Skill{
+    string id=1;
+    string name=2;
+    string skillType=3;
+  }
+
+
+  message Experience{
+    string id=1;
+    string name=2;
+    string experienceType=3;
+    string description=4;
+    google.protobuf.Timestamp startDate =5;
+    google.protobuf.Timestamp endDate=6;
+
+  }
+
+  message CreateProfileRequest{
+    Profile profile=1;
+  }
+
+  message CreateProfileResponse{
+  Profile profile=1;
+  }

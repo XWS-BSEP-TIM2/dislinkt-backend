@@ -5,17 +5,18 @@ package auth;
 option go_package = "./common/auth";
 
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {
     option (google.api.http) = {
       post: "/register"
-      body:"user"
+      body:"data"
   };}
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post: "/login"
-        body: "userData"
+        body: "data"
     };
   }
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
@@ -24,13 +25,20 @@ service AuthService {
 // Register
 
 message RegisterRequest {
-  UserData user=1;
+  RegisterRequestData data=1;
 }
 
-message UserData{
+message RegisterRequestData{
   string username = 1;
   string password = 2;
+  string firstName=3;
+  string lastName=4;
+  string email=5;
+  google.protobuf.Timestamp birthDate =6;
+  string gender=7;
+  bool isPrivate=8;
 }
+
 message RegisterResponse {
   int64 status = 1;
   string error = 2;
@@ -39,7 +47,12 @@ message RegisterResponse {
 // Login
 
 message LoginRequest {
-  UserData userData = 1;
+  LoginData data = 1;
+}
+
+message LoginData{
+  string username = 1;
+  string password = 2;
 }
 
 message LoginResponse {

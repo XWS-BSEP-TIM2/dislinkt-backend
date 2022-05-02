@@ -48,7 +48,7 @@ func (server *Server) initProductStore(client *mongo.Client) domain.UserStore {
 	store := persistence.NewUserMongoDBStore(client)
 	store.DeleteAll()
 	for _, product := range products {
-		err := store.Insert(product)
+		err, _ := store.Insert(product)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -57,7 +57,8 @@ func (server *Server) initProductStore(client *mongo.Client) domain.UserStore {
 }
 
 func (server *Server) initProductService(store domain.UserStore) *application.UserService {
-	return application.NewUserService(store)
+	profileServiceEndpoint := fmt.Sprintf("%s:%s", server.config.ProfileServiceHost, server.config.ProfileServicePort)
+	return application.NewUserService(store, profileServiceEndpoint)
 }
 
 func (server *Server) initProductHandler(service *application.UserService) *api.UserHandler {

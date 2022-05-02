@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/services"
-	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	post "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcMetadata "google.golang.org/grpc/metadata"
@@ -31,8 +30,6 @@ func (handler *PostHandler) Init(mux *runtime.ServeMux) {
 
 func (handler *PostHandler) GetDetails(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 	id := pathParams["postId"]
-	data := authService.UserData{Username: "", Password: ""}
-	print(data.Username)
 	fmt.Println("ID: ", id)
 	postClient := services.NewPostClient(handler.postClientAddress)
 	var ctx = context.TODO()

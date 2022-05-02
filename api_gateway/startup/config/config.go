@@ -8,14 +8,19 @@ type Config struct {
 
 	AuthHost string
 	AuthPort string
+
+	ProfileHost string
+	ProfilePort string
 }
 
 func NewConfig() *Config {
 	return &Config{
-		Port:     "9000",      //os.Getenv("GATEWAY_PORT"),
-		PostHost: "localhost", // os.Getenv("POST_SERVICE_HOST"),
-		PostPort: "8080",      //os.Getenv("POST_SERVICE_PORT"),
-		AuthHost: "localhost",
-		AuthPort: "8081",
+		Port:        "9000",      //os.Getenv("GATEWAY_PORT"),
+		PostHost:    "localhost", // os.Getenv("POST_SERVICE_HOST"),
+		PostPort:    "8080",      //os.Getenv("POST_SERVICE_PORT"),
+		AuthHost:    "localhost",
+		AuthPort:    "8081",
+		ProfileHost: "localhost",
+		ProfilePort: "8082",
 	}
 }

@@ -6,10 +6,12 @@ replace github.com/XWS-BSEP-TIM2/dislinkt-backend/common => ../common
 
 replace github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service => ../auth_service
 
+replace github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service => ../profile_service
+
 require (
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-00010101000000-000000000000
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	go.mongodb.org/mongo-driver v1.8.4
+	go.mongodb.org/mongo-driver v1.9.0
 	google.golang.org/grpc v1.45.0
 )
 
