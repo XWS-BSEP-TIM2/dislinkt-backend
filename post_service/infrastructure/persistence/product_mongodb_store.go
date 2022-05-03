@@ -14,13 +14,13 @@ const (
 )
 
 type PostMongoDBStore struct {
-	products *mongo.Collection
+	posts *mongo.Collection
 }
 
-func NewProductMongoDBStore(client *mongo.Client) domain.PostStore {
-	products := client.Database(DATABASE).Collection(COLLECTION)
+func NewPostMongoDBStore(client *mongo.Client) domain.PostStore {
+	posts := client.Database(DATABASE).Collection(COLLECTION)
 	return &PostMongoDBStore{
-		products: products,
+		posts: posts,
 	}
 }
 
@@ -34,21 +34,21 @@ func (store *PostMongoDBStore) GetAll() ([]*domain.Post, error) {
 	return store.filter(filter)
 }
 
-func (store *PostMongoDBStore) Insert(product *domain.Post) error {
-	result, err := store.products.InsertOne(context.TODO(), product)
+func (store *PostMongoDBStore) Insert(post *domain.Post) error {
+	result, err := store.posts.InsertOne(context.TODO(), post)
 	if err != nil {
 		return err
 	}
-	product.Id = result.InsertedID.(primitive.ObjectID)
+	post.Id = result.InsertedID.(primitive.ObjectID)
 	return nil
 }
 
 func (store *PostMongoDBStore) DeleteAll() {
-	store.products.DeleteMany(context.TODO(), bson.D{{}})
+	store.posts.DeleteMany(context.TODO(), bson.D{{}})
 }
 
 func (store *PostMongoDBStore) filter(filter interface{}) ([]*domain.Post, error) {
-	cursor, err := store.products.Find(context.TODO(), filter)
+	cursor, err := store.posts.Find(context.TODO(), filter)
 	defer cursor.Close(context.TODO())
 
 	if err != nil {
@@ -57,20 +57,20 @@ func (store *PostMongoDBStore) filter(filter interface{}) ([]*domain.Post, error
 	return decode(cursor)
 }
 
-func (store *PostMongoDBStore) filterOne(filter interface{}) (product *domain.Post, err error) {
-	result := store.products.FindOne(context.TODO(), filter)
-	err = result.Decode(&product)
+func (store *PostMongoDBStore) filterOne(filter interface{}) (post *domain.Post, err error) {
+	result := store.posts.FindOne(context.TODO(), filter)
+	err = result.Decode(&post)
 	return
 }
 
-func decode(cursor *mongo.Cursor) (products []*domain.Post, err error) {
+func decode(cursor *mongo.Cursor) (posts []*domain.Post, err error) {
 	for cursor.Next(context.TODO()) {
-		var product domain.Post
-		err = cursor.Decode(&product)
+		var post domain.Post
+		err = cursor.Decode(&post)
 		if err != nil {
 			return
 		}
-		products = append(products, &product)
+		posts = append(posts, &post)
 	}
 	err = cursor.Err()
 	return

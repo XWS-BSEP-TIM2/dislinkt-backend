@@ -5,10 +5,10 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 )
 
-func mapProduct(product *domain.Post) *pb.Post {
+func mapProduct(post *domain.Post) *pb.Post {
 	postPb := &pb.Post{
-		Id:   product.Id.Hex(),
-		Name: product.Name,
+		Id:   post.Id.Hex(),
+		Name: post.Name,
 	}
 
 	return postPb

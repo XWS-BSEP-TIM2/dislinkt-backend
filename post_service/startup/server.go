@@ -3,7 +3,7 @@ package startup
 import (
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/interceptors"
-	post "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
+	postGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/api"
@@ -28,13 +28,10 @@ func NewServer(config *config.Config) *Server {
 
 func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
-	productStore := server.initProductStore(mongoClient)
-
-	productService := server.initProductService(productStore)
-
-	productHandler := server.initProductHandler(productService)
-
-	server.startGrpcServer(productHandler)
+	postStore := server.initPostStore(mongoClient)
+	postService := server.initPostService(postStore)
+	postHandler := server.initProductHandler(postService)
+	server.startGrpcServer(postHandler)
 }
 
 func (server *Server) initMongoClient() *mongo.Client {
@@ -45,11 +42,11 @@ func (server *Server) initMongoClient() *mongo.Client {
 	return client
 }
 
-func (server *Server) initProductStore(client *mongo.Client) domain.PostStore {
-	store := persistence.NewProductMongoDBStore(client)
+func (server *Server) initPostStore(client *mongo.Client) domain.PostStore {
+	store := persistence.NewPostMongoDBStore(client)
 	store.DeleteAll()
-	for _, product := range products {
-		err := store.Insert(product)
+	for _, post := range posts {
+		err := store.Insert(post)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -57,15 +54,15 @@ func (server *Server) initProductStore(client *mongo.Client) domain.PostStore {
 	return store
 }
 
-func (server *Server) initProductService(store domain.PostStore) *application.PostService {
-	return application.NewProductService(store)
+func (server *Server) initPostService(store domain.PostStore) *application.PostService {
+	return application.NewPostService(store)
 }
 
 func (server *Server) initProductHandler(service *application.PostService) *api.PostHandler {
 	return api.NewProductHandler(service)
 }
 
-func (server *Server) startGrpcServer(productHandler *api.PostHandler) {
+func (server *Server) startGrpcServer(postHandler *api.PostHandler) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", server.config.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -77,7 +74,7 @@ func (server *Server) startGrpcServer(productHandler *api.PostHandler) {
 			),
 		),
 	)
-	post.RegisterPostServiceServer(grpcServer, productHandler)
+	postGw.RegisterPostServiceServer(grpcServer, postHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}

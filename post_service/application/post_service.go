@@ -9,7 +9,7 @@ type PostService struct {
 	store domain.PostStore
 }
 
-func NewProductService(store domain.PostStore) *PostService {
+func NewPostService(store domain.PostStore) *PostService {
 	return &PostService{
 		store: store,
 	}
