@@ -10,4 +10,5 @@ type ProfileStore interface {
 	GetAll() ([]*domain.Profile, error)
 	Insert(profile *domain.Profile) error
 	Update(profile *domain.Profile) error
+	Search(search string) ([]*domain.Profile, error)
 }

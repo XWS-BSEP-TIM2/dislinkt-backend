@@ -62,3 +62,18 @@ func (handler *ProfileHandler) UpdateProfile(ctx context.Context, request *pb.Cr
 	handler.service.Update(&profile)
 	return &pb.CreateProfileResponse{Profile: mapProfile(&profile)}, nil
 }
+
+func (handler *ProfileHandler) SearchProfile(ctx context.Context, request *pb.SearchProfileRequest) (*pb.GetAllResponse, error) {
+	profiles, err := handler.service.Search(request.Params.Data)
+	if err != nil {
+		return nil, err
+	}
+	response := &pb.GetAllResponse{
+		Profiles: []*pb.Profile{},
+	}
+	for _, profile := range profiles {
+		current := mapProfile(profile)
+		response.Profiles = append(response.Profiles, current)
+	}
+	return response, nil
+}

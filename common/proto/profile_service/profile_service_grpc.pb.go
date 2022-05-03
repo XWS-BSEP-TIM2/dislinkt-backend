@@ -26,6 +26,7 @@ type ProfileServiceClient interface {
 	GetAll(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*GetAllResponse, error)
 	CreateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error)
 	UpdateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error)
+	SearchProfile(ctx context.Context, in *SearchProfileRequest, opts ...grpc.CallOption) (*GetAllResponse, error)
 }
 
 type profileServiceClient struct {
@@ -72,6 +73,15 @@ func (c *profileServiceClient) UpdateProfile(ctx context.Context, in *CreateProf
 	return out, nil
 }
 
+func (c *profileServiceClient) SearchProfile(ctx context.Context, in *SearchProfileRequest, opts ...grpc.CallOption) (*GetAllResponse, error) {
+	out := new(GetAllResponse)
+	err := c.cc.Invoke(ctx, "/catalogue.ProfileService/SearchProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProfileServiceServer is the server API for ProfileService service.
 // All implementations must embed UnimplementedProfileServiceServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type ProfileServiceServer interface {
 	GetAll(context.Context, *EmptyRequest) (*GetAllResponse, error)
 	CreateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error)
 	UpdateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error)
+	SearchProfile(context.Context, *SearchProfileRequest) (*GetAllResponse, error)
 	mustEmbedUnimplementedProfileServiceServer()
 }
 
@@ -98,6 +109,9 @@ func (UnimplementedProfileServiceServer) CreateProfile(context.Context, *CreateP
 }
 func (UnimplementedProfileServiceServer) UpdateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProfile not implemented")
+}
+func (UnimplementedProfileServiceServer) SearchProfile(context.Context, *SearchProfileRequest) (*GetAllResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchProfile not implemented")
 }
 func (UnimplementedProfileServiceServer) mustEmbedUnimplementedProfileServiceServer() {}
 
@@ -184,6 +198,24 @@ func _ProfileService_UpdateProfile_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProfileService_SearchProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).SearchProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/catalogue.ProfileService/SearchProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).SearchProfile(ctx, req.(*SearchProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProfileService_ServiceDesc is the grpc.ServiceDesc for ProfileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -206,6 +238,10 @@ var ProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateProfile",
 			Handler:    _ProfileService_UpdateProfile_Handler,
+		},
+		{
+			MethodName: "SearchProfile",
+			Handler:    _ProfileService_SearchProfile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

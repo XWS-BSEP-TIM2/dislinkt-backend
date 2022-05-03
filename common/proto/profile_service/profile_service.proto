@@ -31,7 +31,21 @@ service ProfileService{
       body:"profile"
     };
   }
+  rpc SearchProfile(SearchProfileRequest) returns(GetAllResponse){
+    option(google.api.http)={
+      post:"/profile/search",
+      body:"params"
+    };
+  }
 }
+
+  message SearchProfileRequest{
+    SearchParams params=1;
+  }
+
+  message SearchParams{
+    string data=1;
+  }
 
   message GetAllResponse{
     repeated Profile profiles=1;

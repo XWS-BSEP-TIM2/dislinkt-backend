@@ -39,6 +39,7 @@ func NewProfileClient(address string) authService.AuthServiceClient {
 		log.Fatalf("Failed to start gRPC connection to Catalogue service: %v", err)
 	}
 	return authService.NewAuthServiceClient(conn)
+}
 func NewConnectionClient(address string) connection.ConnectionServiceClient {
 	conn, err := getConnection(address)
 	if err != nil {

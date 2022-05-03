@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"strings"
 )
 
 const (
@@ -95,4 +96,52 @@ func decode(cursor *mongo.Cursor) (profiles []*domain.Profile, err error) {
 	}
 	err = cursor.Err()
 	return
+}
+
+func (store *ProfileMongoDbStore) Search(search string) ([]*domain.Profile, error) {
+	var profiles []*domain.Profile
+	search = strings.TrimSpace(search)
+	splitedSearch := strings.Split(search, " ")
+	for _, searchPart := range splitedSearch {
+		err := funcName(store, searchPart, "username", &profiles)
+		if err != nil {
+			return nil, err
+		}
+		err = funcName(store, searchPart, "name", &profiles)
+		if err != nil {
+			return nil, err
+		}
+		err = funcName(store, searchPart, "surname", &profiles)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return profiles, nil
+
+}
+
+func funcName(store *ProfileMongoDbStore, searchPart string, paramName string, profiles *[]*domain.Profile) error {
+	filteredProfiles, err := store.profiles.Find(context.TODO(), bson.M{paramName: primitive.Regex{Pattern: searchPart, Options: "i"}})
+	if err != nil {
+		return err
+	}
+	var filterResult []*domain.Profile
+	err = filteredProfiles.All(context.TODO(), &filterResult)
+	if err != nil {
+		return err
+	}
+	for _, result := range filterResult {
+		appendUser(profiles, result)
+	}
+	return nil
+}
+
+func appendUser(destination *[]*domain.Profile, source *domain.Profile) {
+	for _, user := range *destination {
+		if user.Id == source.Id {
+			return
+		}
+	}
+	*destination = append(*destination, source)
 }

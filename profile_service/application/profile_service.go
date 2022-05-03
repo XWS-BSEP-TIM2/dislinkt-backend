@@ -32,3 +32,7 @@ func (service *ProfileService) Insert(profile *domain.Profile) {
 func (service *ProfileService) Update(profile *domain.Profile) {
 	service.store.Update(profile)
 }
+
+func (service *ProfileService) Search(search string) ([]*domain.Profile, error) {
+	return service.store.Search(search)
+}
