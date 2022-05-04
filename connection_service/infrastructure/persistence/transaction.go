@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"fmt"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"time"
 )
@@ -93,4 +94,48 @@ func unblockUser(userIDa, userIDb string, transaction neo4j.Transaction) bool {
 		return true
 	}
 	return false
+}
+
+func getFriendsOfFriendsButNotBlockedRecommendation(userID string, transaction neo4j.Transaction) ([]*domain.UserConn, error) {
+	result, err := transaction.Run(
+		"MATCH (u1:USER)-[:FRIEND]->(u2:USER)<-[:FRIEND]-(u3:USER) "+
+			"WHERE u1.userID=$uID AND u3.userID<>$uID "+
+			"AND NOT exists((u1)-[:FRIEND]-(u3)) "+
+			"AND NOT exists((u1)-[:BLOCK]-(u3)) "+
+			"RETURN distinct u3.userID, u3.isPublic "+
+			"LIMIT 20 ",
+		map[string]interface{}{"uID": userID})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var recommendation []*domain.UserConn
+	for result.Next() {
+		recommendation = append(recommendation, &domain.UserConn{UserID: result.Record().Values[0].(string), IsPublic: result.Record().Values[1].(bool)})
+	}
+	return recommendation, nil
+}
+
+func getFriendRecommendation(userID string, transaction neo4j.Transaction) ([]*domain.UserConn, error) {
+	result, err := transaction.Run(
+		"MATCH (u1:USER) "+
+			"MATCH (u2:USER)-[r:FRIEND]->(:USER) "+
+			"WHERE u1.userID=$uID AND u2.userID<>$uID "+
+			"AND NOT exists((u1)-[:FRIEND]-(u2)) "+
+			"AND NOT exists((u1)-[:BLOCK]-(u2)) "+
+			"RETURN distinct u2.userID, u2.isPublic, COUNT(r) as num_of_friends "+
+			"ORDER BY num_of_friends DESC "+
+			"LIMIT 20 ",
+		map[string]interface{}{"uID": userID})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var recommendation []*domain.UserConn
+	for result.Next() {
+		recommendation = append(recommendation, &domain.UserConn{UserID: result.Record().Values[0].(string), IsPublic: result.Record().Values[1].(bool)})
+	}
+	return recommendation, nil
 }

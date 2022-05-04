@@ -26,7 +26,10 @@ type ConnectionServiceClient interface {
 	GetBlockeds(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*ActionResult, error)
 	AddFriend(ctx context.Context, in *AddFriendRequest, opts ...grpc.CallOption) (*ActionResult, error)
+	RemoveFriend(ctx context.Context, in *RemoveFriendRequest, opts ...grpc.CallOption) (*ActionResult, error)
 	AddBlockUser(ctx context.Context, in *AddBlockUserRequest, opts ...grpc.CallOption) (*ActionResult, error)
+	UnblockUser(ctx context.Context, in *UnblockUserRequest, opts ...grpc.CallOption) (*ActionResult, error)
+	GetRecommendation(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error)
 }
 
 type connectionServiceClient struct {
@@ -73,9 +76,36 @@ func (c *connectionServiceClient) AddFriend(ctx context.Context, in *AddFriendRe
 	return out, nil
 }
 
+func (c *connectionServiceClient) RemoveFriend(ctx context.Context, in *RemoveFriendRequest, opts ...grpc.CallOption) (*ActionResult, error) {
+	out := new(ActionResult)
+	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/RemoveFriend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *connectionServiceClient) AddBlockUser(ctx context.Context, in *AddBlockUserRequest, opts ...grpc.CallOption) (*ActionResult, error) {
 	out := new(ActionResult)
 	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/AddBlockUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *connectionServiceClient) UnblockUser(ctx context.Context, in *UnblockUserRequest, opts ...grpc.CallOption) (*ActionResult, error) {
+	out := new(ActionResult)
+	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/UnblockUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *connectionServiceClient) GetRecommendation(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error) {
+	out := new(Users)
+	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/GetRecommendation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +120,10 @@ type ConnectionServiceServer interface {
 	GetBlockeds(context.Context, *GetRequest) (*Users, error)
 	Register(context.Context, *RegisterRequest) (*ActionResult, error)
 	AddFriend(context.Context, *AddFriendRequest) (*ActionResult, error)
+	RemoveFriend(context.Context, *RemoveFriendRequest) (*ActionResult, error)
 	AddBlockUser(context.Context, *AddBlockUserRequest) (*ActionResult, error)
+	UnblockUser(context.Context, *UnblockUserRequest) (*ActionResult, error)
+	GetRecommendation(context.Context, *GetRequest) (*Users, error)
 	mustEmbedUnimplementedConnectionServiceServer()
 }
 
@@ -110,8 +143,17 @@ func (UnimplementedConnectionServiceServer) Register(context.Context, *RegisterR
 func (UnimplementedConnectionServiceServer) AddFriend(context.Context, *AddFriendRequest) (*ActionResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddFriend not implemented")
 }
+func (UnimplementedConnectionServiceServer) RemoveFriend(context.Context, *RemoveFriendRequest) (*ActionResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveFriend not implemented")
+}
 func (UnimplementedConnectionServiceServer) AddBlockUser(context.Context, *AddBlockUserRequest) (*ActionResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddBlockUser not implemented")
+}
+func (UnimplementedConnectionServiceServer) UnblockUser(context.Context, *UnblockUserRequest) (*ActionResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnblockUser not implemented")
+}
+func (UnimplementedConnectionServiceServer) GetRecommendation(context.Context, *GetRequest) (*Users, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRecommendation not implemented")
 }
 func (UnimplementedConnectionServiceServer) mustEmbedUnimplementedConnectionServiceServer() {}
 
@@ -198,6 +240,24 @@ func _ConnectionService_AddFriend_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ConnectionService_RemoveFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveFriendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectionServiceServer).RemoveFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/connection_service.ConnectionService/RemoveFriend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectionServiceServer).RemoveFriend(ctx, req.(*RemoveFriendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ConnectionService_AddBlockUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddBlockUserRequest)
 	if err := dec(in); err != nil {
@@ -212,6 +272,42 @@ func _ConnectionService_AddBlockUser_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ConnectionServiceServer).AddBlockUser(ctx, req.(*AddBlockUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConnectionService_UnblockUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnblockUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectionServiceServer).UnblockUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/connection_service.ConnectionService/UnblockUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectionServiceServer).UnblockUser(ctx, req.(*UnblockUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConnectionService_GetRecommendation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectionServiceServer).GetRecommendation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/connection_service.ConnectionService/GetRecommendation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectionServiceServer).GetRecommendation(ctx, req.(*GetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -240,8 +336,20 @@ var ConnectionService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ConnectionService_AddFriend_Handler,
 		},
 		{
+			MethodName: "RemoveFriend",
+			Handler:    _ConnectionService_RemoveFriend_Handler,
+		},
+		{
 			MethodName: "AddBlockUser",
 			Handler:    _ConnectionService_AddBlockUser_Handler,
+		},
+		{
+			MethodName: "UnblockUser",
+			Handler:    _ConnectionService_UnblockUser_Handler,
+		},
+		{
+			MethodName: "GetRecommendation",
+			Handler:    _ConnectionService_GetRecommendation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

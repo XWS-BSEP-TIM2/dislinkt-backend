@@ -10,4 +10,7 @@ type ConnectionStore interface {
 	Register(userID string, isPublic bool) (*pb.ActionResult, error)
 	AddFriend(userIDa, userIDb string) (*pb.ActionResult, error)
 	AddBlockUser(userIDa, userIDb string) (*pb.ActionResult, error)
+	RemoveFriend(userIDa, userIDb string) (*pb.ActionResult, error)
+	UnblockUser(userIDa, userIDb string) (*pb.ActionResult, error)
+	GetRecommendation(userID string) ([]*UserConn, error)
 }

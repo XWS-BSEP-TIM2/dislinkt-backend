@@ -68,3 +68,32 @@ func (handler *ConnectionHandler) AddBlockUser(ctx context.Context, request *pb.
 	userIDb := request.AddBlockUserDTO.UserIDb
 	return handler.service.AddBlockUser(userIDa, userIDb)
 }
+
+func (handler *ConnectionHandler) RemoveFriend(ctx context.Context, request *pb.RemoveFriendRequest) (*pb.ActionResult, error) {
+	fmt.Println("[ConnectionHandler]:RemoveFriend")
+	userIDa := request.RemoveFriendDTO.UserIDa
+	userIDb := request.RemoveFriendDTO.UserIDb
+	return handler.service.RemoveFriend(userIDa, userIDb)
+}
+
+func (handler *ConnectionHandler) UnblockUser(ctx context.Context, request *pb.UnblockUserRequest) (*pb.ActionResult, error) {
+	fmt.Println("[ConnectionHandler]:UnblockUser")
+	userIDa := request.UnblockUserDTO.UserIDa
+	userIDb := request.UnblockUserDTO.UserIDb
+	return handler.service.UnblockUser(userIDa, userIDb)
+}
+
+func (handler *ConnectionHandler) GetRecommendation(ctx context.Context, request *pb.GetRequest) (*pb.Users, error) {
+	fmt.Println("[ConnectionHandler]:GetRecommendation")
+
+	id := request.UserID
+	recommendation, err := handler.service.GetRecommendation(id)
+	if err != nil {
+		return nil, err
+	}
+	response := &pb.Users{}
+	for _, user := range recommendation {
+		response.Users = append(response.Users, mapUserConn(user))
+	}
+	return response, nil
+}

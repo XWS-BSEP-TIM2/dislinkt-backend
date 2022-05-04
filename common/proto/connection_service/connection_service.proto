@@ -34,12 +34,33 @@ service ConnectionService{
     };
   }
 
+  rpc RemoveFriend(RemoveFriendRequest) returns (ActionResult) {
+    option (google.api.http) = {
+      post: "/connection/remove-friend"
+      body:"removeFriendDTO"
+    };
+  }
+
   rpc AddBlockUser(AddBlockUserRequest) returns (ActionResult) {
     option (google.api.http) = {
       post: "/connection/block"
       body:"addBlockUserDTO"
     };
   }
+
+  rpc UnblockUser(UnblockUserRequest) returns (ActionResult) {
+    option (google.api.http) = {
+      post: "/connection/unblock"
+      body:"unblockUserDTO"
+    };
+  }
+
+  rpc GetRecommendation(GetRequest) returns(Users) {
+    option (google.api.http) = {
+      get: "/connection/recommendation/{userID}"
+    };
+  }
+
 
 
 }
@@ -52,8 +73,16 @@ message AddFriendRequest{
   UserAction addFriendDTO = 1;
 }
 
+message RemoveFriendRequest{
+  UserAction removeFriendDTO = 1;
+}
+
 message AddBlockUserRequest{
   UserAction addBlockUserDTO = 1;
+}
+
+message UnblockUserRequest{
+  UserAction unblockUserDTO = 1;
 }
 
 
