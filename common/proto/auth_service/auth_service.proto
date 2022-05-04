@@ -20,6 +20,7 @@ service AuthService {
     };
   }
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
+  rpc ExtractDataFromToken(ExtractDataFromTokenRequest) returns (ExtractDataFromTokenResponse) {}
 }
 
 // Register
@@ -71,4 +72,14 @@ message ValidateResponse {
   int64 status = 1;
   string error = 2;
   string userId = 3;
+}
+
+//Extract Data
+message ExtractDataFromTokenResponse{
+  string id=1;
+  string username=2;
+}
+
+message ExtractDataFromTokenRequest{
+  string token=1;
 }

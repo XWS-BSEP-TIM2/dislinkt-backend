@@ -2,12 +2,13 @@ package startup
 
 import (
 	"fmt"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/interceptors"
 	profile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/application"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/startup/config"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"log"
@@ -26,13 +27,13 @@ func NewServer(config *config.Config) *Server {
 
 func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
-	productStore := server.initProfileStore(mongoClient)
+	profileStore := server.initProfileStore(mongoClient)
 
-	productService := server.initProductService(productStore)
+	profileService := server.initProfileService(profileStore)
 
-	productHandler := server.initProductHandler(productService)
+	profileHandler := server.initProfileHandler(profileService)
 
-	server.startGrpcServer(productHandler)
+	server.startGrpcServer(profileHandler)
 }
 
 func (server *Server) initMongoClient() *mongo.Client {
@@ -45,17 +46,14 @@ func (server *Server) initMongoClient() *mongo.Client {
 
 func (server *Server) initProfileStore(client *mongo.Client) persistence.ProfileStore {
 	store := persistence.NewProfileMongoDbStore(client)
-	store.Insert(&domain.Profile{
-		Name: "some Name",
-	})
 	return store
 }
 
-func (server *Server) initProductService(store persistence.ProfileStore) *application.ProfileService {
+func (server *Server) initProfileService(store persistence.ProfileStore) *application.ProfileService {
 	return application.NewProfileService(store)
 }
 
-func (server *Server) initProductHandler(service *application.ProfileService) *api.ProfileHandler {
+func (server *Server) initProfileHandler(service *application.ProfileService) *api.ProfileHandler {
 	return api.NewProfileHandler(service)
 }
 
@@ -64,7 +62,12 @@ func (server *Server) startGrpcServer(profileHandler *api.ProfileHandler) {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(
+			grpc_middleware.ChainUnaryServer(
+				interceptors.TokenAuthInterceptor,
+			),
+		))
 	profile.RegisterProfileServiceServer(grpcServer, profileHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)

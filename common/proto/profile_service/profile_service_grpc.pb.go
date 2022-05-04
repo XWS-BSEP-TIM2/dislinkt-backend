@@ -39,7 +39,7 @@ func NewProfileServiceClient(cc grpc.ClientConnInterface) ProfileServiceClient {
 
 func (c *profileServiceClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
 	out := new(GetResponse)
-	err := c.cc.Invoke(ctx, "/catalogue.ProfileService/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *profileServiceClient) Get(ctx context.Context, in *GetRequest, opts ...
 
 func (c *profileServiceClient) GetAll(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*GetAllResponse, error) {
 	out := new(GetAllResponse)
-	err := c.cc.Invoke(ctx, "/catalogue.ProfileService/GetAll", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/GetAll", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (c *profileServiceClient) GetAll(ctx context.Context, in *EmptyRequest, opt
 
 func (c *profileServiceClient) CreateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error) {
 	out := new(CreateProfileResponse)
-	err := c.cc.Invoke(ctx, "/catalogue.ProfileService/CreateProfile", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/CreateProfile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *profileServiceClient) CreateProfile(ctx context.Context, in *CreateProf
 
 func (c *profileServiceClient) UpdateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error) {
 	out := new(CreateProfileResponse)
-	err := c.cc.Invoke(ctx, "/catalogue.ProfileService/UpdateProfile", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/UpdateProfile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (c *profileServiceClient) UpdateProfile(ctx context.Context, in *CreateProf
 
 func (c *profileServiceClient) SearchProfile(ctx context.Context, in *SearchProfileRequest, opts ...grpc.CallOption) (*GetAllResponse, error) {
 	out := new(GetAllResponse)
-	err := c.cc.Invoke(ctx, "/catalogue.ProfileService/SearchProfile", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/SearchProfile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func _ProfileService_Get_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/catalogue.ProfileService/Get",
+		FullMethod: "/profile_service.ProfileService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).Get(ctx, req.(*GetRequest))
@@ -154,7 +154,7 @@ func _ProfileService_GetAll_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/catalogue.ProfileService/GetAll",
+		FullMethod: "/profile_service.ProfileService/GetAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).GetAll(ctx, req.(*EmptyRequest))
@@ -172,7 +172,7 @@ func _ProfileService_CreateProfile_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/catalogue.ProfileService/CreateProfile",
+		FullMethod: "/profile_service.ProfileService/CreateProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).CreateProfile(ctx, req.(*CreateProfileRequest))
@@ -190,7 +190,7 @@ func _ProfileService_UpdateProfile_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/catalogue.ProfileService/UpdateProfile",
+		FullMethod: "/profile_service.ProfileService/UpdateProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).UpdateProfile(ctx, req.(*CreateProfileRequest))
@@ -208,7 +208,7 @@ func _ProfileService_SearchProfile_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/catalogue.ProfileService/SearchProfile",
+		FullMethod: "/profile_service.ProfileService/SearchProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).SearchProfile(ctx, req.(*SearchProfileRequest))
@@ -220,7 +220,7 @@ func _ProfileService_SearchProfile_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ProfileService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "catalogue.ProfileService",
+	ServiceName: "profile_service.ProfileService",
 	HandlerType: (*ProfileServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

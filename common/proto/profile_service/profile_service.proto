@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = "common/proto/profile_service";
 
-package catalogue;
+package profile_service;
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";

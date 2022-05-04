@@ -27,13 +27,13 @@ func NewServer(config *config.Config) *Server {
 
 func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
-	productStore := server.initProductStore(mongoClient)
+	credentialStore := server.initCredentialStore(mongoClient)
 
-	productService := server.initProductService(productStore)
+	authService := server.initAuthService(credentialStore)
 
-	productHandler := server.initProductHandler(productService)
+	authHandler := server.initAuthHandler(authService)
 
-	server.startGrpcServer(productHandler)
+	server.startGrpcServer(authHandler)
 }
 
 func (server *Server) initMongoClient() *mongo.Client {
@@ -44,34 +44,27 @@ func (server *Server) initMongoClient() *mongo.Client {
 	return client
 }
 
-func (server *Server) initProductStore(client *mongo.Client) domain.UserStore {
-	store := persistence.NewUserMongoDBStore(client)
-	store.DeleteAll()
-	for _, product := range products {
-		err, _ := store.Insert(product)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+func (server *Server) initCredentialStore(client *mongo.Client) domain.UserStore {
+	store := persistence.NewCredentialsMongoDBStore(client)
 	return store
 }
 
-func (server *Server) initProductService(store domain.UserStore) *application.UserService {
+func (server *Server) initAuthService(store domain.UserStore) *application.AuthService {
 	profileServiceEndpoint := fmt.Sprintf("%s:%s", server.config.ProfileServiceHost, server.config.ProfileServicePort)
-	return application.NewUserService(store, profileServiceEndpoint)
+	return application.NewAuthService(store, profileServiceEndpoint)
 }
 
-func (server *Server) initProductHandler(service *application.UserService) *api.UserHandler {
-	return api.NewProductHandler(service)
+func (server *Server) initAuthHandler(service *application.AuthService) *api.AuthHandler {
+	return api.NewAuthHandler(service)
 }
 
-func (server *Server) startGrpcServer(productHandler *api.UserHandler) {
+func (server *Server) startGrpcServer(authHandler *api.AuthHandler) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", server.config.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer()
-	auth.RegisterAuthServiceServer(grpcServer, productHandler)
+	auth.RegisterAuthServiceServer(grpcServer, authHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}

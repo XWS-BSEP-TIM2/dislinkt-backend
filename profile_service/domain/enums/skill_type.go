@@ -1,5 +1,7 @@
 package enums
 
+import "strings"
+
 type SkillType int
 
 const (
@@ -12,7 +14,7 @@ func (s SkillType) ToString() string {
 }
 
 func ToEnumSkill(skill string) SkillType {
-	if skill == "Skill" {
+	if strings.Compare(strings.ToLower(skill), "skill") == 0 {
 		return Skill
 	}
 	return Interest

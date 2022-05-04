@@ -10,10 +10,17 @@ import (
 	"strings"
 )
 
+var nonAuthMethods map[string]bool = map[string]bool{
+	"/profile_service.ProfileService/CreateProfile": true,
+}
+
 func TokenAuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 
 	method, _ := grpc.Method(ctx)
-	println("Metoda", method)
+	if nonAuthMethods[method] == true {
+		return handler(ctx, req)
+	}
+
 	auth, err := extractHeader(ctx, "authorization")
 	if err != nil {
 		return ctx, err
@@ -29,10 +36,6 @@ func TokenAuthInterceptor(ctx context.Context, req interface{}, info *grpc.Unary
 	if result.Status != 200 {
 		return ctx, status.Error(codes.Unauthenticated, "invalid token")
 	}
-
-	//if strings.TrimPrefix(auth, prefix) != "abcdef123" {
-	//	return ctx, status.Error(codes.Unauthenticated, "invalid token")
-	//}
 
 	return handler(ctx, req)
 }

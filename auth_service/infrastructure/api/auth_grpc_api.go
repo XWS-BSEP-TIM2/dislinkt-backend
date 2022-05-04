@@ -11,26 +11,33 @@ import (
 	"net/http"
 )
 
-type UserHandler struct {
+type AuthHandler struct {
 	pb.UnimplementedAuthServiceServer
-	service *application.UserService
+	service *application.AuthService
 	Jwt     utils.JwtWrapper
 }
 
-func NewProductHandler(service *application.UserService) *UserHandler {
-	return &UserHandler{
+func NewAuthHandler(service *application.AuthService) *AuthHandler {
+	return &AuthHandler{
 		service: service,
 	}
 }
 
-func (handler *UserHandler) Register(ctx context.Context, request *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 
 	var user domain.User
+	user1, _ := handler.service.GetByUsername(ctx, request.Data.Username)
+	if user1 != nil {
+		return &pb.RegisterResponse{
+			Status: http.StatusUnprocessableEntity,
+			Error:  "Username is not unique",
+		}, nil
+	}
 	user.Username = request.Data.GetUsername()
 	user.Password = request.Data.GetPassword()
 	createProfileDto := mapper.ProtoToCreateProfileDto(request)
 
-	err := handler.service.Create(&user, &createProfileDto)
+	err := handler.service.Create(ctx, &user, &createProfileDto)
 	if err != nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusUnauthorized,
@@ -42,9 +49,9 @@ func (handler *UserHandler) Register(ctx context.Context, request *pb.RegisterRe
 
 }
 
-func (handler *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 
-	user, err := handler.service.GetByUsername(req.Data.Username)
+	user, err := handler.service.GetByUsername(ctx, req.Data.Username)
 	if err != nil {
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
@@ -71,7 +78,7 @@ func (handler *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	}, nil
 }
 
-func (handler *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
+func (handler *AuthHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
 	claims, err := handler.Jwt.ValidateToken(req.Token)
 
 	if err != nil {
@@ -81,7 +88,7 @@ func (handler *UserHandler) Validate(ctx context.Context, req *pb.ValidateReques
 		}, nil
 	}
 
-	user, err := handler.service.Get(getObjectId(claims.Id))
+	user, err := handler.service.Get(ctx, getObjectId(claims.Id))
 	if err != nil {
 		return &pb.ValidateResponse{
 			Status: http.StatusNotFound,
@@ -93,6 +100,23 @@ func (handler *UserHandler) Validate(ctx context.Context, req *pb.ValidateReques
 		Status: http.StatusOK,
 		UserId: user.Id.Hex(),
 	}, nil
+}
+
+func (handler *AuthHandler) ExtractDataFromToken(ctx context.Context, req *pb.ExtractDataFromTokenRequest) (*pb.ExtractDataFromTokenResponse, error) {
+	claims, err := handler.Jwt.ValidateToken(req.Token)
+
+	if err != nil {
+		return &pb.ExtractDataFromTokenResponse{
+			Id:       "",
+			Username: "",
+		}, err
+	}
+
+	return &pb.ExtractDataFromTokenResponse{
+		Id:       claims.Id,
+		Username: claims.Username,
+	}, nil
+
 }
 
 func getObjectId(id string) primitive.ObjectID {

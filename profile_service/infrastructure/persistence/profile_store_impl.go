@@ -18,7 +18,7 @@ type ProfileMongoDbStore struct {
 	profiles *mongo.Collection
 }
 
-func (store *ProfileMongoDbStore) Update(profile *domain.Profile) error {
+func (store *ProfileMongoDbStore) Update(ctx context.Context, profile *domain.Profile) error {
 
 	profileToUpdate := bson.M{"_id": profile.Id}
 	updatedProfile := bson.M{"$set": bson.M{
@@ -44,17 +44,17 @@ func (store *ProfileMongoDbStore) Update(profile *domain.Profile) error {
 
 }
 
-func (store *ProfileMongoDbStore) Get(id primitive.ObjectID) (*domain.Profile, error) {
+func (store *ProfileMongoDbStore) Get(ctx context.Context, id primitive.ObjectID) (*domain.Profile, error) {
 	filter := bson.M{"_id": id}
 	return store.filterOne(filter)
 }
 
-func (store *ProfileMongoDbStore) GetAll() ([]*domain.Profile, error) {
+func (store *ProfileMongoDbStore) GetAll(ctx context.Context) ([]*domain.Profile, error) {
 	filter := bson.D{{}}
 	return store.filter(filter)
 }
 
-func (store *ProfileMongoDbStore) Insert(profile *domain.Profile) error {
+func (store *ProfileMongoDbStore) Insert(ctx context.Context, profile *domain.Profile) error {
 	_, err := store.profiles.InsertOne(context.TODO(), profile)
 	if err != nil {
 		return err
@@ -98,20 +98,20 @@ func decode(cursor *mongo.Cursor) (profiles []*domain.Profile, err error) {
 	return
 }
 
-func (store *ProfileMongoDbStore) Search(search string) ([]*domain.Profile, error) {
+func (store *ProfileMongoDbStore) Search(ctx context.Context, search string) ([]*domain.Profile, error) {
 	var profiles []*domain.Profile
 	search = strings.TrimSpace(search)
 	splitedSearch := strings.Split(search, " ")
 	for _, searchPart := range splitedSearch {
-		err := funcName(store, searchPart, "username", &profiles)
+		err := filter(store, searchPart, "username", &profiles)
 		if err != nil {
 			return nil, err
 		}
-		err = funcName(store, searchPart, "name", &profiles)
+		err = filter(store, searchPart, "name", &profiles)
 		if err != nil {
 			return nil, err
 		}
-		err = funcName(store, searchPart, "surname", &profiles)
+		err = filter(store, searchPart, "surname", &profiles)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +121,7 @@ func (store *ProfileMongoDbStore) Search(search string) ([]*domain.Profile, erro
 
 }
 
-func funcName(store *ProfileMongoDbStore, searchPart string, paramName string, profiles *[]*domain.Profile) error {
+func filter(store *ProfileMongoDbStore, searchPart string, paramName string, profiles *[]*domain.Profile) error {
 	filteredProfiles, err := store.profiles.Find(context.TODO(), bson.M{paramName: primitive.Regex{Pattern: searchPart, Options: "i"}})
 	if err != nil {
 		return err

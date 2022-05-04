@@ -9,20 +9,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type UserService struct {
+type AuthService struct {
 	store                 domain.UserStore
 	profileServiceAddress string
 }
 
-func NewUserService(store domain.UserStore, profileServiceAddress string) *UserService {
-	return &UserService{
+func NewAuthService(store domain.UserStore, profileServiceAddress string) *AuthService {
+	return &AuthService{
 		store:                 store,
 		profileServiceAddress: profileServiceAddress,
 	}
 }
 
-func (service *UserService) Create(user *domain.User, dto *dto.CreateProfileDto) error {
-	err, id := service.store.Insert(user)
+func (service *AuthService) Create(ctx context.Context, user *domain.User, dto *dto.CreateProfileDto) error {
+	err, id := service.store.Insert(ctx, user)
 	if err != nil {
 		return err
 	}
@@ -39,21 +39,21 @@ func (service *UserService) Create(user *domain.User, dto *dto.CreateProfileDto)
 		Skills:      []*profileService.Skill{},
 		Experiences: []*profileService.Experience{},
 	}
-	_, err = profileClient.CreateProfile(context.TODO(), &profileService.CreateProfileRequest{Profile: &profile})
+	_, err = profileClient.CreateProfile(ctx, &profileService.CreateProfileRequest{Profile: &profile})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (service *UserService) Get(id primitive.ObjectID) (*domain.User, error) {
-	return service.store.Get(id)
+func (service *AuthService) Get(ctx context.Context, id primitive.ObjectID) (*domain.User, error) {
+	return service.store.Get(ctx, id)
 }
 
-func (service *UserService) GetAll() ([]*domain.User, error) {
-	return service.store.GetAll()
+func (service *AuthService) GetAll(ctx context.Context) ([]*domain.User, error) {
+	return service.store.GetAll(ctx)
 }
 
-func (service *UserService) GetByUsername(username string) (*domain.User, error) {
-	return service.store.GetByUsername(username)
+func (service *AuthService) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
+	return service.store.GetByUsername(ctx, username)
 }

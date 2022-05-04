@@ -19,12 +19,13 @@ func NewProfileHandler(service *application.ProfileService) *ProfileHandler {
 }
 
 func (handler *ProfileHandler) Get(ctx context.Context, request *pb.GetRequest) (*pb.GetResponse, error) {
+
 	id := request.Id
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
-	profile, err := handler.service.Get(objectId)
+	profile, err := handler.service.Get(ctx, objectId)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +35,7 @@ func (handler *ProfileHandler) Get(ctx context.Context, request *pb.GetRequest) 
 }
 
 func (handler *ProfileHandler) GetAll(ctx context.Context, request *pb.EmptyRequest) (*pb.GetAllResponse, error) {
-	profiles, err := handler.service.GetAll()
+	profiles, err := handler.service.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (handler *ProfileHandler) GetAll(ctx context.Context, request *pb.EmptyRequ
 func (handler *ProfileHandler) CreateProfile(ctx context.Context, request *pb.CreateProfileRequest) (*pb.CreateProfileResponse, error) {
 
 	profile := MapProfile(request.GetProfile())
-	handler.service.Insert(&profile)
+	handler.service.Insert(ctx, &profile)
 	return &pb.CreateProfileResponse{
 		Profile: mapProfile(&profile),
 	}, nil
@@ -59,12 +60,13 @@ func (handler *ProfileHandler) CreateProfile(ctx context.Context, request *pb.Cr
 
 func (handler *ProfileHandler) UpdateProfile(ctx context.Context, request *pb.CreateProfileRequest) (*pb.CreateProfileResponse, error) {
 	profile := MapProfile(request.GetProfile())
-	handler.service.Update(&profile)
+	handler.service.Update(ctx, &profile)
 	return &pb.CreateProfileResponse{Profile: mapProfile(&profile)}, nil
 }
 
 func (handler *ProfileHandler) SearchProfile(ctx context.Context, request *pb.SearchProfileRequest) (*pb.GetAllResponse, error) {
-	profiles, err := handler.service.Search(request.Params.Data)
+
+	profiles, err := handler.service.Search(ctx, request.Params.Data)
 	if err != nil {
 		return nil, err
 	}

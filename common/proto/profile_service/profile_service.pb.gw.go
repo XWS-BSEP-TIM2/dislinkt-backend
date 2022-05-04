@@ -216,7 +216,7 @@ func RegisterProfileServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/catalogue.ProfileService/Get", runtime.WithHTTPPathPattern("/profile/{id}"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/profile_service.ProfileService/Get", runtime.WithHTTPPathPattern("/profile/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -240,7 +240,7 @@ func RegisterProfileServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/catalogue.ProfileService/GetAll", runtime.WithHTTPPathPattern("/profile"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/profile_service.ProfileService/GetAll", runtime.WithHTTPPathPattern("/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -264,7 +264,7 @@ func RegisterProfileServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/catalogue.ProfileService/CreateProfile", runtime.WithHTTPPathPattern("/profile"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/profile_service.ProfileService/CreateProfile", runtime.WithHTTPPathPattern("/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -288,7 +288,7 @@ func RegisterProfileServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/catalogue.ProfileService/UpdateProfile", runtime.WithHTTPPathPattern("/profile"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/profile_service.ProfileService/UpdateProfile", runtime.WithHTTPPathPattern("/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -312,7 +312,7 @@ func RegisterProfileServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/catalogue.ProfileService/SearchProfile", runtime.WithHTTPPathPattern("/profile/search"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/profile_service.ProfileService/SearchProfile", runtime.WithHTTPPathPattern("/profile/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -375,7 +375,7 @@ func RegisterProfileServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/catalogue.ProfileService/Get", runtime.WithHTTPPathPattern("/profile/{id}"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/profile_service.ProfileService/Get", runtime.WithHTTPPathPattern("/profile/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -396,7 +396,7 @@ func RegisterProfileServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/catalogue.ProfileService/GetAll", runtime.WithHTTPPathPattern("/profile"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/profile_service.ProfileService/GetAll", runtime.WithHTTPPathPattern("/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -417,7 +417,7 @@ func RegisterProfileServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/catalogue.ProfileService/CreateProfile", runtime.WithHTTPPathPattern("/profile"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/profile_service.ProfileService/CreateProfile", runtime.WithHTTPPathPattern("/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -438,7 +438,7 @@ func RegisterProfileServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/catalogue.ProfileService/UpdateProfile", runtime.WithHTTPPathPattern("/profile"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/profile_service.ProfileService/UpdateProfile", runtime.WithHTTPPathPattern("/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -459,7 +459,7 @@ func RegisterProfileServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/catalogue.ProfileService/SearchProfile", runtime.WithHTTPPathPattern("/profile/search"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/profile_service.ProfileService/SearchProfile", runtime.WithHTTPPathPattern("/profile/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

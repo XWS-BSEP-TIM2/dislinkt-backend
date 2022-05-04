@@ -11,7 +11,7 @@ import (
 func NewProfileClient(address string) profileService.ProfileServiceClient {
 	conn, err := getConnection(address)
 	if err != nil {
-		fmt.Println("ProfileService faild to start", "Failed to start")
+		fmt.Println("ProfileService failed to start", "Failed to start")
 		log.Fatalf("Failed to start gRPC connection to Catalogue service: %v", err)
 	}
 	return profileService.NewProfileServiceClient(conn)
