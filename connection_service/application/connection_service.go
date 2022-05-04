@@ -54,3 +54,15 @@ func (service *ConnectionService) AddFriend(userIDa, userIDb string) (*pb.Action
 func (service *ConnectionService) AddBlockUser(userIDa, userIDb string) (*pb.ActionResult, error) {
 	return service.store.AddBlockUser(userIDa, userIDb)
 }
+
+func (service *ConnectionService) RemoveFriend(userIDa, userIDb string) (*pb.ActionResult, error) {
+	return service.store.RemoveFriend(userIDa, userIDb)
+}
+
+func (service *ConnectionService) UnblockUser(userIDa, userIDb string) (*pb.ActionResult, error) {
+	return service.store.UnblockUser(userIDa, userIDb)
+}
+
+func (service *ConnectionService) GetRecommendation(userID string) ([]*domain.UserConn, error) {
+	return service.store.GetRecommendation(userID)
+}

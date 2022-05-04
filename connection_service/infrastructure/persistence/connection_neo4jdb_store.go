@@ -233,3 +233,160 @@ func (store *ConnectionDBStore) AddBlockUser(userIDa, userIDb string) (*pb.Actio
 		return result.(*pb.ActionResult), err
 	}
 }
+
+func (store *ConnectionDBStore) RemoveFriend(userIDa, userIDb string) (*pb.ActionResult, error) {
+
+	/*
+		UserA mora biti prijatelj sa UserB (ne sme biti blokiran)
+		UserA izbacuje prijatelja UserB, cepaju se obe prijateljske veze
+	*/
+
+	if userIDa == userIDb {
+		return &pb.ActionResult{Msg: "userIDa is same as userIDb", Status: 400}, nil
+	}
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+
+		actionResult := &pb.ActionResult{Msg: "msg", Status: 0}
+
+		if checkIfUserExist(userIDa, transaction) && checkIfUserExist(userIDb, transaction) {
+			if checkIfFriendExist(userIDa, userIDb, transaction) || checkIfFriendExist(userIDb, userIDa, transaction) {
+
+				removeFriend(userIDa, userIDb, transaction)
+				removeFriend(userIDb, userIDa, transaction)
+
+			} else {
+				actionResult.Msg = "users are not friends"
+				actionResult.Status = 400 //bad request
+				return actionResult, nil
+			}
+		} else {
+			actionResult.Msg = "user does not exist"
+			actionResult.Status = 400 //bad request
+			return actionResult, nil
+		}
+
+		actionResult.Msg = "successfully user IDa:" + userIDa + " removed user IDb:" + userIDb
+		actionResult.Status = 200
+
+		return actionResult, nil
+	})
+
+	if result == nil {
+		return &pb.ActionResult{Msg: "error", Status: 500}, err
+	} else {
+		return result.(*pb.ActionResult), err
+	}
+}
+
+func (store *ConnectionDBStore) UnblockUser(userIDa, userIDb string) (*pb.ActionResult, error) {
+	/*
+		UserA moze da unblokira useraB samo ako ga je on blokirao
+	*/
+
+	if userIDa == userIDb {
+		return &pb.ActionResult{Msg: "userIDa is same as userIDb", Status: 400}, nil
+	}
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+
+		actionResult := &pb.ActionResult{Msg: "msg", Status: 0}
+
+		if checkIfUserExist(userIDa, transaction) && checkIfUserExist(userIDb, transaction) {
+			if checkIfBlockExist(userIDb, userIDa, transaction) {
+				actionResult.Msg = "UserB:" + userIDb + " first block UserA:" + userIDa
+				actionResult.Status = 400 //bad request
+				return actionResult, nil
+			} else {
+				if checkIfBlockExist(userIDa, userIDb, transaction) {
+					if unblockUser(userIDa, userIDb, transaction) {
+						actionResult.Msg = "successfully user IDa:" + userIDa + " unblock user IDb:" + userIDb
+						actionResult.Status = 200
+						return actionResult, nil
+					}
+				} else {
+					actionResult.Msg = "UserA:" + userIDa + " and UserB:" + userIDb + " are nod blocked"
+					actionResult.Status = 400 //bad request
+					return actionResult, nil
+				}
+			}
+		} else {
+			actionResult.Msg = "user does not exist"
+			actionResult.Status = 400 //bad request
+			return actionResult, nil
+		}
+
+		return actionResult, nil
+	})
+
+	if result == nil {
+		return &pb.ActionResult{Msg: "error", Status: 500}, err
+	} else {
+		return result.(*pb.ActionResult), err
+	}
+}
+
+func (store *ConnectionDBStore) GetRecommendation(userID string) ([]*domain.UserConn, error) {
+
+	/*
+		useru koji salje zahtevm, preporucicemo mu 20 prijatelje njegovih prijatelja
+		ali necemo mu preporuciti one koje je on blokirao ili koji su njega blokirali
+
+		takodje dobice jos do 20 preporuka ostlaih usera koji se ne nalaze u prvom skupu
+
+		Metoda GetRecommendation vraca ukupno do 40 disjunktih preporuka
+			- do 20 preporuka na osnovu prijatelja
+			- do 20 preporuka random
+
+	*/
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	recommendation, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+
+		var recommendation []*domain.UserConn
+
+		friendsOfFriends, err1 := getFriendsOfFriendsButNotBlockedRecommendation(userID, transaction)
+		if err1 != nil {
+			return recommendation, err1
+		}
+
+		for _, recommend := range friendsOfFriends {
+			recommendation = append(recommendation, recommend)
+		}
+
+		famousRecom, err2 := getFriendRecommendation(userID, transaction)
+		if err2 != nil {
+			return recommendation, err2
+		}
+
+		var addNewRecommend bool = true
+		for _, recommend := range famousRecom {
+			addNewRecommend = true
+			for _, r := range recommendation {
+				if recommend.UserID == r.UserID {
+					addNewRecommend = false
+					break
+				}
+			}
+			if addNewRecommend {
+				recommendation = append(recommendation, recommend)
+			}
+		}
+
+		return recommendation, err1
+
+	})
+	if err != nil || recommendation == nil {
+		return nil, err
+	}
+
+	return recommendation.([]*domain.UserConn), nil
+}
