@@ -49,15 +49,7 @@ func (server *Server) initNeo4J() *neo4j.Driver {
 
 func (server *Server) initConnectionStore(client *neo4j.Driver) domain.ConnectionStore {
 	store := persistence.NewConnectionDBStore(client)
-	/*
-		store.DeleteAll()
-		for _, product := range products {
-			err := store.Insert(product)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-	*/
+	store.Init()
 	return store
 }
 

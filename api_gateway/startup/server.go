@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	cfg "github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
@@ -65,17 +67,25 @@ func (server *Server) initHandlers() {
 
 func (server *Server) initCustomHandlers() {
 
-	/*
-		catalogueEmdpoint := fmt.Sprintf("%s:%s", server.config.CatalogueHost, server.config.CataloguePort)
-		orderingEmdpoint := fmt.Sprintf("%s:%s", server.config.OrderingHost, server.config.OrderingPort)
-		shippingEmdpoint := fmt.Sprintf("%s:%s", server.config.ShippingHost, server.config.ShippingPort)
-	*/
+	authEmdpoint := fmt.Sprintf("%s:%s", server.config.AuthHost, server.config.AuthPort)
+	profileEmdpoint := fmt.Sprintf("%s:%s", server.config.ProfileHost, server.config.ProfilePort)
+	connectionsEmdpoint := fmt.Sprintf("%s:%s", server.config.ConnectionHost, server.config.ConnectionPort)
+	//postEmdpoint := fmt.Sprintf("%s:%s", server.config.ShippingHost, server.config.ShippingPort)
 
 	orderingHandler := api.NewPostHandler("localhost:8080")
 	orderingHandler.Init(server.mux)
 
+	registerHandler := api.NewRegistrationHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
+	registerHandler.Init(server.mux)
+
 }
 
 func (server *Server) Start() {
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", server.config.Port), server.mux))
+
+	ch := handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
+		handlers.AllowedHeaders([]string{"Accept", "Accept-Language", "Content-Type", "Content-Language", "Origin"}),
+	)
+
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", server.config.Port), ch(server.mux)))
 }

@@ -145,3 +145,7 @@ func appendUser(destination *[]*domain.Profile, source *domain.Profile) {
 	}
 	*destination = append(*destination, source)
 }
+
+func (store *ProfileMongoDbStore) DeleteAll(ctx context.Context) {
+	store.profiles.DeleteMany(context.TODO(), bson.D{{}})
+}

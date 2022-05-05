@@ -1,6 +1,7 @@
 package startup
 
 import (
+	"context"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/interceptors"
 	profile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
@@ -46,6 +47,15 @@ func (server *Server) initMongoClient() *mongo.Client {
 
 func (server *Server) initProfileStore(client *mongo.Client) persistence.ProfileStore {
 	store := persistence.NewProfileMongoDbStore(client)
+
+	store.DeleteAll(context.TODO())
+	for _, user := range users {
+		err := store.Insert(context.TODO(), user)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	return store
 }
 

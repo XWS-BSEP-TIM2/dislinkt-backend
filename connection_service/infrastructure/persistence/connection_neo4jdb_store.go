@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
@@ -20,6 +21,28 @@ func NewConnectionDBStore(client *neo4j.Driver) domain.ConnectionStore {
 	return &ConnectionDBStore{
 		connectionDB: client,
 	}
+}
+
+func (store *ConnectionDBStore) Init() {
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		errClear := clearGraphDB(transaction)
+		if errClear != nil {
+			return nil, errClear
+		}
+		errInit := initGraphDB(transaction)
+		return nil, errInit
+	})
+
+	if err != nil {
+		fmt.Println("Connection Graph Database INIT FAILED!!! ", err.Error())
+	} else {
+		fmt.Println("Connection Graph Database INIT")
+	}
+
 }
 
 func (store *ConnectionDBStore) GetFriends(userID string) ([]domain.UserConn, error) {
@@ -95,8 +118,8 @@ func (store *ConnectionDBStore) Register(userID string, isPublic bool) (*pb.Acti
 		}
 
 		_, err := transaction.Run(
-			"CREATE (new_user:USER{userID:$userID, isPublic:$isPublic})",
-			map[string]interface{}{"userID": userID, "isPublic": isPublic})
+			"CREATE (new_user:USER{userID:$userID, isPrivate:$isPrivate})",
+			map[string]interface{}{"userID": userID, "isPrivate": isPublic}) //TODO: promeniti u proto da bude isPrivate a ne isPublic, u Neo4J je isPrivate
 
 		if err != nil {
 			actionResult.Msg = "error while creating new node with ID:" + userID
@@ -110,7 +133,11 @@ func (store *ConnectionDBStore) Register(userID string, isPublic bool) (*pb.Acti
 		return actionResult, err
 	})
 
-	return result.(*pb.ActionResult), err
+	if result == nil {
+		return &pb.ActionResult{Msg: "error", Status: 500}, err
+	} else {
+		return result.(*pb.ActionResult), err
+	}
 }
 func (store *ConnectionDBStore) AddFriend(userIDa, userIDb string) (*pb.ActionResult, error) {
 	/*

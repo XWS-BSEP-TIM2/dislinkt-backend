@@ -12,4 +12,5 @@ type ProfileStore interface {
 	Insert(ctx context.Context, profile *domain.Profile) error
 	Update(ctx context.Context, profile *domain.Profile) error
 	Search(ctx context.Context, search string) ([]*domain.Profile, error)
+	DeleteAll(ctx context.Context)
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/infrastructure/api/mapper"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/utils"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -31,20 +30,22 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 		return &pb.RegisterResponse{
 			Status: http.StatusUnprocessableEntity,
 			Error:  "Username is not unique",
+			UserID: "",
 		}, nil
 	}
 	user.Username = request.Data.GetUsername()
 	user.Password = request.Data.GetPassword()
-	createProfileDto := mapper.ProtoToCreateProfileDto(request)
 
-	err := handler.service.Create(ctx, &user, &createProfileDto)
+	userID, err := handler.service.Create(ctx, &user) //userID
 	if err != nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusUnauthorized,
+			UserID: "",
 		}, err
 	}
 	return &pb.RegisterResponse{
 		Status: http.StatusCreated,
+		UserID: userID,
 	}, nil
 
 }
