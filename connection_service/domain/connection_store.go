@@ -13,4 +13,5 @@ type ConnectionStore interface {
 	RemoveFriend(userIDa, userIDb string) (*pb.ActionResult, error)
 	UnblockUser(userIDa, userIDb string) (*pb.ActionResult, error)
 	GetRecommendation(userID string) ([]*UserConn, error)
+	Init()
 }

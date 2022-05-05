@@ -139,3 +139,17 @@ func getFriendRecommendation(userID string, transaction neo4j.Transaction) ([]*d
 	}
 	return recommendation, nil
 }
+
+func clearGraphDB(transaction neo4j.Transaction) error {
+	_, err := transaction.Run(
+		"MATCH (n) DETACH DELETE n",
+		map[string]interface{}{})
+	return err
+}
+
+func initGraphDB(transaction neo4j.Transaction) error {
+	_, err := transaction.Run(
+		"CREATE  (rasti:USER{userID: \"62744a44e94b20f4f5768cc7\", username: \"rasti\", isPrivate : false}),  (zarko:USER{userID: \"62744a44e94b20f4f5768cb7\", username: \"zarkoo\", isPrivate : false}),  (tara:USER{userID: \"62744a44e94b20f4f5768cbc\", username: \"Jelovceva\", isPrivate : false}),  (djordje:USER{userID: \"62744a44e94b20f4f5768cc2\", username: \"djole\", isPrivate : false}),      (srdjan:USER{userID: \"62744a44e94b20f4f5768cb4\", username: \"srdjan\", isPrivate : false}),  (marko:USER{userID: \"62744a44e94b20f4f5768cb3\", username: \"marko99\", isPrivate : false}),  (nikola:USER{userID: \"62744a44e94b20f4f5768cb5\", username: \"nikola93\", isPrivate : false}),    (svetozar:USER{userID: \"62744a44e94b20f4f5768cb6\", username: \"svetozar\", isPrivate : false}),      (rasti) -[:FRIEND]-> (zarko),  (rasti) <-[:FRIEND]- (zarko),  (rasti) -[:FRIEND]-> (tara),  (rasti) <-[:FRIEND]- (tara),  (rasti) -[:FRIEND]-> (djordje),  (rasti) <-[:FRIEND]- (djordje),  (rasti) -[:FRIEND]-> (srdjan),  (rasti) <-[:FRIEND]- (srdjan),  (rasti) -[:FRIEND]-> (marko),  (rasti) <-[:FRIEND]- (marko),  (rasti) -[:FRIEND]-> (nikola),  (rasti) <-[:FRIEND]- (nikola),  (rasti) -[:FRIEND]-> (svetozar),  (rasti) <-[:FRIEND]- (svetozar),    (zarko) -[:FRIEND]-> (tara),  (zarko) <-[:FRIEND]- (tara),  (zarko) -[:FRIEND]-> (djordje),  (zarko) <-[:FRIEND]- (djordje),  (zarko) -[:FRIEND]-> (svetozar),  (zarko) <-[:FRIEND]- (svetozar),    (tara) -[:FRIEND]-> (djordje),  (tara) <-[:FRIEND]- (djordje),  (tara) -[:FRIEND]-> (svetozar),  (tara) <-[:FRIEND]- (svetozar),    (djordje) -[:FRIEND]-> (srdjan),  (djordje) <-[:FRIEND]- (srdjan),    (marko) -[:BLOCK]-> (djordje),  (tara) -[:BLOCK]-> (marko)   ",
+		map[string]interface{}{})
+	return err
+}

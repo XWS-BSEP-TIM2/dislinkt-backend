@@ -1,6 +1,7 @@
 package startup
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/application"
@@ -46,6 +47,13 @@ func (server *Server) initMongoClient() *mongo.Client {
 
 func (server *Server) initCredentialStore(client *mongo.Client) domain.UserStore {
 	store := persistence.NewCredentialsMongoDBStore(client)
+	store.DeleteAll(context.TODO())
+	for _, user := range users {
+		err, _ := store.Insert(context.TODO(), user)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 	return store
 }
 
