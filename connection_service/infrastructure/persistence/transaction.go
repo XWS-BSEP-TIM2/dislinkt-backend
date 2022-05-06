@@ -102,7 +102,7 @@ func getFriendsOfFriendsButNotBlockedRecommendation(userID string, transaction n
 			"WHERE u1.userID=$uID AND u3.userID<>$uID "+
 			"AND NOT exists((u1)-[:FRIEND]-(u3)) "+
 			"AND NOT exists((u1)-[:BLOCK]-(u3)) "+
-			"RETURN distinct u3.userID, u3.isPublic "+
+			"RETURN distinct u3.userID, u3.isPrivate "+
 			"LIMIT 20 ",
 		map[string]interface{}{"uID": userID})
 
@@ -124,7 +124,7 @@ func getFriendRecommendation(userID string, transaction neo4j.Transaction) ([]*d
 			"WHERE u1.userID=$uID AND u2.userID<>$uID "+
 			"AND NOT exists((u1)-[:FRIEND]-(u2)) "+
 			"AND NOT exists((u1)-[:BLOCK]-(u2)) "+
-			"RETURN distinct u2.userID, u2.isPublic, COUNT(r) as num_of_friends "+
+			"RETURN distinct u2.userID, u2.isPrivate, COUNT(r) as num_of_friends "+
 			"ORDER BY num_of_friends DESC "+
 			"LIMIT 20 ",
 		map[string]interface{}{"uID": userID})
@@ -149,7 +149,7 @@ func clearGraphDB(transaction neo4j.Transaction) error {
 
 func initGraphDB(transaction neo4j.Transaction) error {
 	_, err := transaction.Run(
-		"CREATE  (rasti:USER{userID: \"62744a44e94b20f4f5768cc7\", username: \"rasti\", isPrivate : false}),  (zarko:USER{userID: \"62744a44e94b20f4f5768cb7\", username: \"zarkoo\", isPrivate : false}),  (tara:USER{userID: \"62744a44e94b20f4f5768cbc\", username: \"Jelovceva\", isPrivate : false}),  (djordje:USER{userID: \"62744a44e94b20f4f5768cc2\", username: \"djole\", isPrivate : false}),      (srdjan:USER{userID: \"62744a44e94b20f4f5768cb4\", username: \"srdjan\", isPrivate : false}),  (marko:USER{userID: \"62744a44e94b20f4f5768cb3\", username: \"marko99\", isPrivate : false}),  (nikola:USER{userID: \"62744a44e94b20f4f5768cb5\", username: \"nikola93\", isPrivate : false}),    (svetozar:USER{userID: \"62744a44e94b20f4f5768cb6\", username: \"svetozar\", isPrivate : false}),      (rasti) -[:FRIEND]-> (zarko),  (rasti) <-[:FRIEND]- (zarko),  (rasti) -[:FRIEND]-> (tara),  (rasti) <-[:FRIEND]- (tara),  (rasti) -[:FRIEND]-> (djordje),  (rasti) <-[:FRIEND]- (djordje),  (rasti) -[:FRIEND]-> (srdjan),  (rasti) <-[:FRIEND]- (srdjan),  (rasti) -[:FRIEND]-> (marko),  (rasti) <-[:FRIEND]- (marko),  (rasti) -[:FRIEND]-> (nikola),  (rasti) <-[:FRIEND]- (nikola),  (rasti) -[:FRIEND]-> (svetozar),  (rasti) <-[:FRIEND]- (svetozar),    (zarko) -[:FRIEND]-> (tara),  (zarko) <-[:FRIEND]- (tara),  (zarko) -[:FRIEND]-> (djordje),  (zarko) <-[:FRIEND]- (djordje),  (zarko) -[:FRIEND]-> (svetozar),  (zarko) <-[:FRIEND]- (svetozar),    (tara) -[:FRIEND]-> (djordje),  (tara) <-[:FRIEND]- (djordje),  (tara) -[:FRIEND]-> (svetozar),  (tara) <-[:FRIEND]- (svetozar),    (djordje) -[:FRIEND]-> (srdjan),  (djordje) <-[:FRIEND]- (srdjan),    (marko) -[:BLOCK]-> (djordje),  (tara) -[:BLOCK]-> (marko)   ",
+		"CREATE  (rasti:USER{userID: \"62752bf27407f54ce1839cb9\", username: \"rasti\", isPrivate : false}),  (zarko:USER{userID: \"62752bf27407f54ce1839cb6\", username: \"zarkoo\", isPrivate : false}),  (tara:USER{userID: \"62752bf27407f54ce1839cb7\", username: \"Jelovceva\", isPrivate : false}),  (djordje:USER{userID: \"62752bf27407f54ce1839cb8\", username: \"djole\", isPrivate : false}),      (srdjan:USER{userID: \"62752bf27407f54ce1839cb3\", username: \"srdjan\", isPrivate : false}),  (marko:USER{userID: \"62752bf27407f54ce1839cb2\", username: \"marko99\", isPrivate : false}),  (nikola:USER{userID: \"62752bf27407f54ce1839cb4\", username: \"nikola93\", isPrivate : false}),    (svetozar:USER{userID: \"62752bf27407f54ce1839cb5\", username: \"svetozar\", isPrivate : false}),      (rasti) -[:FRIEND]-> (zarko),  (rasti) <-[:FRIEND]- (zarko),  (rasti) -[:FRIEND]-> (tara),  (rasti) <-[:FRIEND]- (tara),  (rasti) -[:FRIEND]-> (djordje),  (rasti) <-[:FRIEND]- (djordje),  (rasti) -[:FRIEND]-> (srdjan),  (rasti) <-[:FRIEND]- (srdjan),  (rasti) -[:FRIEND]-> (marko),  (rasti) <-[:FRIEND]- (marko),  (rasti) -[:FRIEND]-> (nikola),  (rasti) <-[:FRIEND]- (nikola),  (rasti) -[:FRIEND]-> (svetozar),  (rasti) <-[:FRIEND]- (svetozar),    (zarko) -[:FRIEND]-> (tara),  (zarko) <-[:FRIEND]- (tara),  (zarko) -[:FRIEND]-> (djordje),  (zarko) <-[:FRIEND]- (djordje),  (zarko) -[:FRIEND]-> (svetozar),  (zarko) <-[:FRIEND]- (svetozar),    (tara) -[:FRIEND]-> (djordje),  (tara) <-[:FRIEND]- (djordje),  (tara) -[:FRIEND]-> (svetozar),  (tara) <-[:FRIEND]- (svetozar),    (djordje) -[:FRIEND]-> (srdjan),  (djordje) <-[:FRIEND]- (srdjan),    (marko) -[:BLOCK]-> (djordje),  (tara) -[:BLOCK]-> (marko)  ",
 		map[string]interface{}{})
 	return err
 }

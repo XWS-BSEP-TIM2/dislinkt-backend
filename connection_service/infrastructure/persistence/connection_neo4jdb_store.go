@@ -52,7 +52,7 @@ func (store *ConnectionDBStore) GetFriends(userID string) ([]domain.UserConn, er
 
 	friends, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
-			"MATCH (this_user:USER) -[:FRIEND]-> (my_friend:USER) WHERE this_user.userID=$uID RETURN my_friend.userID, my_friend.isPublic",
+			"MATCH (this_user:USER) -[:FRIEND]-> (my_friend:USER) WHERE this_user.userID=$uID RETURN my_friend.userID, my_friend.isPrivate",
 			map[string]interface{}{"uID": userID})
 
 		if err != nil {
@@ -80,7 +80,7 @@ func (store *ConnectionDBStore) GetBlockeds(userID string) ([]domain.UserConn, e
 
 	blockedUsers, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
-			"MATCH (this_user:USER) -[:BLOCK]-> (my_friend:USER) WHERE this_user.userID=$uID RETURN my_friend.userID, my_friend.isPublic",
+			"MATCH (this_user:USER) -[:BLOCK]-> (my_friend:USER) WHERE this_user.userID=$uID RETURN my_friend.userID, my_friend.isPrivate",
 			map[string]interface{}{"uID": userID})
 
 		if err != nil {

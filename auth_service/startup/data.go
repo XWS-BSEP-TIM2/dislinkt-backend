@@ -7,49 +7,49 @@ import (
 
 var users = []*domain.User{
 	{
-		Id:       getObjectId("ID000001"),
+		Id:       getIdFromHex("62752bf27407f54ce1839cb2"),
 		Username: "marko99",
 		Password: "pass",
 		Role:     domain.USER,
 	},
 	{
-		Id:       getObjectId("ID000002"),
+		Id:       getIdFromHex("62752bf27407f54ce1839cb3"),
 		Username: "srdjan",
 		Password: "pass",
 		Role:     domain.USER,
 	},
 	{
-		Id:       getObjectId("ID000003"),
+		Id:       getIdFromHex("62752bf27407f54ce1839cb4"),
 		Username: "nikola93",
 		Password: "pass",
 		Role:     domain.USER,
 	},
 	{
-		Id:       getObjectId("ID000004"),
+		Id:       getIdFromHex("62752bf27407f54ce1839cb5"),
 		Username: "svetozar",
 		Password: "pass",
 		Role:     domain.USER,
 	},
 	{
-		Id:       getObjectId("ID000005"),
+		Id:       getIdFromHex("62752bf27407f54ce1839cb6"),
 		Username: "zarkoo",
 		Password: "pass",
 		Role:     domain.USER,
 	},
 	{
-		Id:       getObjectId("ID000006"),
-		Username: "tara",
+		Id:       getIdFromHex("62752bf27407f54ce1839cb7"),
+		Username: "Jelovceva",
 		Password: "pass",
 		Role:     domain.USER,
 	},
 	{
-		Id:       getObjectId("ID000007"),
+		Id:       getIdFromHex("62752bf27407f54ce1839cb8"),
 		Username: "djordje",
 		Password: "pass",
 		Role:     domain.USER,
 	},
 	{
-		Id:       getObjectId("ID000008"),
+		Id:       getIdFromHex("62752bf27407f54ce1839cb9"),
 		Username: "rasti",
 		Password: "pass",
 		Role:     domain.USER,
@@ -60,5 +60,11 @@ func getObjectId(id string) primitive.ObjectID {
 	if objectId, err := primitive.ObjectIDFromHex(id); err == nil {
 		return objectId
 	}
+
 	return primitive.NewObjectID()
+}
+
+func getIdFromHex(userID string) primitive.ObjectID {
+	id, _ := primitive.ObjectIDFromHex(userID)
+	return id
 }
