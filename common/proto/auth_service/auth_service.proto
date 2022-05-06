@@ -57,6 +57,7 @@ message LoginResponse {
   string token = 3;
   string username=4;
   string role=5;
+  string userID = 6;
 }
 
 // Validate

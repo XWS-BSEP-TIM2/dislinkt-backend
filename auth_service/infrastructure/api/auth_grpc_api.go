@@ -76,6 +76,7 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		Token:    token,
 		Role:     domain.ConvertRoleToString(user.Role),
 		Username: user.Username,
+		UserID:   user.Id.Hex(),
 	}, nil
 }
 
