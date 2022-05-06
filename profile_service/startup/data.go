@@ -8,7 +8,7 @@ import (
 
 var users = []*domain.Profile{
 	{
-		Id:          getObjectId("ID000001"),
+		Id:          getIdFromHex("62752bf27407f54ce1839cb2"),
 		Name:        "Marko",
 		Surname:     "Markovic",
 		Username:    "marko99",
@@ -22,7 +22,7 @@ var users = []*domain.Profile{
 		Experiences: []domain.Experience{},
 	},
 	{
-		Id:          getObjectId("ID000002"),
+		Id:          getIdFromHex("62752bf27407f54ce1839cb3"),
 		Name:        "Srdjan",
 		Surname:     "Srdjanovic",
 		Username:    "srdjan",
@@ -36,7 +36,7 @@ var users = []*domain.Profile{
 		Experiences: []domain.Experience{},
 	},
 	{
-		Id:          getObjectId("ID000003"),
+		Id:          getIdFromHex("62752bf27407f54ce1839cb4"),
 		Name:        "Nikola",
 		Surname:     "Luburic",
 		Username:    "nikola93",
@@ -50,7 +50,7 @@ var users = []*domain.Profile{
 		Experiences: []domain.Experience{},
 	},
 	{
-		Id:          getObjectId("ID000004"),
+		Id:          getIdFromHex("62752bf27407f54ce1839cb5"),
 		Name:        "Sveto",
 		Surname:     "Svetozar",
 		Username:    "svetozar",
@@ -64,7 +64,7 @@ var users = []*domain.Profile{
 		Experiences: []domain.Experience{},
 	},
 	{
-		Id:          getObjectId("ID000005"),
+		Id:          getIdFromHex("62752bf27407f54ce1839cb6"),
 		Name:        "Zarko",
 		Surname:     "Blagojevic",
 		Username:    "zarkoo",
@@ -103,7 +103,7 @@ var users = []*domain.Profile{
 		},
 	},
 	{
-		Id:          getObjectId("ID000006"),
+		Id:          getIdFromHex("62752bf27407f54ce1839cb7"),
 		Name:        "Tara",
 		Surname:     "Pogancev",
 		Username:    "Jelovceva",
@@ -147,7 +147,7 @@ var users = []*domain.Profile{
 		},
 	},
 	{
-		Id:          getObjectId("ID000007"),
+		Id:          getIdFromHex("62752bf27407f54ce1839cb8"),
 		Name:        "Djordje",
 		Surname:     "Krsmanovic",
 		Username:    "djole",
@@ -186,7 +186,7 @@ var users = []*domain.Profile{
 		},
 	},
 	{
-		Id:          getObjectId("ID000008"),
+		Id:          getIdFromHex("62752bf27407f54ce1839cb9"),
 		Name:        "Rastislav",
 		Surname:     "Kukucka",
 		Username:    "rasti",
@@ -231,4 +231,9 @@ func getObjectId(id string) primitive.ObjectID {
 		return objectId
 	}
 	return primitive.NewObjectID()
+}
+
+func getIdFromHex(userID string) primitive.ObjectID {
+	id, _ := primitive.ObjectIDFromHex(userID)
+	return id
 }

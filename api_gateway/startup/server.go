@@ -4,21 +4,17 @@ import (
 	"context"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/api"
-	"log"
-	"net/http"
-
-	"github.com/gorilla/handlers"
-
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-
 	cfg "github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
-
 	authGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	connectionGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	postGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	profileGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	"github.com/gorilla/handlers"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"log"
+	"net/http"
 )
 
 type Server struct {
@@ -78,13 +74,17 @@ func (server *Server) initCustomHandlers() {
 	registerHandler := api.NewRegistrationHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
 	registerHandler.Init(server.mux)
 
+	connectionRecommendationHandler := api.NewConnectionRecommendationHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
+	connectionRecommendationHandler.Init(server.mux)
+
 }
 
 func (server *Server) Start() {
 
-	ch := handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
-		handlers.AllowedHeaders([]string{"Accept", "Accept-Language", "Content-Type", "Content-Language", "Origin"}),
+	ch := handlers.CORS(
+		handlers.AllowedOrigins([]string{"http://localhost:4200", "http://localhost:4200/**"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"Accept", "Accept-Language", "Content-Type", "Content-Language", "Origin", "Authorization"}),
 	)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", server.config.Port), ch(server.mux)))
