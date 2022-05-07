@@ -15,28 +15,33 @@ import (
 	"net/http"
 )
 
-type ConnectionRecommendationHandler struct {
+type ConnectionHandler struct {
 	authClientAddress        string
 	profileClientAddress     string
 	connectionsClientAddress string
 }
 
-func NewConnectionRecommendationHandler(authClientAddress, profileClientAddress, connectionsClientAddress string) Handler {
-	return &ConnectionRecommendationHandler{
+func NewConnectionHandler(authClientAddress, profileClientAddress, connectionsClientAddress string) Handler {
+	return &ConnectionHandler{
 		authClientAddress:        authClientAddress,
 		profileClientAddress:     profileClientAddress,
 		connectionsClientAddress: connectionsClientAddress,
 	}
 }
 
-func (handler *ConnectionRecommendationHandler) Init(mux *runtime.ServeMux) {
-	err := mux.HandlePath("GET", "/api/connection/recommendation", handler.Recommendation)
-	if err != nil {
-		panic(err)
+func (handler *ConnectionHandler) Init(mux *runtime.ServeMux) {
+	err1 := mux.HandlePath("GET", "/api/connection/recommendation", handler.Recommendation)
+	if err1 != nil {
+		panic(err1)
+	}
+
+	err2 := mux.HandlePath("GET", "/api/connection/friends/{userID}", handler.GetFriends)
+	if err2 != nil {
+		panic(err2)
 	}
 }
 
-func (handler *ConnectionRecommendationHandler) Recommendation(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+func (handler *ConnectionHandler) Recommendation(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 
 	token, err1 := apiUtils.GetJWTfromHTTPReq(r)
 	if err1 != nil {
@@ -84,4 +89,55 @@ func (handler *ConnectionRecommendationHandler) Recommendation(w http.ResponseWr
 	w.WriteHeader(http.StatusOK)
 	w.Write(response)
 
+}
+
+func (handler *ConnectionHandler) GetFriends(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+
+	targetUserID := pathParams["userID"]
+
+	token, err1 := apiUtils.GetJWTfromHTTPReq(r)
+	if err1 != nil {
+		fmt.Println(err1.Error())
+		http.Error(w, err1.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	authS := services.NewAuthClient(handler.authClientAddress)
+	_, err2 := authS.ExtractDataFromToken(context.TODO(), &pbAuth.ExtractDataFromTokenRequest{Token: token})
+	if err2 != nil {
+		fmt.Println(err2.Error())
+		http.Error(w, err2.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	ctx := grpcMetadata.AppendToOutgoingContext(r.Context(), "authorization", "Bearer "+token)
+
+	connectionService := services.NewConnectionClient(handler.connectionsClientAddress)
+	recommendations, err3 := connectionService.GetFriends(ctx, &pbConnection.GetRequest{UserID: targetUserID})
+	if err3 != nil {
+		fmt.Println(err3.Error())
+		http.Error(w, err3.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	profileService := services.NewProfileClient(handler.profileClientAddress)
+
+	var recommendationDTO []*DTO.ConnectionDTO
+
+	for _, v := range recommendations.Users {
+		profile, err := profileService.Get(ctx, &pbProfile.GetRequest{Id: v.UserID})
+		if err != nil {
+			fmt.Println(err.Error())
+			continue
+		}
+		recommendationDTO = append(recommendationDTO, DTO.MapConnectionDTO(profile.Profile))
+	}
+
+	response, errRes := json.Marshal(recommendationDTO)
+	if errRes != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }

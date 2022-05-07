@@ -7,8 +7,8 @@ import (
 
 func mapUserConn(userConn *domain.UserConn) *pb.User {
 	userConnPb := &pb.User{
-		UserID:   userConn.UserID,
-		IsPublic: userConn.IsPublic,
+		UserID:    userConn.UserID,
+		IsPrivate: userConn.IsPrivate,
 	}
 
 	return userConnPb

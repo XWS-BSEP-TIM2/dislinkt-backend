@@ -53,8 +53,8 @@ func (handler *ConnectionHandler) GetBlockeds(ctx context.Context, request *pb.G
 func (handler *ConnectionHandler) Register(ctx context.Context, request *pb.RegisterRequest) (*pb.ActionResult, error) {
 	fmt.Println("[ConnectionHandler]:Register")
 	userID := request.User.UserID
-	isPublic := request.User.IsPublic
-	return handler.service.Register(userID, isPublic)
+	isPrivate := request.User.IsPrivate
+	return handler.service.Register(userID, isPrivate)
 }
 func (handler *ConnectionHandler) AddFriend(ctx context.Context, request *pb.AddFriendRequest) (*pb.ActionResult, error) {
 	fmt.Println("[ConnectionHandler]:AddFriend")
@@ -96,4 +96,24 @@ func (handler *ConnectionHandler) GetRecommendation(ctx context.Context, request
 		response.Users = append(response.Users, mapUserConn(user))
 	}
 	return response, nil
+}
+
+func (handler *ConnectionHandler) SendFriendRequest(ctx context.Context, request *pb.SendFriendRequestRequest) (*pb.ActionResult, error) {
+	fmt.Println("[ConnectionHandler]:SendFriendRequest")
+	userIDa := request.SendFriendRequestRequestDTO.UserIDa
+	userIDb := request.SendFriendRequestRequestDTO.UserIDb
+	return handler.service.SendFriendRequest(userIDa, userIDb)
+}
+func (handler *ConnectionHandler) UnsendFriendRequest(ctx context.Context, request *pb.UnsendFriendRequestRequest) (*pb.ActionResult, error) {
+	fmt.Println("[ConnectionHandler]:UnsendFriendRequest")
+	userIDa := request.UnsendFriendRequestRequestDTO.UserIDa
+	userIDb := request.UnsendFriendRequestRequestDTO.UserIDb
+	return handler.service.UnsendFriendRequest(userIDa, userIDb)
+}
+
+func (handler *ConnectionHandler) GetConnectionDetail(ctx context.Context, request *pb.GetConnectionDetailRequest) (*pb.ConnectionDetail, error) {
+	fmt.Println("[ConnectionHandler]:GetConnectionDetail")
+	userIDa := request.UserIDa
+	userIDb := request.UserIDb
+	return handler.service.GetConnectionDetail(userIDa, userIDb)
 }

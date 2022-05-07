@@ -29,7 +29,10 @@ type ConnectionServiceClient interface {
 	RemoveFriend(ctx context.Context, in *RemoveFriendRequest, opts ...grpc.CallOption) (*ActionResult, error)
 	AddBlockUser(ctx context.Context, in *AddBlockUserRequest, opts ...grpc.CallOption) (*ActionResult, error)
 	UnblockUser(ctx context.Context, in *UnblockUserRequest, opts ...grpc.CallOption) (*ActionResult, error)
+	SendFriendRequest(ctx context.Context, in *SendFriendRequestRequest, opts ...grpc.CallOption) (*ActionResult, error)
+	UnsendFriendRequest(ctx context.Context, in *UnsendFriendRequestRequest, opts ...grpc.CallOption) (*ActionResult, error)
 	GetRecommendation(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error)
+	GetConnectionDetail(ctx context.Context, in *GetConnectionDetailRequest, opts ...grpc.CallOption) (*ConnectionDetail, error)
 }
 
 type connectionServiceClient struct {
@@ -103,9 +106,36 @@ func (c *connectionServiceClient) UnblockUser(ctx context.Context, in *UnblockUs
 	return out, nil
 }
 
+func (c *connectionServiceClient) SendFriendRequest(ctx context.Context, in *SendFriendRequestRequest, opts ...grpc.CallOption) (*ActionResult, error) {
+	out := new(ActionResult)
+	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/SendFriendRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *connectionServiceClient) UnsendFriendRequest(ctx context.Context, in *UnsendFriendRequestRequest, opts ...grpc.CallOption) (*ActionResult, error) {
+	out := new(ActionResult)
+	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/UnsendFriendRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *connectionServiceClient) GetRecommendation(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error) {
 	out := new(Users)
 	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/GetRecommendation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *connectionServiceClient) GetConnectionDetail(ctx context.Context, in *GetConnectionDetailRequest, opts ...grpc.CallOption) (*ConnectionDetail, error) {
+	out := new(ConnectionDetail)
+	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/GetConnectionDetail", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +153,10 @@ type ConnectionServiceServer interface {
 	RemoveFriend(context.Context, *RemoveFriendRequest) (*ActionResult, error)
 	AddBlockUser(context.Context, *AddBlockUserRequest) (*ActionResult, error)
 	UnblockUser(context.Context, *UnblockUserRequest) (*ActionResult, error)
+	SendFriendRequest(context.Context, *SendFriendRequestRequest) (*ActionResult, error)
+	UnsendFriendRequest(context.Context, *UnsendFriendRequestRequest) (*ActionResult, error)
 	GetRecommendation(context.Context, *GetRequest) (*Users, error)
+	GetConnectionDetail(context.Context, *GetConnectionDetailRequest) (*ConnectionDetail, error)
 	mustEmbedUnimplementedConnectionServiceServer()
 }
 
@@ -152,8 +185,17 @@ func (UnimplementedConnectionServiceServer) AddBlockUser(context.Context, *AddBl
 func (UnimplementedConnectionServiceServer) UnblockUser(context.Context, *UnblockUserRequest) (*ActionResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnblockUser not implemented")
 }
+func (UnimplementedConnectionServiceServer) SendFriendRequest(context.Context, *SendFriendRequestRequest) (*ActionResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendFriendRequest not implemented")
+}
+func (UnimplementedConnectionServiceServer) UnsendFriendRequest(context.Context, *UnsendFriendRequestRequest) (*ActionResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnsendFriendRequest not implemented")
+}
 func (UnimplementedConnectionServiceServer) GetRecommendation(context.Context, *GetRequest) (*Users, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRecommendation not implemented")
+}
+func (UnimplementedConnectionServiceServer) GetConnectionDetail(context.Context, *GetConnectionDetailRequest) (*ConnectionDetail, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConnectionDetail not implemented")
 }
 func (UnimplementedConnectionServiceServer) mustEmbedUnimplementedConnectionServiceServer() {}
 
@@ -294,6 +336,42 @@ func _ConnectionService_UnblockUser_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ConnectionService_SendFriendRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendFriendRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectionServiceServer).SendFriendRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/connection_service.ConnectionService/SendFriendRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectionServiceServer).SendFriendRequest(ctx, req.(*SendFriendRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConnectionService_UnsendFriendRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnsendFriendRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectionServiceServer).UnsendFriendRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/connection_service.ConnectionService/UnsendFriendRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectionServiceServer).UnsendFriendRequest(ctx, req.(*UnsendFriendRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ConnectionService_GetRecommendation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRequest)
 	if err := dec(in); err != nil {
@@ -308,6 +386,24 @@ func _ConnectionService_GetRecommendation_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ConnectionServiceServer).GetRecommendation(ctx, req.(*GetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConnectionService_GetConnectionDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConnectionDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectionServiceServer).GetConnectionDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/connection_service.ConnectionService/GetConnectionDetail",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectionServiceServer).GetConnectionDetail(ctx, req.(*GetConnectionDetailRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -348,8 +444,20 @@ var ConnectionService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ConnectionService_UnblockUser_Handler,
 		},
 		{
+			MethodName: "SendFriendRequest",
+			Handler:    _ConnectionService_SendFriendRequest_Handler,
+		},
+		{
+			MethodName: "UnsendFriendRequest",
+			Handler:    _ConnectionService_UnsendFriendRequest_Handler,
+		},
+		{
 			MethodName: "GetRecommendation",
 			Handler:    _ConnectionService_GetRecommendation_Handler,
+		},
+		{
+			MethodName: "GetConnectionDetail",
+			Handler:    _ConnectionService_GetConnectionDetail_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
