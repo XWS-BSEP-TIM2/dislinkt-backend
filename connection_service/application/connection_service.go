@@ -24,7 +24,7 @@ func (service *ConnectionService) GetFriends(id string) ([]*domain.UserConn, err
 		return nil, nil
 	}
 	for _, s := range friends {
-		friendsRetVal = append(friendsRetVal, &domain.UserConn{UserID: s.UserID, IsPublic: s.IsPublic})
+		friendsRetVal = append(friendsRetVal, &domain.UserConn{UserID: s.UserID, IsPrivate: s.IsPrivate})
 	}
 	return friendsRetVal, nil
 }
@@ -38,7 +38,7 @@ func (service *ConnectionService) GetBlockeds(id string) ([]*domain.UserConn, er
 		return nil, nil
 	}
 	for _, s := range friends {
-		friendsRetVal = append(friendsRetVal, &domain.UserConn{UserID: s.UserID, IsPublic: s.IsPublic})
+		friendsRetVal = append(friendsRetVal, &domain.UserConn{UserID: s.UserID, IsPrivate: s.IsPrivate})
 	}
 	return friendsRetVal, nil
 }
@@ -65,4 +65,16 @@ func (service *ConnectionService) UnblockUser(userIDa, userIDb string) (*pb.Acti
 
 func (service *ConnectionService) GetRecommendation(userID string) ([]*domain.UserConn, error) {
 	return service.store.GetRecommendation(userID)
+}
+
+func (service *ConnectionService) SendFriendRequest(userIDa, userIDb string) (*pb.ActionResult, error) {
+	return service.store.SendFriendRequest(userIDa, userIDb)
+}
+
+func (service *ConnectionService) UnsendFriendRequest(userIDa, userIDb string) (*pb.ActionResult, error) {
+	return service.store.UnsendFriendRequest(userIDa, userIDb)
+}
+
+func (service *ConnectionService) GetConnectionDetail(userIDa, userIDb string) (*pb.ConnectionDetail, error) {
+	return service.store.GetConnectionDetail(userIDa, userIDb)
 }

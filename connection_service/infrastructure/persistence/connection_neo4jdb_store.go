@@ -61,7 +61,7 @@ func (store *ConnectionDBStore) GetFriends(userID string) ([]domain.UserConn, er
 
 		var friends []domain.UserConn
 		for result.Next() {
-			friends = append(friends, domain.UserConn{UserID: result.Record().Values[0].(string), IsPublic: result.Record().Values[1].(bool)})
+			friends = append(friends, domain.UserConn{UserID: result.Record().Values[0].(string), IsPrivate: result.Record().Values[1].(bool)})
 		}
 		return friends, nil
 
@@ -89,7 +89,7 @@ func (store *ConnectionDBStore) GetBlockeds(userID string) ([]domain.UserConn, e
 
 		var friends []domain.UserConn
 		for result.Next() {
-			friends = append(friends, domain.UserConn{UserID: result.Record().Values[0].(string), IsPublic: result.Record().Values[1].(bool)})
+			friends = append(friends, domain.UserConn{UserID: result.Record().Values[0].(string), IsPrivate: result.Record().Values[1].(bool)})
 		}
 		return friends, nil
 
@@ -102,7 +102,7 @@ func (store *ConnectionDBStore) GetBlockeds(userID string) ([]domain.UserConn, e
 
 }
 
-func (store *ConnectionDBStore) Register(userID string, isPublic bool) (*pb.ActionResult, error) {
+func (store *ConnectionDBStore) Register(userID string, isPrivate bool) (*pb.ActionResult, error) {
 
 	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
@@ -119,7 +119,7 @@ func (store *ConnectionDBStore) Register(userID string, isPublic bool) (*pb.Acti
 
 		_, err := transaction.Run(
 			"CREATE (new_user:USER{userID:$userID, isPrivate:$isPrivate})",
-			map[string]interface{}{"userID": userID, "isPrivate": isPublic}) //TODO: promeniti u proto da bude isPrivate a ne isPublic, u Neo4J je isPrivate
+			map[string]interface{}{"userID": userID, "isPrivate": isPrivate}) //TODO: promeniti u proto da bude isPrivate a ne isPublic, u Neo4J je isPrivate
 
 		if err != nil {
 			actionResult.Msg = "error while creating new node with ID:" + userID
@@ -170,8 +170,27 @@ func (store *ConnectionDBStore) AddFriend(userIDa, userIDb string) (*pb.ActionRe
 					actionResult.Status = 400 //bad request
 					return actionResult, nil
 				} else {
-					// TODO: dodati naknadno provu da li je profil privatan ili public
 
+					isPrivate, err := isUserPrivate(userIDb, transaction)
+					if err != nil {
+						fmt.Println(err.Error())
+						actionResult.Msg = err.Error()
+						actionResult.Status = 400 //bad request
+						return actionResult, nil
+					}
+					if isPrivate {
+						// ako je profil privatan, onda uspeva samo ako je ovaj profil vec poslao zahtev pre
+						if checkIfFriendRequestExist(userIDb, userIDa, transaction) {
+							//ok postoji zahtev, mozemo spajati
+							removeFriendRequest(userIDb, userIDa, transaction)
+						} else {
+							actionResult.Msg = "error UserIDb:" + userIDb + " are private profile and do not exist friend request"
+							actionResult.Status = 400 //bad request
+							return actionResult, nil
+						}
+					}
+
+					// dodavanje prijatelja
 					dateNow := time.Now().Local().Unix()
 					result, err := transaction.Run(
 						"MATCH (u1:USER) WHERE u1.userID=$uIDa "+
@@ -187,6 +206,16 @@ func (store *ConnectionDBStore) AddFriend(userIDa, userIDb string) (*pb.ActionRe
 						return actionResult, err
 					}
 
+					// brisanje zahteva za prijateljstvo za slucaj kada:
+					// userA je privatan, i dobija request od userB
+					// userA nije odgovorio na request, al je promenio svoj nalog iz private u public
+					// u slucaju da mogu da se dodaju kao prijatelji onda treba obrisati ove veze
+					if checkIfFriendRequestExist(userIDa, userIDb, transaction) {
+						removeFriendRequest(userIDa, userIDb, transaction)
+					}
+					if checkIfFriendRequestExist(userIDb, userIDa, transaction) {
+						removeFriendRequest(userIDb, userIDa, transaction)
+					}
 				}
 			}
 		} else {
@@ -239,6 +268,12 @@ func (store *ConnectionDBStore) AddBlockUser(userIDa, userIDb string) (*pb.Actio
 				}
 				if checkIfFriendExist(userIDb, userIDa, transaction) {
 					removeFriend(userIDb, userIDa, transaction)
+				}
+				if checkIfFriendRequestExist(userIDa, userIDb, transaction) {
+					removeFriendRequest(userIDa, userIDb, transaction)
+				}
+				if checkIfFriendRequestExist(userIDb, userIDa, transaction) {
+					removeFriendRequest(userIDb, userIDa, transaction)
 				}
 				blockUser(userIDa, userIDb, transaction)
 
@@ -416,4 +451,201 @@ func (store *ConnectionDBStore) GetRecommendation(userID string) ([]*domain.User
 	}
 
 	return recommendation.([]*domain.UserConn), nil
+}
+
+func (store *ConnectionDBStore) SendFriendRequest(userIDa, userIDb string) (*pb.ActionResult, error) {
+	/*
+
+	 */
+
+	if userIDa == userIDb {
+		return &pb.ActionResult{Msg: "userIDa is same as userIDb", Status: 400}, nil
+	}
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+
+		actionResult := &pb.ActionResult{Msg: "msg", Status: 0}
+
+		if checkIfUserExist(userIDa, transaction) && checkIfUserExist(userIDb, transaction) {
+			if checkIfFriendExist(userIDa, userIDb, transaction) || checkIfFriendExist(userIDb, userIDa, transaction) {
+				actionResult.Msg = "users are already friends"
+				actionResult.Status = 400 //bad request
+				return actionResult, nil
+			} else {
+				if checkIfBlockExist(userIDa, userIDb, transaction) || checkIfBlockExist(userIDb, userIDa, transaction) {
+					actionResult.Msg = "block already exist"
+					actionResult.Status = 400 //bad request
+					return actionResult, nil
+				} else {
+					if checkIfFriendRequestExist(userIDa, userIDb, transaction) || checkIfFriendRequestExist(userIDb, userIDa, transaction) {
+						actionResult.Msg = "FriendRequest already exist"
+						actionResult.Status = 400 //bad request
+						return actionResult, nil
+					} else {
+
+						isPrivate, err := isUserPrivate(userIDb, transaction)
+						if err != nil {
+							fmt.Println(err.Error())
+							actionResult.Msg = err.Error()
+							actionResult.Status = 400 //bad request
+							return actionResult, nil
+						}
+
+						if isPrivate {
+							dateNow := time.Now().Local().Unix()
+							result, err := transaction.Run(
+								"MATCH (u1:USER) WHERE u1.userID=$uIDa "+
+									"MATCH (u2:USER) WHERE u2.userID=$uIDb "+
+									"CREATE (u1)-[r1:REQUEST {date: $dateNow}]->(u2) "+
+									"RETURN r1.date",
+								map[string]interface{}{"uIDa": userIDa, "uIDb": userIDb, "dateNow": dateNow})
+
+							if err != nil || result == nil {
+								actionResult.Msg = "error while creating new friends IDa:" + userIDa + " and IDb:" + userIDb
+								actionResult.Status = 501
+								return actionResult, err
+							}
+						} else {
+							actionResult.Msg = "error userIDb:" + userIDb + " is not private user"
+							actionResult.Status = 400 //bad request
+							return actionResult, nil
+						}
+					}
+				}
+			}
+		} else {
+			actionResult.Msg = "user does not exist"
+			actionResult.Status = 400 //bad request
+			return actionResult, nil
+		}
+
+		actionResult.Msg = "User UserIDa:" + userIDa + " successfully send request to UserIDb:" + userIDb
+		actionResult.Status = 201
+
+		return actionResult, nil
+	})
+
+	if result == nil {
+		return &pb.ActionResult{Msg: "error", Status: 500}, err
+	} else {
+		return result.(*pb.ActionResult), err
+	}
+}
+
+func (store *ConnectionDBStore) UnsendFriendRequest(userIDa, userIDb string) (*pb.ActionResult, error) {
+	/*
+		UserA moze da povuce zahtev za prijateljstvo samo ako je poslao
+	*/
+
+	if userIDa == userIDb {
+		return &pb.ActionResult{Msg: "userIDa is same as userIDb", Status: 400}, nil
+	}
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+
+		actionResult := &pb.ActionResult{Msg: "msg", Status: 0}
+
+		if checkIfUserExist(userIDa, transaction) && checkIfUserExist(userIDb, transaction) {
+			if checkIfBlockExist(userIDa, userIDb, transaction) || checkIfBlockExist(userIDb, userIDa, transaction) {
+				actionResult.Msg = "Users UserIDa:" + userIDa + " and UserIDb:" + userIDb + " are blocked"
+				actionResult.Status = 400 //bad request
+				return actionResult, nil
+			} else {
+				if checkIfFriendRequestExist(userIDa, userIDb, transaction) {
+					removeFriendRequest(userIDa, userIDb, transaction)
+					actionResult.Msg = "Users UserIDa:" + userIDa + " unsend friend request to UserIDb:" + userIDb
+					actionResult.Status = 200 //bad request
+					return actionResult, nil
+				} else {
+					actionResult.Msg = "friend request do not exist"
+					actionResult.Status = 400 //bad request
+					return actionResult, nil
+				}
+			}
+		} else {
+			actionResult.Msg = "user does not exist"
+			actionResult.Status = 400 //bad request
+			return actionResult, nil
+		}
+
+		return actionResult, nil
+	})
+
+	if result == nil {
+		return &pb.ActionResult{Msg: "error", Status: 500}, err
+	} else {
+		return result.(*pb.ActionResult), err
+	}
+}
+
+func (store *ConnectionDBStore) GetConnectionDetail(userIDa, userIDb string) (*pb.ConnectionDetail, error) {
+
+	/*
+
+	 */
+	if userIDa == userIDb {
+		return &pb.ConnectionDetail{Error: "userIDa is same as userIDb"}, nil
+	}
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+
+		connectionDetail := &pb.ConnectionDetail{UserIDa: userIDa, UserIDb: userIDb}
+
+		if checkIfUserExist(userIDa, transaction) && checkIfUserExist(userIDb, transaction) {
+
+			isPrivate, err := isUserPrivate(userIDb, transaction)
+			if err != nil {
+				connectionDetail.Error = err.Error()
+				return connectionDetail, err
+			}
+
+			connectionDetail.IsPrivate = isPrivate
+
+			if checkIfBlockExist(userIDa, userIDb, transaction) {
+				connectionDetail.Relation = "A_BLOCK_B"
+				return connectionDetail, nil
+			}
+			if checkIfBlockExist(userIDb, userIDa, transaction) {
+				connectionDetail.Relation = "B_BLOCK_A"
+				return connectionDetail, nil
+			}
+
+			if checkIfFriendExist(userIDa, userIDb, transaction) || checkIfFriendExist(userIDb, userIDa, transaction) {
+				connectionDetail.Relation = "CONNECTED"
+				return connectionDetail, nil
+			}
+
+			if checkIfFriendRequestExist(userIDa, userIDb, transaction) {
+				connectionDetail.Relation = "PENDING"
+				return connectionDetail, nil
+			}
+			if checkIfFriendRequestExist(userIDb, userIDa, transaction) {
+				connectionDetail.Relation = "ACCEPT"
+				return connectionDetail, nil
+			}
+
+			connectionDetail.Relation = "NO_RELATION"
+
+		} else {
+			connectionDetail.Error = "user does not exist"
+			return connectionDetail, nil
+		}
+
+		return connectionDetail, nil
+	})
+
+	if result == nil {
+		return &pb.ConnectionDetail{Error: "error"}, err
+	} else {
+		return result.(*pb.ConnectionDetail), err
+	}
 }

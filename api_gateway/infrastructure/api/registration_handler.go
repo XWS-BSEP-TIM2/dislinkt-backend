@@ -100,7 +100,7 @@ func (handler *RegistrationHandler) RegisterProfile(userID string, registerDTO D
 
 func (handler *RegistrationHandler) RegisterConnection(userID string, IsPrivate bool) error {
 	connectionService := services.NewConnectionClient(handler.connectionsClientAddress)
-	registrationResult, err := connectionService.Register(context.TODO(), &pbConnection.RegisterRequest{User: &pbConnection.User{UserID: userID, IsPublic: IsPrivate}})
+	registrationResult, err := connectionService.Register(context.TODO(), &pbConnection.RegisterRequest{User: &pbConnection.User{UserID: userID, IsPrivate: IsPrivate}})
 	fmt.Println(registrationResult)
 	if err != nil {
 		fmt.Println(err.Error())

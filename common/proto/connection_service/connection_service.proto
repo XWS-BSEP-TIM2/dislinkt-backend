@@ -55,9 +55,29 @@ service ConnectionService{
     };
   }
 
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (ActionResult) {
+    option (google.api.http) = {
+      post: "/connection/friend-request"
+      body:"sendFriendRequestRequestDTO"
+    };
+  }
+
+  rpc UnsendFriendRequest(UnsendFriendRequestRequest) returns (ActionResult) {
+    option (google.api.http) = {
+      post: "/connection/remove-friend-request"
+      body:"unsendFriendRequestRequestDTO"
+    };
+  }
+
   rpc GetRecommendation(GetRequest) returns(Users) {
     option (google.api.http) = {
       get: "/connection/recommendation/{userID}"
+    };
+  }
+
+  rpc GetConnectionDetail(GetConnectionDetailRequest) returns(ConnectionDetail) {
+    option (google.api.http) = {
+      get: "/connection/{userIDa}/detail/{userIDb}"
     };
   }
 
@@ -75,6 +95,14 @@ message AddFriendRequest{
 
 message RemoveFriendRequest{
   UserAction removeFriendDTO = 1;
+}
+
+message SendFriendRequestRequest{
+  UserAction sendFriendRequestRequestDTO = 1;
+}
+
+message UnsendFriendRequestRequest{
+  UserAction unsendFriendRequestRequestDTO = 1;
 }
 
 message AddBlockUserRequest{
@@ -102,9 +130,23 @@ message UserAction{
   string userIDb = 2;
 }
 
+message GetConnectionDetailRequest{
+  string userIDa = 1;
+  string userIDb = 2;
+}
+
+message ConnectionDetail{
+  string userIDa = 1;
+  string userIDb = 2;
+  bool isPrivate = 3;
+  string relation = 4;
+  string msgID = 5;
+  string error = 6;
+}
+
 message User {
   string userID = 1;
-  bool isPublic = 2;
+  bool isPrivate = 2;
 }
 
 message Users{

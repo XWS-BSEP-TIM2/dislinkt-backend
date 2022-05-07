@@ -74,7 +74,7 @@ func (server *Server) initCustomHandlers() {
 	registerHandler := api.NewRegistrationHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
 	registerHandler.Init(server.mux)
 
-	connectionRecommendationHandler := api.NewConnectionRecommendationHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
+	connectionRecommendationHandler := api.NewConnectionHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
 	connectionRecommendationHandler.Init(server.mux)
 
 }
