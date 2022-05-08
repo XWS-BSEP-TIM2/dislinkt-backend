@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ConnectionServiceClient interface {
 	GetFriends(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error)
 	GetBlockeds(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error)
+	GetFriendRequests(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*ActionResult, error)
 	AddFriend(ctx context.Context, in *AddFriendRequest, opts ...grpc.CallOption) (*ActionResult, error)
 	RemoveFriend(ctx context.Context, in *RemoveFriendRequest, opts ...grpc.CallOption) (*ActionResult, error)
@@ -55,6 +56,15 @@ func (c *connectionServiceClient) GetFriends(ctx context.Context, in *GetRequest
 func (c *connectionServiceClient) GetBlockeds(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error) {
 	out := new(Users)
 	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/GetBlockeds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *connectionServiceClient) GetFriendRequests(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error) {
+	out := new(Users)
+	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/GetFriendRequests", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +158,7 @@ func (c *connectionServiceClient) GetConnectionDetail(ctx context.Context, in *G
 type ConnectionServiceServer interface {
 	GetFriends(context.Context, *GetRequest) (*Users, error)
 	GetBlockeds(context.Context, *GetRequest) (*Users, error)
+	GetFriendRequests(context.Context, *GetRequest) (*Users, error)
 	Register(context.Context, *RegisterRequest) (*ActionResult, error)
 	AddFriend(context.Context, *AddFriendRequest) (*ActionResult, error)
 	RemoveFriend(context.Context, *RemoveFriendRequest) (*ActionResult, error)
@@ -169,6 +180,9 @@ func (UnimplementedConnectionServiceServer) GetFriends(context.Context, *GetRequ
 }
 func (UnimplementedConnectionServiceServer) GetBlockeds(context.Context, *GetRequest) (*Users, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBlockeds not implemented")
+}
+func (UnimplementedConnectionServiceServer) GetFriendRequests(context.Context, *GetRequest) (*Users, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFriendRequests not implemented")
 }
 func (UnimplementedConnectionServiceServer) Register(context.Context, *RegisterRequest) (*ActionResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
@@ -242,6 +256,24 @@ func _ConnectionService_GetBlockeds_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ConnectionServiceServer).GetBlockeds(ctx, req.(*GetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConnectionService_GetFriendRequests_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectionServiceServer).GetFriendRequests(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/connection_service.ConnectionService/GetFriendRequests",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectionServiceServer).GetFriendRequests(ctx, req.(*GetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -422,6 +454,10 @@ var ConnectionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBlockeds",
 			Handler:    _ConnectionService_GetBlockeds_Handler,
+		},
+		{
+			MethodName: "GetFriendRequests",
+			Handler:    _ConnectionService_GetFriendRequests_Handler,
 		},
 		{
 			MethodName: "Register",

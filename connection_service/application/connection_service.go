@@ -43,6 +43,10 @@ func (service *ConnectionService) GetBlockeds(id string) ([]*domain.UserConn, er
 	return friendsRetVal, nil
 }
 
+func (service *ConnectionService) GetFriendRequests(userID string) ([]domain.UserConn, error) {
+	return service.store.GetFriendRequests(userID)
+}
+
 func (service *ConnectionService) Register(userID string, isPublic bool) (*pb.ActionResult, error) {
 	return service.store.Register(userID, isPublic)
 }
