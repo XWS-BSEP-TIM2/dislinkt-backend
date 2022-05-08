@@ -20,6 +20,12 @@ service ConnectionService{
     };
   }
 
+  rpc GetFriendRequests(GetRequest) returns(Users) {
+    option (google.api.http) = {
+      get: "/connection/user/{userID}/friend-request"
+    };
+  }
+
   rpc Register(RegisterRequest) returns (ActionResult) {
     option (google.api.http) = {
       put: "/connection/register"

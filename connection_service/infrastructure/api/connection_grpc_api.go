@@ -50,6 +50,23 @@ func (handler *ConnectionHandler) GetBlockeds(ctx context.Context, request *pb.G
 	}
 	return response, nil
 }
+
+func (handler *ConnectionHandler) GetFriendRequests(ctx context.Context, request *pb.GetRequest) (*pb.Users, error) {
+	fmt.Println("[ConnectionHandler]:GetFriendRequests")
+
+	id := request.UserID
+	friendRequests, err := handler.service.GetFriendRequests(id)
+	if err != nil {
+		return nil, err
+	}
+	response := &pb.Users{}
+	for _, user := range friendRequests {
+		fmt.Println("User", id, "friend reqest to", user.UserID)
+		response.Users = append(response.Users, mapUserConn(&user))
+	}
+	return response, nil
+}
+
 func (handler *ConnectionHandler) Register(ctx context.Context, request *pb.RegisterRequest) (*pb.ActionResult, error) {
 	fmt.Println("[ConnectionHandler]:Register")
 	userID := request.User.UserID

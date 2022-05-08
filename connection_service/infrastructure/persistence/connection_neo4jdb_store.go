@@ -102,6 +102,33 @@ func (store *ConnectionDBStore) GetBlockeds(userID string) ([]domain.UserConn, e
 
 }
 
+func (store *ConnectionDBStore) GetFriendRequests(userID string) ([]domain.UserConn, error) {
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	friendsRequest, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			"MATCH (this_user:USER) <-[:REQUEST]- (user_requester:USER) WHERE this_user.userID=$uID RETURN user_requester.userID, user_requester.isPrivate",
+			map[string]interface{}{"uID": userID})
+
+		if err != nil {
+			return nil, err
+		}
+
+		var friendsRequest []domain.UserConn
+		for result.Next() {
+			friendsRequest = append(friendsRequest, domain.UserConn{UserID: result.Record().Values[0].(string), IsPrivate: result.Record().Values[1].(bool)})
+		}
+		return friendsRequest, nil
+
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return friendsRequest.([]domain.UserConn), nil
+}
+
 func (store *ConnectionDBStore) Register(userID string, isPrivate bool) (*pb.ActionResult, error) {
 
 	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})

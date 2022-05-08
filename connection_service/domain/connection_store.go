@@ -17,4 +17,5 @@ type ConnectionStore interface {
 	SendFriendRequest(userIDa, userIDb string) (*pb.ActionResult, error)
 	UnsendFriendRequest(userIDa, userIDb string) (*pb.ActionResult, error)
 	GetConnectionDetail(userIDa, userIDb string) (*pb.ConnectionDetail, error)
+	GetFriendRequests(userID string) ([]UserConn, error)
 }
