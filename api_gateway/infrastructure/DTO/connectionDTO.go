@@ -15,9 +15,9 @@ type ConnectionDTO struct {
 }
 
 type Skill struct {
-	Id   string
-	Name string
-	Type string
+	Id   string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"skillType"`
 }
 
 func MapConnectionDTO(profile *pbProfile.Profile) *ConnectionDTO {
