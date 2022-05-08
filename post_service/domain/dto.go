@@ -37,3 +37,8 @@ type LikeDetailsDTO struct {
 	Like   *Like
 	PostId primitive.ObjectID
 }
+
+type DislikeDetailsDTO struct {
+	Dislike *Dislike
+	PostId  primitive.ObjectID
+}

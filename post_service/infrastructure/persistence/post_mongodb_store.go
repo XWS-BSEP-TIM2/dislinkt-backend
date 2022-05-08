@@ -117,9 +117,9 @@ func (store *PostMongoDBStore) GetLike(postId primitive.ObjectID, likeId primiti
 	if err != nil {
 		panic(fmt.Errorf("Invalid post"))
 	}
-	for _, comment := range post.Likes {
-		if comment.Id == likeId {
-			return comment, nil
+	for _, like := range post.Likes {
+		if like.Id == likeId {
+			return like, nil
 		}
 	}
 	panic(errors.NewEntityNotFoundError("Like with given id not found."))
@@ -151,7 +151,76 @@ func (store *PostMongoDBStore) UndoLike(postId primitive.ObjectID, reactionId pr
 		panic(errors.NewEntityNotFoundError("Like with given id not found."))
 	}
 
-	post.Likes = RemoveIndex(post.Likes, index)
+	post.Likes = RemoveIndexLike(post.Likes, index)
+
+	err = store.Update(post)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (store *PostMongoDBStore) InsertDislike(postId primitive.ObjectID, dislike *domain.Dislike) error {
+	post, err := store.Get(postId)
+	if err != nil {
+		return err
+	}
+
+	for _, existingDislike := range post.Likes {
+		if dislike.OwnerId == existingDislike.OwnerId {
+			panic(errors.NewInvalidArgumentError("User cannot give dislike multiple times"))
+		}
+	}
+	dislike.Id = primitive.NewObjectID()
+	post.Dislikes = append(post.Dislikes, dislike)
+
+	err = store.Update(post)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (store *PostMongoDBStore) GetDislike(postId primitive.ObjectID, dislikeId primitive.ObjectID) (*domain.Dislike, error) {
+	post, err := store.Get(postId)
+	if err != nil {
+		panic(fmt.Errorf("Invalid post"))
+	}
+	for _, dislike := range post.Dislikes {
+		if dislike.Id == dislikeId {
+			return dislike, nil
+		}
+	}
+	panic(errors.NewEntityNotFoundError("Dislike with given id not found."))
+}
+
+func (store *PostMongoDBStore) GetDislikesForPost(postId primitive.ObjectID) ([]*domain.Dislike, error) {
+	post, err := store.Get(postId)
+	if err != nil {
+		panic(fmt.Errorf("Invalid post"))
+	}
+	return post.Dislikes, nil
+}
+
+func (store *PostMongoDBStore) UndoDislike(postId primitive.ObjectID, reactionId primitive.ObjectID) error {
+	post, err := store.Get(postId)
+	if err != nil {
+		return err
+	}
+
+	index := -1
+	for i, existingDislike := range post.Dislikes {
+		if reactionId == existingDislike.Id {
+			index = i
+			break
+
+		}
+	}
+	if index == -1 {
+		panic(errors.NewEntityNotFoundError("Dislike with given id not found."))
+	}
+
+	post.Dislikes = RemoveIndexDislike(post.Dislikes, index)
 
 	err = store.Update(post)
 	if err != nil {
@@ -193,6 +262,10 @@ func decode(cursor *mongo.Cursor) (posts []*domain.Post, err error) {
 	return
 }
 
-func RemoveIndex(s []*domain.Like, index int) []*domain.Like {
+func RemoveIndexLike(s []*domain.Like, index int) []*domain.Like {
+	return append(s[:index], s[index+1:]...)
+}
+
+func RemoveIndexDislike(s []*domain.Dislike, index int) []*domain.Dislike {
 	return append(s[:index], s[index+1:]...)
 }

@@ -34,6 +34,11 @@ type PostServiceClient interface {
 	GiveLike(ctx context.Context, in *CreateReactionRequest, opts ...grpc.CallOption) (*ReactionResponse, error)
 	GetLike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*ReactionResponse, error)
 	UndoLike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*EmptyRequest, error)
+	// dislikes
+	GetDislikes(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (*MultipleReactionsResponse, error)
+	GiveDislike(ctx context.Context, in *CreateReactionRequest, opts ...grpc.CallOption) (*ReactionResponse, error)
+	GetDislike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*ReactionResponse, error)
+	UndoDislike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*EmptyRequest, error)
 }
 
 type postServiceClient struct {
@@ -134,6 +139,42 @@ func (c *postServiceClient) UndoLike(ctx context.Context, in *GetSubresourceRequ
 	return out, nil
 }
 
+func (c *postServiceClient) GetDislikes(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (*MultipleReactionsResponse, error) {
+	out := new(MultipleReactionsResponse)
+	err := c.cc.Invoke(ctx, "/post_service.PostService/GetDislikes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) GiveDislike(ctx context.Context, in *CreateReactionRequest, opts ...grpc.CallOption) (*ReactionResponse, error) {
+	out := new(ReactionResponse)
+	err := c.cc.Invoke(ctx, "/post_service.PostService/GiveDislike", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) GetDislike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*ReactionResponse, error) {
+	out := new(ReactionResponse)
+	err := c.cc.Invoke(ctx, "/post_service.PostService/GetDislike", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) UndoDislike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*EmptyRequest, error) {
+	out := new(EmptyRequest)
+	err := c.cc.Invoke(ctx, "/post_service.PostService/UndoDislike", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostServiceServer is the server API for PostService service.
 // All implementations must embed UnimplementedPostServiceServer
 // for forward compatibility
@@ -150,6 +191,11 @@ type PostServiceServer interface {
 	GiveLike(context.Context, *CreateReactionRequest) (*ReactionResponse, error)
 	GetLike(context.Context, *GetSubresourceRequest) (*ReactionResponse, error)
 	UndoLike(context.Context, *GetSubresourceRequest) (*EmptyRequest, error)
+	// dislikes
+	GetDislikes(context.Context, *GetPostRequest) (*MultipleReactionsResponse, error)
+	GiveDislike(context.Context, *CreateReactionRequest) (*ReactionResponse, error)
+	GetDislike(context.Context, *GetSubresourceRequest) (*ReactionResponse, error)
+	UndoDislike(context.Context, *GetSubresourceRequest) (*EmptyRequest, error)
 	mustEmbedUnimplementedPostServiceServer()
 }
 
@@ -186,6 +232,18 @@ func (UnimplementedPostServiceServer) GetLike(context.Context, *GetSubresourceRe
 }
 func (UnimplementedPostServiceServer) UndoLike(context.Context, *GetSubresourceRequest) (*EmptyRequest, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UndoLike not implemented")
+}
+func (UnimplementedPostServiceServer) GetDislikes(context.Context, *GetPostRequest) (*MultipleReactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDislikes not implemented")
+}
+func (UnimplementedPostServiceServer) GiveDislike(context.Context, *CreateReactionRequest) (*ReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GiveDislike not implemented")
+}
+func (UnimplementedPostServiceServer) GetDislike(context.Context, *GetSubresourceRequest) (*ReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDislike not implemented")
+}
+func (UnimplementedPostServiceServer) UndoDislike(context.Context, *GetSubresourceRequest) (*EmptyRequest, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UndoDislike not implemented")
 }
 func (UnimplementedPostServiceServer) mustEmbedUnimplementedPostServiceServer() {}
 
@@ -380,6 +438,78 @@ func _PostService_UndoLike_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PostService_GetDislikes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GetDislikes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post_service.PostService/GetDislikes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GetDislikes(ctx, req.(*GetPostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_GiveDislike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateReactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GiveDislike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post_service.PostService/GiveDislike",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GiveDislike(ctx, req.(*CreateReactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_GetDislike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSubresourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GetDislike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post_service.PostService/GetDislike",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GetDislike(ctx, req.(*GetSubresourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_UndoDislike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSubresourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).UndoDislike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post_service.PostService/UndoDislike",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).UndoDislike(ctx, req.(*GetSubresourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PostService_ServiceDesc is the grpc.ServiceDesc for PostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -426,6 +556,22 @@ var PostService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UndoLike",
 			Handler:    _PostService_UndoLike_Handler,
+		},
+		{
+			MethodName: "GetDislikes",
+			Handler:    _PostService_GetDislikes_Handler,
+		},
+		{
+			MethodName: "GiveDislike",
+			Handler:    _PostService_GiveDislike_Handler,
+		},
+		{
+			MethodName: "GetDislike",
+			Handler:    _PostService_GetDislike_Handler,
+		},
+		{
+			MethodName: "UndoDislike",
+			Handler:    _PostService_UndoDislike_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

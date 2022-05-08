@@ -67,6 +67,29 @@ service PostService{
     };
   }
 
+  // dislikes
+  rpc GetDislikes(GetPostRequest) returns(MultipleReactionsResponse) {
+    option (google.api.http) = {
+      get: "/posts/{post_id}/dislikes"
+    };
+  }
+  rpc GiveDislike(CreateReactionRequest) returns(ReactionResponse) {
+    option (google.api.http) = {
+      post: "/posts/{post_id}/dislikes"
+      body: "new_reaction"
+    };
+  }
+  rpc GetDislike(GetSubresourceRequest) returns(ReactionResponse) {
+    option (google.api.http) = {
+      get: "/posts/{post_id}/dislikes/{subresource_id}"
+    };
+  }
+  rpc UndoDislike(GetSubresourceRequest) returns(EmptyRequest) {
+    option (google.api.http) = {
+      delete: "/posts/{post_id}/dislikes/{subresource_id}"
+    };
+  }
+
 }
 
 message EmptyRequest {

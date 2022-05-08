@@ -18,6 +18,7 @@ type PostHandler struct {
 	service           *application.PostService
 	commentSubHandler *CommentSubHandler
 	likeSubHandler    *LikeSubHandler
+	dislikeSubHandler *DislikeSubHandler
 }
 
 func NewPostHandler(service *application.PostService) *PostHandler {
@@ -25,6 +26,7 @@ func NewPostHandler(service *application.PostService) *PostHandler {
 		service:           service,
 		commentSubHandler: NewCommentHandler(service),
 		likeSubHandler:    NewLikeHandler(service),
+		dislikeSubHandler: NewDislikeHandler(service),
 	}
 }
 
@@ -131,4 +133,26 @@ func (handler *PostHandler) GetLikes(ctx context.Context, request *pb.GetPostReq
 func (handler *PostHandler) UndoLike(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.EmptyRequest, err error) {
 	defer handleError(&err)
 	return handler.likeSubHandler.UndoLike(ctx, request)
+}
+
+// dislikes subresource
+
+func (handler *PostHandler) GetDislike(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.ReactionResponse, err error) {
+	defer handleError(&err)
+	return handler.dislikeSubHandler.GetDislike(ctx, request)
+}
+
+func (handler *PostHandler) GiveDislike(ctx context.Context, request *pb.CreateReactionRequest) (postResponse *pb.ReactionResponse, err error) {
+	defer handleError(&err)
+	return handler.dislikeSubHandler.GiveDislike(ctx, request)
+}
+
+func (handler *PostHandler) GetDislikes(ctx context.Context, request *pb.GetPostRequest) (postResponse *pb.MultipleReactionsResponse, err error) {
+	defer handleError(&err)
+	return handler.dislikeSubHandler.GetDislikes(ctx, request)
+}
+
+func (handler *PostHandler) UndoDislike(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.EmptyRequest, err error) {
+	defer handleError(&err)
+	return handler.dislikeSubHandler.UndoDislike(ctx, request)
 }

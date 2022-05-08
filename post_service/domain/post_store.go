@@ -17,4 +17,8 @@ type PostStore interface {
 	GetLike(postId primitive.ObjectID, likeId primitive.ObjectID) (*Like, error)
 	GetLikesForPost(postId primitive.ObjectID) ([]*Like, error)
 	UndoLike(postId primitive.ObjectID, reactionId primitive.ObjectID) error
+	InsertDislike(postId primitive.ObjectID, dislike *Dislike) error
+	GetDislike(postId primitive.ObjectID, dislikeId primitive.ObjectID) (*Dislike, error)
+	GetDislikesForPost(postId primitive.ObjectID) ([]*Dislike, error)
+	UndoDislike(postId primitive.ObjectID, reactionId primitive.ObjectID) error
 }

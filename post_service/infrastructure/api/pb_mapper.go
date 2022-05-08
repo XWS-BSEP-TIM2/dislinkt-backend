@@ -73,6 +73,10 @@ func mapLike(likeDTO *domain.LikeDetailsDTO) *pb.Reaction {
 	return mapReactionDetails(mapLikeToReactionDetails(likeDTO))
 }
 
+func mapDislike(dislikeDTO *domain.DislikeDetailsDTO) *pb.Reaction {
+	return mapReactionDetails(mapDislikeToReactionDetails(dislikeDTO))
+}
+
 func mapReactionDetails(dto *domain.ReactionDetailsDTO) *pb.Reaction {
 	return &pb.Reaction{
 		CreationTime: timestamppb.New(dto.CreationTime),
@@ -97,5 +101,15 @@ func mapLikeToReactionDetails(likeDTO *domain.LikeDetailsDTO) *domain.ReactionDe
 		CreationTime: likeDTO.Like.CreationTime,
 		ReactionType: "like",
 		PostId:       likeDTO.PostId,
+	}
+}
+
+func mapDislikeToReactionDetails(dislikeDTO *domain.DislikeDetailsDTO) *domain.ReactionDetailsDTO {
+	return &domain.ReactionDetailsDTO{
+		ReactionId:   dislikeDTO.Dislike.Id,
+		OwnerId:      dislikeDTO.Dislike.OwnerId,
+		CreationTime: dislikeDTO.Dislike.CreationTime,
+		ReactionType: "dislike",
+		PostId:       dislikeDTO.PostId,
 	}
 }
