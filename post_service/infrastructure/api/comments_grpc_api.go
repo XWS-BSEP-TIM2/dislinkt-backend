@@ -12,22 +12,22 @@ import (
 	"time"
 )
 
-type CommentsSubHandler struct {
+type CommentSubHandler struct {
 	service *application.CommentService
 }
 
-func NewCommentHandler(service *application.PostService) *CommentsSubHandler {
-	return &CommentsSubHandler{
+func NewCommentHandler(service *application.PostService) *CommentSubHandler {
+	return &CommentSubHandler{
 		service: application.NewCommentService(service),
 	}
 }
 
-func (h *CommentsSubHandler) GetComment(ctx context.Context, request *pb.GetCommentRequest) (*pb.CommentResponse, error) {
+func (h *CommentSubHandler) GetComment(ctx context.Context, request *pb.GetSubresourceRequest) (*pb.CommentResponse, error) {
 	postId, err1 := primitive.ObjectIDFromHex(request.PostId)
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
 	}
-	commentId, err2 := primitive.ObjectIDFromHex(request.CommentId)
+	commentId, err2 := primitive.ObjectIDFromHex(request.SubresourceId)
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given owner id is invalid."))
 	}
@@ -36,7 +36,7 @@ func (h *CommentsSubHandler) GetComment(ctx context.Context, request *pb.GetComm
 
 }
 
-func (h *CommentsSubHandler) CreateComment(ctx context.Context, request *pb.CreateCommentRequest) (*pb.CommentResponse, error) {
+func (h *CommentSubHandler) CreateComment(ctx context.Context, request *pb.CreateCommentRequest) (*pb.CommentResponse, error) {
 	postId, err1 := primitive.ObjectIDFromHex(request.PostId)
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
@@ -54,7 +54,7 @@ func (h *CommentsSubHandler) CreateComment(ctx context.Context, request *pb.Crea
 
 }
 
-func (h *CommentsSubHandler) GetComments(ctx context.Context, request *pb.GetPostRequest) (*pb.MultipleCommentsResponse, error) {
+func (h *CommentSubHandler) GetComments(ctx context.Context, request *pb.GetPostRequest) (*pb.MultipleCommentsResponse, error) {
 	postId, err1 := primitive.ObjectIDFromHex(request.PostId)
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))

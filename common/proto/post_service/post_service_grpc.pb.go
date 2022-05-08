@@ -25,9 +25,15 @@ type PostServiceClient interface {
 	GetPosts(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*MultiplePostsResponse, error)
 	CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*PostResponse, error)
 	GetPost(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (*PostResponse, error)
+	// comments
 	GetComments(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (*MultipleCommentsResponse, error)
 	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*CommentResponse, error)
-	GetComment(ctx context.Context, in *GetCommentRequest, opts ...grpc.CallOption) (*CommentResponse, error)
+	GetComment(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*CommentResponse, error)
+	// likes
+	GetLikes(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (*MultipleReactionsResponse, error)
+	GiveLike(ctx context.Context, in *CreateReactionRequest, opts ...grpc.CallOption) (*ReactionResponse, error)
+	GetLike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*ReactionResponse, error)
+	UndoLike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*EmptyRequest, error)
 }
 
 type postServiceClient struct {
@@ -83,9 +89,45 @@ func (c *postServiceClient) CreateComment(ctx context.Context, in *CreateComment
 	return out, nil
 }
 
-func (c *postServiceClient) GetComment(ctx context.Context, in *GetCommentRequest, opts ...grpc.CallOption) (*CommentResponse, error) {
+func (c *postServiceClient) GetComment(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*CommentResponse, error) {
 	out := new(CommentResponse)
 	err := c.cc.Invoke(ctx, "/post_service.PostService/GetComment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) GetLikes(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (*MultipleReactionsResponse, error) {
+	out := new(MultipleReactionsResponse)
+	err := c.cc.Invoke(ctx, "/post_service.PostService/GetLikes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) GiveLike(ctx context.Context, in *CreateReactionRequest, opts ...grpc.CallOption) (*ReactionResponse, error) {
+	out := new(ReactionResponse)
+	err := c.cc.Invoke(ctx, "/post_service.PostService/GiveLike", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) GetLike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*ReactionResponse, error) {
+	out := new(ReactionResponse)
+	err := c.cc.Invoke(ctx, "/post_service.PostService/GetLike", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) UndoLike(ctx context.Context, in *GetSubresourceRequest, opts ...grpc.CallOption) (*EmptyRequest, error) {
+	out := new(EmptyRequest)
+	err := c.cc.Invoke(ctx, "/post_service.PostService/UndoLike", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -99,9 +141,15 @@ type PostServiceServer interface {
 	GetPosts(context.Context, *EmptyRequest) (*MultiplePostsResponse, error)
 	CreatePost(context.Context, *CreatePostRequest) (*PostResponse, error)
 	GetPost(context.Context, *GetPostRequest) (*PostResponse, error)
+	// comments
 	GetComments(context.Context, *GetPostRequest) (*MultipleCommentsResponse, error)
 	CreateComment(context.Context, *CreateCommentRequest) (*CommentResponse, error)
-	GetComment(context.Context, *GetCommentRequest) (*CommentResponse, error)
+	GetComment(context.Context, *GetSubresourceRequest) (*CommentResponse, error)
+	// likes
+	GetLikes(context.Context, *GetPostRequest) (*MultipleReactionsResponse, error)
+	GiveLike(context.Context, *CreateReactionRequest) (*ReactionResponse, error)
+	GetLike(context.Context, *GetSubresourceRequest) (*ReactionResponse, error)
+	UndoLike(context.Context, *GetSubresourceRequest) (*EmptyRequest, error)
 	mustEmbedUnimplementedPostServiceServer()
 }
 
@@ -124,8 +172,20 @@ func (UnimplementedPostServiceServer) GetComments(context.Context, *GetPostReque
 func (UnimplementedPostServiceServer) CreateComment(context.Context, *CreateCommentRequest) (*CommentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateComment not implemented")
 }
-func (UnimplementedPostServiceServer) GetComment(context.Context, *GetCommentRequest) (*CommentResponse, error) {
+func (UnimplementedPostServiceServer) GetComment(context.Context, *GetSubresourceRequest) (*CommentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetComment not implemented")
+}
+func (UnimplementedPostServiceServer) GetLikes(context.Context, *GetPostRequest) (*MultipleReactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLikes not implemented")
+}
+func (UnimplementedPostServiceServer) GiveLike(context.Context, *CreateReactionRequest) (*ReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GiveLike not implemented")
+}
+func (UnimplementedPostServiceServer) GetLike(context.Context, *GetSubresourceRequest) (*ReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLike not implemented")
+}
+func (UnimplementedPostServiceServer) UndoLike(context.Context, *GetSubresourceRequest) (*EmptyRequest, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UndoLike not implemented")
 }
 func (UnimplementedPostServiceServer) mustEmbedUnimplementedPostServiceServer() {}
 
@@ -231,7 +291,7 @@ func _PostService_CreateComment_Handler(srv interface{}, ctx context.Context, de
 }
 
 func _PostService_GetComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCommentRequest)
+	in := new(GetSubresourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -243,7 +303,79 @@ func _PostService_GetComment_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/post_service.PostService/GetComment",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostServiceServer).GetComment(ctx, req.(*GetCommentRequest))
+		return srv.(PostServiceServer).GetComment(ctx, req.(*GetSubresourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_GetLikes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GetLikes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post_service.PostService/GetLikes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GetLikes(ctx, req.(*GetPostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_GiveLike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateReactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GiveLike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post_service.PostService/GiveLike",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GiveLike(ctx, req.(*CreateReactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_GetLike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSubresourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GetLike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post_service.PostService/GetLike",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GetLike(ctx, req.(*GetSubresourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_UndoLike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSubresourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).UndoLike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post_service.PostService/UndoLike",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).UndoLike(ctx, req.(*GetSubresourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -278,6 +410,22 @@ var PostService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetComment",
 			Handler:    _PostService_GetComment_Handler,
+		},
+		{
+			MethodName: "GetLikes",
+			Handler:    _PostService_GetLikes_Handler,
+		},
+		{
+			MethodName: "GiveLike",
+			Handler:    _PostService_GiveLike_Handler,
+		},
+		{
+			MethodName: "GetLike",
+			Handler:    _PostService_GetLike_Handler,
+		},
+		{
+			MethodName: "UndoLike",
+			Handler:    _PostService_UndoLike_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

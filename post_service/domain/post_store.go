@@ -13,4 +13,8 @@ type PostStore interface {
 	GetComment(postId primitive.ObjectID, commentId primitive.ObjectID) (*Comment, error)
 	DeleteAll()
 	GetCommentsForPost(postId primitive.ObjectID) ([]*Comment, error)
+	InsertLike(postId primitive.ObjectID, like *Like) error
+	GetLike(postId primitive.ObjectID, likeId primitive.ObjectID) (*Like, error)
+	GetLikesForPost(postId primitive.ObjectID) ([]*Like, error)
+	UndoLike(postId primitive.ObjectID, reactionId primitive.ObjectID) error
 }

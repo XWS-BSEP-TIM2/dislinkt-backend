@@ -22,6 +22,10 @@ var nonAuthMethods map[string]bool = map[string]bool{
 	"/post_service.PostService/CreateComment":        true,
 	"/post_service.PostService/GetComment":           true,
 	"/post_service.PostService/GetComments":          true,
+	"/post_service.PostService/GiveLike":             true,
+	"/post_service.PostService/GetLike":              true,
+	"/post_service.PostService/GetLikes":             true,
+	"/post_service.PostService/UndoLike":             true,
 }
 
 func TokenAuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {

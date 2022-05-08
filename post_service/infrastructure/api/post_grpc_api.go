@@ -16,13 +16,15 @@ import (
 type PostHandler struct {
 	pb.UnimplementedPostServiceServer
 	service           *application.PostService
-	commentSubHandler *CommentsSubHandler
+	commentSubHandler *CommentSubHandler
+	likeSubHandler    *LikeSubHandler
 }
 
 func NewPostHandler(service *application.PostService) *PostHandler {
 	return &PostHandler{
 		service:           service,
 		commentSubHandler: NewCommentHandler(service),
+		likeSubHandler:    NewLikeHandler(service),
 	}
 }
 
@@ -94,7 +96,7 @@ func handleError(err *error) {
 
 // comments subresource
 
-func (handler *PostHandler) GetComment(ctx context.Context, request *pb.GetCommentRequest) (postResponse *pb.CommentResponse, err error) {
+func (handler *PostHandler) GetComment(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.CommentResponse, err error) {
 	defer handleError(&err)
 	return handler.commentSubHandler.GetComment(ctx, request)
 }
@@ -107,4 +109,26 @@ func (handler *PostHandler) CreateComment(ctx context.Context, request *pb.Creat
 func (handler *PostHandler) GetComments(ctx context.Context, request *pb.GetPostRequest) (postResponse *pb.MultipleCommentsResponse, err error) {
 	defer handleError(&err)
 	return handler.commentSubHandler.GetComments(ctx, request)
+}
+
+// likes subresource
+
+func (handler *PostHandler) GetLike(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.ReactionResponse, err error) {
+	defer handleError(&err)
+	return handler.likeSubHandler.GetLike(ctx, request)
+}
+
+func (handler *PostHandler) GiveLike(ctx context.Context, request *pb.CreateReactionRequest) (postResponse *pb.ReactionResponse, err error) {
+	defer handleError(&err)
+	return handler.likeSubHandler.GiveLike(ctx, request)
+}
+
+func (handler *PostHandler) GetLikes(ctx context.Context, request *pb.GetPostRequest) (postResponse *pb.MultipleReactionsResponse, err error) {
+	defer handleError(&err)
+	return handler.likeSubHandler.GetLikes(ctx, request)
+}
+
+func (handler *PostHandler) UndoLike(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.EmptyRequest, err error) {
+	defer handleError(&err)
+	return handler.likeSubHandler.UndoLike(ctx, request)
 }

@@ -26,6 +26,7 @@ service PostService{
     };
   }
 
+  // comments
   rpc GetComments(GetPostRequest) returns(MultipleCommentsResponse) {
     option (google.api.http) = {
       get: "/posts/{post_id}/comments"
@@ -37,11 +38,35 @@ service PostService{
       body: "new_comment"
     };
   }
-  rpc GetComment(GetCommentRequest) returns(CommentResponse) {
+  rpc GetComment(GetSubresourceRequest) returns(CommentResponse) {
     option (google.api.http) = {
-      get: "/posts/{post_id}/comments/{comment_id}"
+      get: "/posts/{post_id}/comments/{subresource_id}"
     };
   }
+
+  // likes
+  rpc GetLikes(GetPostRequest) returns(MultipleReactionsResponse) {
+    option (google.api.http) = {
+      get: "/posts/{post_id}/likes"
+    };
+  }
+  rpc GiveLike(CreateReactionRequest) returns(ReactionResponse) {
+    option (google.api.http) = {
+      post: "/posts/{post_id}/likes"
+      body: "new_reaction"
+    };
+  }
+  rpc GetLike(GetSubresourceRequest) returns(ReactionResponse) {
+    option (google.api.http) = {
+      get: "/posts/{post_id}/likes/{subresource_id}"
+    };
+  }
+  rpc UndoLike(GetSubresourceRequest) returns(EmptyRequest) {
+    option (google.api.http) = {
+      delete: "/posts/{post_id}/likes/{subresource_id}"
+    };
+  }
+
 }
 
 message EmptyRequest {
@@ -111,9 +136,33 @@ message NewComment {
   string content = 2;
 }
 
-message GetCommentRequest {
+message GetSubresourceRequest {
   string post_id = 1;
-  string comment_id = 2;
+  string subresource_id = 2;
+}
+
+message Reaction {
+  //  Owner owner = 1;
+  google.protobuf.Timestamp creation_time = 2;
+  string reaction_type = 3;
+  repeated Href hrefs = 4;
+}
+
+message ReactionResponse {
+  Reaction reaction = 1;
+}
+
+message MultipleReactionsResponse {
+  repeated Reaction reactions = 1;
+}
+
+message CreateReactionRequest {
+  string post_id = 1;
+  NewReaction new_reaction = 2;
+}
+
+message NewReaction {
+  string owner_id = 1;
 }
 
 message Href {

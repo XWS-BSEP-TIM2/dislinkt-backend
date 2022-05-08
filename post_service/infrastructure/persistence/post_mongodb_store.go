@@ -90,6 +90,76 @@ func (store *PostMongoDBStore) GetCommentsForPost(postId primitive.ObjectID) ([]
 	return post.Comments, nil
 }
 
+func (store *PostMongoDBStore) InsertLike(postId primitive.ObjectID, like *domain.Like) error {
+	post, err := store.Get(postId)
+	if err != nil {
+		return err
+	}
+
+	for _, existingLike := range post.Likes {
+		if like.OwnerId == existingLike.OwnerId {
+			panic(errors.NewInvalidArgumentError("User cannot give like multiple times"))
+		}
+	}
+	like.Id = primitive.NewObjectID()
+	post.Likes = append(post.Likes, like)
+
+	err = store.Update(post)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (store *PostMongoDBStore) GetLike(postId primitive.ObjectID, likeId primitive.ObjectID) (*domain.Like, error) {
+	// should be fetched by mongo syntax
+	post, err := store.Get(postId)
+	if err != nil {
+		panic(fmt.Errorf("Invalid post"))
+	}
+	for _, comment := range post.Likes {
+		if comment.Id == likeId {
+			return comment, nil
+		}
+	}
+	panic(errors.NewEntityNotFoundError("Like with given id not found."))
+}
+
+func (store *PostMongoDBStore) GetLikesForPost(postId primitive.ObjectID) ([]*domain.Like, error) {
+	post, err := store.Get(postId)
+	if err != nil {
+		panic(fmt.Errorf("Invalid post"))
+	}
+	return post.Likes, nil
+}
+
+func (store *PostMongoDBStore) UndoLike(postId primitive.ObjectID, reactionId primitive.ObjectID) error {
+	post, err := store.Get(postId)
+	if err != nil {
+		return err
+	}
+
+	index := -1
+	for i, existingLike := range post.Likes {
+		if reactionId == existingLike.Id {
+			index = i
+			break
+
+		}
+	}
+	if index == -1 {
+		panic(errors.NewEntityNotFoundError("Like with given id not found."))
+	}
+
+	post.Likes = RemoveIndex(post.Likes, index)
+
+	err = store.Update(post)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (store *PostMongoDBStore) DeleteAll() {
 	store.posts.DeleteMany(context.TODO(), bson.D{{}})
 }
@@ -121,4 +191,8 @@ func decode(cursor *mongo.Cursor) (posts []*domain.Post, err error) {
 	}
 	err = cursor.Err()
 	return
+}
+
+func RemoveIndex(s []*domain.Like, index int) []*domain.Like {
+	return append(s[:index], s[index+1:]...)
 }

@@ -68,3 +68,34 @@ func mapComment(commentDTO *domain.CommentDetailsDTO) *pb.Comment {
 	}
 	return commentPb
 }
+
+func mapLike(likeDTO *domain.LikeDetailsDTO) *pb.Reaction {
+	return mapReactionDetails(mapLikeToReactionDetails(likeDTO))
+}
+
+func mapReactionDetails(dto *domain.ReactionDetailsDTO) *pb.Reaction {
+	return &pb.Reaction{
+		CreationTime: timestamppb.New(dto.CreationTime),
+		ReactionType: dto.ReactionType,
+		Hrefs: []*pb.Href{
+			{
+				Rel: "self",
+				Url: fmt.Sprintf("posts/%s/%ss/%s", dto.PostId.Hex(), dto.ReactionType, dto.ReactionId.Hex()),
+			},
+			{
+				Rel: "owner",
+				Url: fmt.Sprintf("profile/%s", dto.OwnerId.Hex()),
+			},
+		},
+	}
+}
+
+func mapLikeToReactionDetails(likeDTO *domain.LikeDetailsDTO) *domain.ReactionDetailsDTO {
+	return &domain.ReactionDetailsDTO{
+		ReactionId:   likeDTO.Like.Id,
+		OwnerId:      likeDTO.Like.OwnerId,
+		CreationTime: likeDTO.Like.CreationTime,
+		ReactionType: "like",
+		PostId:       likeDTO.PostId,
+	}
+}

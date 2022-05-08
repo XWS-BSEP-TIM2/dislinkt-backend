@@ -1,6 +1,9 @@
 package domain
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
+)
 
 type PostDetailsDTO struct {
 	//Owner       *Owner
@@ -19,4 +22,18 @@ type CommentDetailsDTO struct {
 	//Owner       *Owner
 	Comment *Comment
 	PostId  primitive.ObjectID
+}
+
+type ReactionDetailsDTO struct {
+	//Owner       *Owner
+	ReactionId   primitive.ObjectID
+	OwnerId      primitive.ObjectID
+	CreationTime time.Time
+	ReactionType string
+	PostId       primitive.ObjectID
+}
+
+type LikeDetailsDTO struct {
+	Like   *Like
+	PostId primitive.ObjectID
 }
