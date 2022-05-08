@@ -1,5 +1,7 @@
 package api
 
+// legacy - should be removed
+
 import (
 	"context"
 	"encoding/json"
@@ -35,7 +37,7 @@ func (handler *PostHandler) GetDetails(w http.ResponseWriter, r *http.Request, p
 	var ctx = context.TODO()
 	ctx = grpcMetadata.AppendToOutgoingContext(ctx, "authorization", r.Header.Get("authorization"))
 
-	post, err := postClient.Get(ctx, &post.GetRequest{Id: id})
+	post, err := postClient.GetPost(ctx, &post.GetPostRequest{PostId: id})
 	if err != nil {
 		w.WriteHeader(http.StatusAlreadyReported) //208
 		fmt.Println("POST: ", post)

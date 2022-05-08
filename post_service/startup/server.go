@@ -30,7 +30,7 @@ func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
 	postStore := server.initPostStore(mongoClient)
 	postService := server.initPostService(postStore)
-	postHandler := server.initProductHandler(postService)
+	postHandler := server.initPostHandler(postService)
 	server.startGrpcServer(postHandler)
 }
 
@@ -43,23 +43,19 @@ func (server *Server) initMongoClient() *mongo.Client {
 }
 
 func (server *Server) initPostStore(client *mongo.Client) domain.PostStore {
-	store := persistence.NewPostMongoDBStore(client)
-	store.DeleteAll()
-	for _, post := range posts {
-		err := store.Insert(post)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	return store
+	return persistence.NewPostMongoDBStore(client)
 }
 
 func (server *Server) initPostService(store domain.PostStore) *application.PostService {
-	return application.NewPostService(store)
+	authServiceAddress := fmt.Sprintf("%s:%s", server.config.AuthServiceHost, server.config.AuthServicePort)
+	connectionServiceAddress := fmt.Sprintf("%s:%s", server.config.ConnectionServiceHost, server.config.ConnectionServicePort)
+	profileServiceAddress := fmt.Sprintf("%s:%s", server.config.ProfileServiceHost, server.config.ProfileServicePort)
+
+	return application.NewPostService(store, authServiceAddress, connectionServiceAddress, profileServiceAddress)
 }
 
-func (server *Server) initProductHandler(service *application.PostService) *api.PostHandler {
-	return api.NewProductHandler(service)
+func (server *Server) initPostHandler(service *application.PostService) *api.PostHandler {
+	return api.NewPostHandler(service)
 }
 
 func (server *Server) startGrpcServer(postHandler *api.PostHandler) {

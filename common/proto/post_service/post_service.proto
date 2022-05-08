@@ -4,39 +4,89 @@ option go_package = "common/proto/post_service";
 
 package post_service;
 
+
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 
 service PostService{
-        rpc Get(GetRequest) returns(GetResponse) {
-        	option (google.api.http) = {
-			get: "/post/{id}"
-		};
-        }
-        rpc GetAll(GetAllRequest) returns(GetAllResponse) {
-        	option (google.api.http) = {
-			get: "/post"
-		};
-        }
+  rpc GetPosts(EmptyRequest) returns(MultiplePostsResponse) {
+    option (google.api.http) = {
+      get: "/posts"
+    };
+  }
+  rpc CreatePost(CreatePostRequest) returns(PostResponse) {
+    option (google.api.http) = {
+      post: "/posts"
+      body: "new_post"
+    };
+  }
+  rpc GetPost(GetPostRequest) returns(PostResponse) {
+    option (google.api.http) = {
+      get: "/posts/{post_id}"
+    };
+  }
 }
 
-message GetRequest {
-        string id = 1;
+message EmptyRequest {
 }
 
-message GetResponse {
-        Post post = 1;
+message MultiplePostsResponse {
+    repeated Post posts = 1;
 }
 
-message GetAllRequest {
+message PostResponse {
+      Post post = 1;
 }
 
-message GetAllResponse {
-        repeated Post posts = 1;
+message CreatePostRequest {
+  NewPost new_post = 1;
+}
+
+message NewPost {
+  string owner_id = 1;
+  string content = 2;
+  string image_base64 = 3;
+  repeated string links = 5;
+}
+
+message GetPostRequest {
+  string post_id = 1;
 }
 
 message Post {
-        string id = 1;
-        string name = 2;
+//  Owner owner = 1;
+  google.protobuf.Timestamp creation_time = 2;
+  string content = 3;
+  string image_base64 = 4;
+  repeated string links = 5;
+  repeated Href hrefs = 6;
+  PostStats stats = 7;
 }
 
+message RepeatedPosts {
+  repeated Post posts = 1;
+}
 
+message PostStats {
+  int64 comments_number = 8;
+  int64 likes_number = 9;
+  int64 dislikes_number = 10;
+}
+
+message Comment {
+  Owner owner = 1;
+  google.protobuf.Timestamp creation_time = 3;
+  string content = 4;
+  repeated Href hrefs = 5;
+}
+
+message Href {
+  string url=1;
+  string rel=2;
+}
+
+message Owner {
+  string username = 1;
+  string name = 2;
+  string surname = 3;
+}

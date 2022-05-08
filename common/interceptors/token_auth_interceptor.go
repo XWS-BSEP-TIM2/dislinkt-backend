@@ -11,10 +11,14 @@ import (
 )
 
 var nonAuthMethods map[string]bool = map[string]bool{
-	"/profile_service.ProfileService/CreateProfile":  true,
 	"/connection_service.ConnectionService/Register": true,
 	"/auth_service.AuthService/Register":             true,
 	"/auth_service.AuthService/Login":                true,
+	"/profile_service.ProfileService/CreateProfile": true,
+	"/profile_service.ProfileService/Get":           true,
+	"/post_service.PostService/GetPost":             true,
+	"/post_service.PostService/CreatePost":          true,
+	"/post_service.PostService/GetPosts":            true,
 }
 
 func TokenAuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
