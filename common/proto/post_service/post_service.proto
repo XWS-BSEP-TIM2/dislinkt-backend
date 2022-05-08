@@ -25,32 +25,26 @@ service PostService{
       get: "/posts/{post_id}"
     };
   }
+
+  rpc GetComments(GetPostRequest) returns(MultipleCommentsResponse) {
+    option (google.api.http) = {
+      get: "/posts/{post_id}/comments"
+    };
+  }
+  rpc CreateComment(CreateCommentRequest) returns(CommentResponse) {
+    option (google.api.http) = {
+      post: "/posts/{post_id}/comments"
+      body: "new_comment"
+    };
+  }
+  rpc GetComment(GetCommentRequest) returns(CommentResponse) {
+    option (google.api.http) = {
+      get: "/posts/{post_id}/comments/{comment_id}"
+    };
+  }
 }
 
 message EmptyRequest {
-}
-
-message MultiplePostsResponse {
-    repeated Post posts = 1;
-}
-
-message PostResponse {
-      Post post = 1;
-}
-
-message CreatePostRequest {
-  NewPost new_post = 1;
-}
-
-message NewPost {
-  string owner_id = 1;
-  string content = 2;
-  string image_base64 = 3;
-  repeated string links = 5;
-}
-
-message GetPostRequest {
-  string post_id = 1;
 }
 
 message Post {
@@ -63,21 +57,63 @@ message Post {
   PostStats stats = 7;
 }
 
-message RepeatedPosts {
-  repeated Post posts = 1;
-}
-
 message PostStats {
   int64 comments_number = 8;
   int64 likes_number = 9;
   int64 dislikes_number = 10;
 }
 
+message PostResponse {
+      Post post = 1;
+}
+
+message MultiplePostsResponse {
+    repeated Post posts = 1;
+}
+
+message CreatePostRequest {
+  NewPost new_post = 1;
+}
+
+message NewPost {
+  string owner_id = 1;
+  string content = 2;
+  string image_base64 = 3;
+  repeated string links = 4;
+}
+
+message GetPostRequest {
+  string post_id = 1;
+}
+
 message Comment {
-  Owner owner = 1;
-  google.protobuf.Timestamp creation_time = 3;
-  string content = 4;
-  repeated Href hrefs = 5;
+//  Owner owner = 1;
+  google.protobuf.Timestamp creation_time = 2;
+  string content = 3;
+  repeated Href hrefs = 4;
+}
+
+message CommentResponse {
+  Comment comment = 1;
+}
+
+message MultipleCommentsResponse {
+  repeated Comment comments = 1;
+}
+
+message CreateCommentRequest {
+  string post_id = 1;
+  NewComment new_comment = 2;
+}
+
+message NewComment {
+  string owner_id = 1;
+  string content = 2;
+}
+
+message GetCommentRequest {
+  string post_id = 1;
+  string comment_id = 2;
 }
 
 message Href {

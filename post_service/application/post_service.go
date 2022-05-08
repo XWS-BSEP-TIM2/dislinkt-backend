@@ -79,7 +79,6 @@ func (service *PostService) getMultiplePostsDetails(posts []*domain.Post) []*dom
 func (service *PostService) getPostDetails(post *domain.Post) *domain.PostDetailsDTO {
 	return &domain.PostDetailsDTO{
 		//Owner:       mapProfileToOwner(service.getPostOwnerProfile(ctx, post.OwnerId)),
-		Owner:       &domain.Owner{UserId: post.OwnerId.Hex()},
 		Post:        post,
 		ImageBase64: ecoding.NewBase64Coder().Encode(post.Image),
 		Stats: &domain.Stats{

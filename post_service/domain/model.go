@@ -16,9 +16,9 @@ type Post struct {
 	Content      string             `bson:"content"`
 	Image        primitive.Binary   `bson:"image"`
 	Links        []string           `bson:"links"`
-	Comments     []Comment          `bson:"comments"`
-	Likes        []Like             `bson:"likes"`
-	Dislikes     []Dislike          `bson:"dislikes"`
+	Comments     []*Comment         `bson:"comments"`
+	Likes        []*Like            `bson:"likes"`
+	Dislikes     []*Dislike         `bson:"dislikes"`
 }
 
 func (p *Post) GetOwnerId() primitive.ObjectID {

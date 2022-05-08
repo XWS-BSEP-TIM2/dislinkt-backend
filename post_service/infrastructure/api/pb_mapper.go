@@ -9,7 +9,6 @@ import (
 
 func mapPost(postDTO *domain.PostDetailsDTO) *pb.Post {
 	postId := postDTO.Post.Id.Hex()
-	userId := postDTO.Owner.UserId
 	postPb := &pb.Post{
 		//Owner: &pb.Owner{
 		//	Username: postDTO.Owner.Username,
@@ -39,7 +38,7 @@ func mapPost(postDTO *domain.PostDetailsDTO) *pb.Post {
 			},
 			{
 				Rel: "owner",
-				Url: fmt.Sprintf("profile/%s", userId),
+				Url: fmt.Sprintf("profile/%s", postDTO.Post.OwnerId.Hex()),
 			},
 		},
 		Stats: &pb.PostStats{
@@ -50,4 +49,22 @@ func mapPost(postDTO *domain.PostDetailsDTO) *pb.Post {
 	}
 
 	return postPb
+}
+
+func mapComment(commentDTO *domain.CommentDetailsDTO) *pb.Comment {
+	commentPb := &pb.Comment{
+		CreationTime: timestamppb.New(commentDTO.Comment.CreationTime),
+		Content:      commentDTO.Comment.Content,
+		Hrefs: []*pb.Href{
+			{
+				Rel: "self",
+				Url: fmt.Sprintf("posts/%s/comments/%s", commentDTO.PostId.Hex(), commentDTO.Comment.Id.Hex()),
+			},
+			{
+				Rel: "owner",
+				Url: fmt.Sprintf("profile/%s", commentDTO.Comment.OwnerId.Hex()),
+			},
+		},
+	}
+	return commentPb
 }

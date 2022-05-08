@@ -14,11 +14,14 @@ var nonAuthMethods map[string]bool = map[string]bool{
 	"/connection_service.ConnectionService/Register": true,
 	"/auth_service.AuthService/Register":             true,
 	"/auth_service.AuthService/Login":                true,
-	"/profile_service.ProfileService/CreateProfile": true,
-	"/profile_service.ProfileService/Get":           true,
-	"/post_service.PostService/GetPost":             true,
-	"/post_service.PostService/CreatePost":          true,
-	"/post_service.PostService/GetPosts":            true,
+	"/profile_service.ProfileService/CreateProfile":  true,
+	"/profile_service.ProfileService/Get":            true,
+	"/post_service.PostService/GetPost":              true,
+	"/post_service.PostService/CreatePost":           true,
+	"/post_service.PostService/GetPosts":             true,
+	"/post_service.PostService/CreateComment":        true,
+	"/post_service.PostService/GetComment":           true,
+	"/post_service.PostService/GetComments":          true,
 }
 
 func TokenAuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {

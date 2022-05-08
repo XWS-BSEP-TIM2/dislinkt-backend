@@ -17,6 +17,8 @@ func (registry *ErrorMapperRegistry) ToStatusError(domainErr error) (statusErr e
 		return NewEntityNotFoundErrorMapper().ToStatusError(domainErr)
 	case *errors.EntityForbiddenError:
 		return NewEntityForbiddenErrorMapper().ToStatusError(domainErr)
+	case *errors.InvalidArgumentError:
+		return NewInvalidArgumentErrorMapper().ToStatusError(domainErr)
 	default:
 		return NewDefaultErrorMapper().ToStatusError(domainErr)
 	}

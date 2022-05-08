@@ -7,6 +7,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/ecoding"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
 	"github.com/thoas/go-funk"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
@@ -14,12 +15,14 @@ import (
 
 type PostHandler struct {
 	pb.UnimplementedPostServiceServer
-	service *application.PostService
+	service           *application.PostService
+	commentSubHandler *CommentsSubHandler
 }
 
 func NewPostHandler(service *application.PostService) *PostHandler {
 	return &PostHandler{
-		service: service,
+		service:           service,
+		commentSubHandler: NewCommentHandler(service),
 	}
 }
 
@@ -62,7 +65,7 @@ func mapPostDetailsToResponse(postDetails *domain.PostDetailsDTO) *pb.PostRespon
 func mapNewPostToPost(newPost *pb.NewPost) *domain.Post {
 	ownerId, err1 := primitive.ObjectIDFromHex(newPost.OwnerId)
 	if err1 != nil {
-		panic(fmt.Errorf("error during conversion of id: %s", newPost.OwnerId))
+		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
 	}
 	imageBytes, err2 := ecoding.NewBase64Coder().Decode(newPost.ImageBase64)
 	if err2 != nil {
@@ -74,9 +77,9 @@ func mapNewPostToPost(newPost *pb.NewPost) *domain.Post {
 		Content:      newPost.Content,
 		Image:        imageBytes,
 		Links:        newPost.Links,
-		Comments:     []domain.Comment{},
-		Likes:        []domain.Like{},
-		Dislikes:     []domain.Dislike{},
+		Comments:     []*domain.Comment{},
+		Likes:        []*domain.Like{},
+		Dislikes:     []*domain.Dislike{},
 	}
 }
 
@@ -87,4 +90,21 @@ func handleError(err *error) {
 			*err = e
 		}
 	}
+}
+
+// comments subresource
+
+func (handler *PostHandler) GetComment(ctx context.Context, request *pb.GetCommentRequest) (postResponse *pb.CommentResponse, err error) {
+	defer handleError(&err)
+	return handler.commentSubHandler.GetComment(ctx, request)
+}
+
+func (handler *PostHandler) CreateComment(ctx context.Context, request *pb.CreateCommentRequest) (postResponse *pb.CommentResponse, err error) {
+	defer handleError(&err)
+	return handler.commentSubHandler.CreateComment(ctx, request)
+}
+
+func (handler *PostHandler) GetComments(ctx context.Context, request *pb.GetPostRequest) (postResponse *pb.MultipleCommentsResponse, err error) {
+	defer handleError(&err)
+	return handler.commentSubHandler.GetComments(ctx, request)
 }
