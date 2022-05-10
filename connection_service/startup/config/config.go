@@ -1,18 +1,39 @@
 package config
 
+import (
+	"github.com/joho/godotenv"
+	"os"
+)
+
 type Config struct {
 	Port          string
 	Host          string
 	Neo4jUri      string
+	Neo4jHost     string
+	Neo4jPort     string
 	Neo4jUsername string
 	Neo4jPassword string
 }
 
 func NewConfig() *Config {
 	return &Config{
-		Port:          "8001",
-		Host:          "localhost",
-		Neo4jUri:      "bolt://localhost:7687",
-		Neo4jUsername: "neo4j",
-		Neo4jPassword: "connection"}
+		Host: goDotEnvVariable("CONNECTION_SERVICE_HOST"),
+		Port: goDotEnvVariable("CONNECTION_SERVICE_PORT"),
+
+		Neo4jUri:      goDotEnvVariable("NEO4J_URI"),
+		Neo4jHost:     goDotEnvVariable("NEO4J_HOST"),
+		Neo4jPort:     goDotEnvVariable("NEO4J_PORT"),
+		Neo4jUsername: goDotEnvVariable("NEO4J_USERNAME"),
+		Neo4jPassword: goDotEnvVariable("NEO4J_PASSWORD"),
+	}
+}
+
+func goDotEnvVariable(key string) string {
+	godotenv.Load("../.env")
+
+	/*
+		if err != nil {
+			log.Fatalf("Error loading .env file")
+		} */
+	return os.Getenv(key)
 }

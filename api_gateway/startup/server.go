@@ -3,6 +3,9 @@ package startup
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/api"
 	cfg "github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	authGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
@@ -13,8 +16,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
-	"net/http"
 )
 
 type Server struct {
@@ -33,7 +34,6 @@ func NewServer(config *cfg.Config) *Server {
 }
 
 func (server *Server) initHandlers() {
-
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
 	PostEndpoint := fmt.Sprintf("%s:%s", server.config.PostHost, server.config.PostPort)
@@ -63,12 +63,21 @@ func (server *Server) initHandlers() {
 
 func (server *Server) initCustomHandlers() {
 
-	authEmdpoint := fmt.Sprintf("%s:%s", server.config.AuthHost, server.config.AuthPort)
-	profileEmdpoint := fmt.Sprintf("%s:%s", server.config.ProfileHost, server.config.ProfilePort)
-	connectionsEmdpoint := fmt.Sprintf("%s:%s", server.config.ConnectionHost, server.config.ConnectionPort)
-	//postEmdpoint := fmt.Sprintf("%s:%s", server.config.ShippingHost, server.config.ShippingPort)
+	authEndpoint := fmt.Sprintf("%s:%s", server.config.AuthHost, server.config.AuthPort)
+	profileEndpoint := fmt.Sprintf("%s:%s", server.config.ProfileHost, server.config.ProfilePort)
+	connectionsEndpoint := fmt.Sprintf("%s:%s", server.config.ConnectionHost, server.config.ConnectionPort)
+	postEndpoint := fmt.Sprintf("%s:%s", server.config.PostHost, server.config.PostPort)
 
-	connectionRecommendationHandler := api.NewConnectionHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
+	postHandler := api.NewPostHandler(postEndpoint)
+	postHandler.Init(server.mux)
+
+	profileHandler := api.NewPostHandler(profileEndpoint)
+	profileHandler.Init(server.mux)
+
+	registerHandler := api.NewRegistrationHandler(authEndpoint, profileEndpoint, connectionsEndpoint)
+	registerHandler.Init(server.mux)
+
+	connectionRecommendationHandler := api.NewConnectionHandler(authEndpoint, profileEndpoint, connectionsEndpoint)
 	connectionRecommendationHandler.Init(server.mux)
 
 }

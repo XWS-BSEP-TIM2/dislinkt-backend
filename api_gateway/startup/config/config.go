@@ -1,6 +1,8 @@
 package config
 
-import "os"
+import (
+	"os"
+)
 
 type Config struct {
 	Port string
@@ -11,9 +13,9 @@ type Config struct {
 	AuthHost string
 	AuthPort string
 
-	ProfileHost string
-	ProfilePort string
-
+	ProfileHost    string
+	ProfilePort    string
+	
 	ConnectionHost string
 	ConnectionPort string
 

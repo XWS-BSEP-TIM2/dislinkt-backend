@@ -1,88 +1,79 @@
 version: "3.8"
 
 services:
-  catalogue_service:
-    image: catalogue_service
-    container_name: catalogue_service
+  auth_service:
+    image: auth_service
+    container_name: auth_service
     build:
       context: .
-      dockerfile: ./catalogue_service/Dockerfile
+      dockerfile: ./auth_service/Dockerfile
     restart: on-failure
     environment:
-      CATALOGUE_DB_HOST: ${CATALOGUE_DB_HOST}
-      CATALOGUE_DB_PORT: ${CATALOGUE_DB_PORT}
-      CATALOGUE_SERVICE_PORT: ${CATALOGUE_SERVICE_PORT}
+      AUTH_SERVICE_PORT: ${AUTH_SERVICE_PORT}
+      MONGO_DB_HOST: ${AUTH_MONGO_DB_HOST_DOCKER}
+      MONGO_DB_PORT: ${MONGO_DB_PORT}      
+      PROFILE_SERVICE_HOST: ${PROFILE_SERVICE_HOST_DOCKER}
+      PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
     depends_on:
-      - catalogue_db
+      - auth_mongo_db
     networks:
       - network
 
-  ordering_service:
-    image: ordering_service
-    container_name: ordering_service
+  connection_service:
+    image: connection_service
+    container_name: connection_service
     build:
       context: .
-      dockerfile: ./ordering_service/Dockerfile
+      dockerfile: ./connection_service/Dockerfile
     restart: on-failure
     environment:
-      ORDERING_DB_HOST: ${ORDERING_DB_HOST}
-      ORDERING_DB_PORT: ${ORDERING_DB_PORT}
-      ORDERING_SERVICE_PORT: ${ORDERING_SERVICE_PORT}
-      NATS_HOST: ${NATS_HOST}
-      NATS_PORT: ${NATS_PORT}
-      NATS_USER: ${NATS_USER}
-      NATS_PASS: ${NATS_PASS}
-      CREATE_ORDER_COMMAND_SUBJECT: ${CREATE_ORDER_COMMAND_SUBJECT}
-      CREATE_ORDER_REPLY_SUBJECT: ${CREATE_ORDER_REPLY_SUBJECT}
+      CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
+      CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
+      NEO4J_URI: ${NEO4J_URI}
+      NEO4J_HOST: ${NEO4J_HOST_DOCKER}
+      NEO4J_PORT: ${NEO4J_PORT}
+      NEO4J_USERNAME: ${NEO4J_USERNAME}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
     depends_on:
-      - ordering_db
+      - neo4j
     networks:
       - network
 
-  shipping_service:
-    image: shipping_service
-    container_name: shipping_service
+  post_service:
+    image: post_service
+    container_name: post_service
     build:
       context: .
-      dockerfile: ./shipping_service/Dockerfile
+      dockerfile: ./post_service/Dockerfile
     restart: on-failure
     environment:
-      SHIPPING_DB_HOST: ${SHIPPING_DB_HOST}
-      SHIPPING_DB_PORT: ${SHIPPING_DB_PORT}
-      SHIPPING_SERVICE_PORT: ${SHIPPING_SERVICE_PORT}
-      NATS_HOST: ${NATS_HOST}
-      NATS_PORT: ${NATS_PORT}
-      NATS_USER: ${NATS_USER}
-      NATS_PASS: ${NATS_PASS}
-      CREATE_ORDER_COMMAND_SUBJECT: ${CREATE_ORDER_COMMAND_SUBJECT}
-      CREATE_ORDER_REPLY_SUBJECT: ${CREATE_ORDER_REPLY_SUBJECT}
+      POST_SERVICE_PORT: ${POST_SERVICE_PORT}
+      MONGO_DB_HOST: ${POST_MONGO_DB_HOST_DOCKER}
+      MONGO_DB_PORT: ${MONGO_DB_PORT}
+      AUTH_SERVICE_HOST: ${AUTH_SERVICE_HOST_DOCKER}
+      AUTH_SERVICE_PORT: ${AUTH_SERVICE_PORT}
+      PROFILE_SERVICE_HOST: ${PROFILE_SERVICE_HOST_DOCKER}
+      PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
+      CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
+      CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
     depends_on:
-      - shipping_db
+      - post_mongo_db
     networks:
       - network
 
-  inventory_service:
-    image: inventory_service
-    container_name: inventory_service
+  profile_service:
+    image: profile_service
+    container_name: profile_service
     build:
       context: .
-      dockerfile: ./inventory_service/Dockerfile
+      dockerfile: ./profile_service/Dockerfile
     restart: on-failure
     environment:
-      INVENTORY_DB_HOST: ${INVENTORY_DB_HOST}
-      INVENTORY_DB_PORT: ${INVENTORY_DB_PORT}
-      INVENTORY_DB_USER: ${INVENTORY_DB_USER}
-      INVENTORY_DB_PASS: ${INVENTORY_DB_PASS}
-      INVENTORY_DB_NAME: ${INVENTORY_DB_NAME}
-      INVENTORY_SERVICE_PORT: ${INVENTORY_SERVICE_PORT}
-      NATS_HOST: ${NATS_HOST}
-      NATS_PORT: ${NATS_PORT}
-      NATS_USER: ${NATS_USER}
-      NATS_PASS: ${NATS_PASS}
-      CREATE_ORDER_COMMAND_SUBJECT: ${CREATE_ORDER_COMMAND_SUBJECT}
-      CREATE_ORDER_REPLY_SUBJECT: ${CREATE_ORDER_REPLY_SUBJECT}
+      PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
+      MONGO_DB_HOST: ${PROFILE_MONGO_DB_HOST_DOCKER}
+      MONGO_DB_PORT: ${MONGO_DB_PORT}
     depends_on:
-      - inventory_db
+      - profile_mongo_db
     networks:
       - network
 
@@ -97,53 +88,53 @@ services:
       - ${GATEWAY_PORT}:${GATEWAY_PORT}
     environment:
       GATEWAY_PORT: ${GATEWAY_PORT}
-      CATALOGUE_SERVICE_HOST: ${CATALOGUE_SERVICE_HOST}
-      CATALOGUE_SERVICE_PORT: ${CATALOGUE_SERVICE_PORT}
-      ORDERING_SERVICE_HOST: ${ORDERING_SERVICE_HOST}
-      ORDERING_SERVICE_PORT: ${ORDERING_SERVICE_PORT}
-      SHIPPING_SERVICE_HOST: ${SHIPPING_SERVICE_HOST}
-      SHIPPING_SERVICE_PORT: ${SHIPPING_SERVICE_PORT}
-      INVENTORY_SERVICE_HOST: ${INVENTORY_SERVICE_HOST}
-      INVENTORY_SERVICE_PORT: ${INVENTORY_SERVICE_PORT}
+      POST_SERVICE_HOST: ${POST_SERVICE_HOST_DOCKER}
+      POST_SERVICE_PORT: ${POST_SERVICE_PORT}
+      AUTH_SERVICE_HOST: ${AUTH_SERVICE_HOST_DOCKER}
+      AUTH_SERVICE_PORT: ${AUTH_SERVICE_PORT}
+      PROFILE_SERVICE_HOST: ${PROFILE_SERVICE_HOST_DOCKER}
+      PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
+      CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
+      CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
     networks:
       - network
 
-  catalogue_db:
+  auth_mongo_db:
     image: mongo
-    container_name: catalogue_db
+    container_name: auth_mongo_db
     restart: on-failure
     networks:
       - network
+    logging:
+      driver: none
 
-  ordering_db:
+  profile_mongo_db:
     image: mongo
-    container_name: ordering_db
+    container_name: profile_mongo_db
     restart: on-failure
     networks:
       - network
+    logging:
+      driver: none
 
-  shipping_db:
+  post_mongo_db:
     image: mongo
-    container_name: shipping_db
+    container_name: post_mongo_db
     restart: on-failure
     networks:
       - network
+    logging:
+      driver: none
 
-  inventory_db:
-    image: postgres
-    container_name: inventory_db
-    restart: on-failure
+  neo4j:
+    image: neo4j:4.3.3-community
+    container_name: neo4j
+    ports:
+      - ${NEO4J_PORT}:${NEO4J_PORT}
+      - ${NEO4J_PORT_2}:${NEO4J_PORT_2}
     environment:
-      POSTGRES_USER: ${INVENTORY_DB_USER}
-      POSTGRES_PASSWORD: ${INVENTORY_DB_PASS}
-      POSTGRES_DB: ${INVENTORY_DB_NAME}
-    networks:
-      - network
-
-  nats:
-    image: nats
-    container_name: nats
-    restart: on-failure
+      - NEO4J_AUTH=neo4j/connection
+      - NEO4J_dbms_memory_pagecache_size=512MB
     networks:
       - network
 

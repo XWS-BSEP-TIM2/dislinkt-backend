@@ -1,3 +1,5 @@
+# Dislinkt API Gateway
+
 # Start from the latest golang base image
 FROM golang:latest as builder
 
@@ -29,8 +31,8 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 
-# Expose port 8000 to the outside world
-EXPOSE 8000
+# Expose port 9000 to the outside world
+EXPOSE 9000
 
 # Command to run the executable
 CMD ["./main"]

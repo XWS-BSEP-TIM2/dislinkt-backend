@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0
+	github.com/joho/godotenv v1.4.0
 	github.com/nats-io/nats.go v1.14.0
 	go.mongodb.org/mongo-driver v1.9.0
 	google.golang.org/genproto v0.0.0-20220314164441-57ef72a4c106
