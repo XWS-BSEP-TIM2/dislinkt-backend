@@ -1,5 +1,10 @@
 package config
 
+import (
+	"github.com/joho/godotenv"
+	"os"
+)
+
 type Config struct {
 	Port               string
 	UserDBHost         string
@@ -10,12 +15,23 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		//TODO: ENV varibale
-		// mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb
-		Port:               "8081",      //os.Getenv("POST_SERVICE_PORT"),
-		UserDBHost:         "localhost", // os.Getenv("CATALOGUE_DB_HOST"),
-		UserDBPort:         "27017",     // os.Getenv("CATALOGUE_DB_PORT"),
-		ProfileServiceHost: "localhost",
-		ProfileServicePort: "8082",
+		//mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb
+		Port: goDotEnvVariable("AUTH_SERVICE_PORT"),
+
+		UserDBHost: goDotEnvVariable("MONGO_DB_HOST"),
+		UserDBPort: goDotEnvVariable("MONGO_DB_PORT"),
+
+		ProfileServiceHost: goDotEnvVariable("PROFILE_SERVICE_HOST"),
+		ProfileServicePort: goDotEnvVariable("PROFILE_SERVICE_PORT"),
 	}
+}
+
+func goDotEnvVariable(key string) string {
+	godotenv.Load("../.env")
+
+	/*
+		if err != nil {
+			log.Fatalf("Error loading .env file")
+		} */
+	return os.Getenv(key)
 }

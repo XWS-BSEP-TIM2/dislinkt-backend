@@ -1,4 +1,4 @@
-# Dislinkt Auth Service
+# Dislinkt Connection Service
 
 # Start from the latest golang base image
 FROM golang:latest as builder
@@ -7,7 +7,7 @@ FROM golang:latest as builder
 WORKDIR /app
 
 # Copy go mod and sum files
-COPY ./auth_service/go.mod ./auth_service/go.sum ./
+COPY ./connection_service/go.mod ./connection_service/go.sum ./
 
 # Copy the local dependency
 COPY /common ../common
@@ -16,7 +16,7 @@ COPY /common ../common
 RUN go mod download
 
 # Copy everything from the current directory to the Working Directory inside the container
-COPY ./auth_service/ .
+COPY ./connection_service/ .
 
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
@@ -31,8 +31,8 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 
-# Expose port 8081 to the outside world
-EXPOSE 8081
+# Expose port 8001 to the outside world
+EXPOSE 8001
 
 # Command to run the executable
 CMD ["./main"]

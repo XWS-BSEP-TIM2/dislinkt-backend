@@ -33,7 +33,6 @@ func NewServer(config *cfg.Config) *Server {
 }
 
 func (server *Server) initHandlers() {
-
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
 	PostEndpoint := fmt.Sprintf("%s:%s", server.config.PostHost, server.config.PostPort)
@@ -63,18 +62,21 @@ func (server *Server) initHandlers() {
 
 func (server *Server) initCustomHandlers() {
 
-	authEmdpoint := fmt.Sprintf("%s:%s", server.config.AuthHost, server.config.AuthPort)
-	profileEmdpoint := fmt.Sprintf("%s:%s", server.config.ProfileHost, server.config.ProfilePort)
-	connectionsEmdpoint := fmt.Sprintf("%s:%s", server.config.ConnectionHost, server.config.ConnectionPort)
-	//postEmdpoint := fmt.Sprintf("%s:%s", server.config.ShippingHost, server.config.ShippingPort)
+	authEndpoint := fmt.Sprintf("%s:%s", server.config.AuthHost, server.config.AuthPort)
+	profileEndpoint := fmt.Sprintf("%s:%s", server.config.ProfileHost, server.config.ProfilePort)
+	connectionsEndpoint := fmt.Sprintf("%s:%s", server.config.ConnectionHost, server.config.ConnectionPort)
+	postEndpoint := fmt.Sprintf("%s:%s", server.config.PostHost, server.config.PostPort)
 
-	orderingHandler := api.NewPostHandler("localhost:8080")
-	orderingHandler.Init(server.mux)
+	postHandler := api.NewPostHandler(postEndpoint)
+	postHandler.Init(server.mux)
 
-	registerHandler := api.NewRegistrationHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
+	profileHandler := api.NewPostHandler(profileEndpoint)
+	profileHandler.Init(server.mux)
+
+	registerHandler := api.NewRegistrationHandler(authEndpoint, profileEndpoint, connectionsEndpoint)
 	registerHandler.Init(server.mux)
 
-	connectionRecommendationHandler := api.NewConnectionHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
+	connectionRecommendationHandler := api.NewConnectionHandler(authEndpoint, profileEndpoint, connectionsEndpoint)
 	connectionRecommendationHandler.Init(server.mux)
 
 }

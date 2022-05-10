@@ -2,11 +2,14 @@ package interceptors
 
 import (
 	"context"
+	"fmt"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"os"
 	"strings"
 )
 
@@ -48,7 +51,9 @@ func TokenAuthInterceptor(ctx context.Context, req interface{}, info *grpc.Unary
 	if !strings.HasPrefix(auth, prefix) {
 		return ctx, status.Error(codes.Unauthenticated, `missing "Bearer " prefix in "Authorization" header`)
 	}
-	authClient := NewAuthClient("localhost:8081")
+
+	authEndpoint := fmt.Sprintf("%s:%s", goDotEnvVariable("AUTH_SERVICE_HOST"), goDotEnvVariable("AUTH_SERVICE_PORT"))
+	authClient := NewAuthClient(authEndpoint)
 	var token = strings.TrimPrefix(auth, prefix)
 	result, err := authClient.Validate(context.TODO(), &authService.ValidateRequest{Token: token})
 	if result.Status != 200 {
@@ -74,4 +79,14 @@ func extractHeader(ctx context.Context, header string) (string, error) {
 	}
 
 	return authHeaders[0], nil
+}
+
+func goDotEnvVariable(key string) string {
+	godotenv.Load("../.env")
+
+	/*
+		if err != nil {
+			log.Fatalf("Error loading .env file")
+		} */
+	return os.Getenv(key)
 }
