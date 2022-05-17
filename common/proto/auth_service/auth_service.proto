@@ -8,17 +8,8 @@ import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
 service AuthService {
-  rpc Register(RegisterRequest) returns (RegisterResponse) {
-    option (google.api.http) = {
-      post: "/register"
-      body:"data"
-  };}
-  rpc Login(LoginRequest) returns (LoginResponse) {
-    option (google.api.http) = {
-      post: "/login"
-        body: "data"
-    };
-  }
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+  rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
   rpc ExtractDataFromToken(ExtractDataFromTokenRequest) returns (ExtractDataFromTokenResponse) {}
 }
@@ -26,10 +17,6 @@ service AuthService {
 // Register
 
 message RegisterRequest {
-  RegisterRequestData data=1;
-}
-
-message RegisterRequestData{
   string username = 1;
   string password = 2;
 }
@@ -43,13 +30,11 @@ message RegisterResponse {
 // Login
 
 message LoginRequest {
-  LoginData data = 1;
-}
-
-message LoginData{
   string username = 1;
   string password = 2;
 }
+
+
 
 message LoginResponse {
   int64 status = 1;
@@ -74,6 +59,7 @@ message ValidateResponse {
 message ExtractDataFromTokenResponse{
   string id=1;
   string username=2;
+  string role=3;
 }
 
 message ExtractDataFromTokenRequest{

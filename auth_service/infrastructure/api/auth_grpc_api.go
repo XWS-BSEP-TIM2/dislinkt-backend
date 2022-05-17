@@ -25,7 +25,7 @@ func NewAuthHandler(service *application.AuthService) *AuthHandler {
 func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 
 	var user domain.User
-	user1, _ := handler.service.GetByUsername(ctx, request.Data.Username)
+	user1, _ := handler.service.GetByUsername(ctx, request.Username)
 	if user1 != nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusUnprocessableEntity,
@@ -33,8 +33,8 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 			UserID: "",
 		}, nil
 	}
-	user.Username = request.Data.GetUsername()
-	user.Password = request.Data.GetPassword()
+	user.Username = request.GetUsername()
+	user.Password = request.GetPassword()
 
 	userID, err := handler.service.Create(ctx, &user) //userID
 	if err != nil {
@@ -52,7 +52,7 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 
 func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 
-	user, err := handler.service.GetByUsername(ctx, req.Data.Username)
+	user, err := handler.service.GetByUsername(ctx, req.Username)
 	if err != nil {
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
@@ -60,7 +60,7 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		}, nil
 	}
 
-	match := req.Data.Password == user.Password
+	match := req.Password == user.Password
 
 	if !match {
 		return &pb.LoginResponse{
@@ -111,12 +111,14 @@ func (handler *AuthHandler) ExtractDataFromToken(ctx context.Context, req *pb.Ex
 		return &pb.ExtractDataFromTokenResponse{
 			Id:       "",
 			Username: "",
+			Role:     "",
 		}, err
 	}
 
 	return &pb.ExtractDataFromTokenResponse{
 		Id:       claims.Id,
 		Username: claims.Username,
+		Role:     claims.Role,
 	}, nil
 
 }

@@ -68,12 +68,6 @@ func (server *Server) initCustomHandlers() {
 	connectionsEmdpoint := fmt.Sprintf("%s:%s", server.config.ConnectionHost, server.config.ConnectionPort)
 	//postEmdpoint := fmt.Sprintf("%s:%s", server.config.ShippingHost, server.config.ShippingPort)
 
-	orderingHandler := api.NewPostHandler("localhost:8080")
-	orderingHandler.Init(server.mux)
-
-	registerHandler := api.NewRegistrationHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
-	registerHandler.Init(server.mux)
-
 	connectionRecommendationHandler := api.NewConnectionHandler(authEmdpoint, profileEmdpoint, connectionsEmdpoint)
 	connectionRecommendationHandler.Init(server.mux)
 

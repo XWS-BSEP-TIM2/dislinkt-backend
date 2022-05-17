@@ -18,12 +18,14 @@ type jwtClaims struct {
 	jwt.StandardClaims
 	Id       string
 	Username string
+	Role     string
 }
 
 func (w *JwtWrapper) GenerateToken(user *domain.User) (signedToken string, err error) {
 	claims := &jwtClaims{
 		Id:       user.Id.Hex(),
 		Username: user.Username,
+		Role:     domain.ConvertRoleToString(user.Role),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(8)).Unix(),
 			Issuer:    w.Issuer,

@@ -1,0 +1,18 @@
+p, USER, updateProfile, update
+p, USER, createPost,create
+p, USER, createComment,create
+p, USER, likePost,create
+p, USER, removeLike,delete
+p, USER, dislikePost,create
+p, USER, removeDislike,delete
+p, USER, getFriends,read
+p, USER, getBlockedUsers,read
+p, USER, getFriendRequests,read
+p, USER, addFriend,create
+p, USER, removeFriend,delete
+p, USER, blockUser,create
+p, USER, unblockUser,read
+p, USER, createFriendRequest,create
+p, USER, removeFriendRequest,delete
+p, USER, getRecommendation,read
+p, USER, getConnectionDetais,read

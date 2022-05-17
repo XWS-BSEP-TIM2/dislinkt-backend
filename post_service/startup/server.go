@@ -2,14 +2,12 @@ package startup
 
 import (
 	"fmt"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/interceptors"
 	postGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/startup/config"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"log"
@@ -64,11 +62,11 @@ func (server *Server) startGrpcServer(postHandler *api.PostHandler) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(
-				interceptors.TokenAuthInterceptor,
-			),
-		),
+	//grpc.UnaryInterceptor(
+	//	grpc_middleware.ChainUnaryServer(
+	//		interceptors.TokenAuthInterceptor,
+	//	),
+	//),
 	)
 	postGw.RegisterPostServiceServer(grpcServer, postHandler)
 	if err := grpcServer.Serve(listener); err != nil {
