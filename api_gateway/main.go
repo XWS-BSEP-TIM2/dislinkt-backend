@@ -25,10 +25,10 @@ func main() {
 	post.RegisterRoutes(r)
 	connection.RegisterRoutes(r)
 
-	r.Run(":" + c.Port)
+	//r.Run(":" + c.Port)
 
-	//err := r.RunTLS(":"+c.Port, "./certificates/dislinkt_gateway.crt", "./certificates/dislinkt_gateway.key")
-	//if err != nil {
-	//	return
-	//}
+	err := r.RunTLS(":"+c.Port, "./certificates/dislinkt_gateway.crt", "./certificates/dislinkt_gateway.key")
+	if err != nil {
+		return
+	}
 }

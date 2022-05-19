@@ -31,7 +31,7 @@ func NewConfig() *Config {
 		ProfileHost:               getEnv("PROFILE_HOST", "localhost"),
 		ProfilePort:               getEnv("PROFILE_PORT", "8082"),
 		ConnectionHost:            getEnv("CONNECTION_HOST", "localhost"),
-		ConnectionPort:            getEnv("CONNECTION_PORT", "8082"),
+		ConnectionPort:            getEnv("CONNECTION_PORT", "8001"),
 		CertificatePath:           getEnv("CERTIFICATE_PATH", "certificates/dislinkt_gateway.crt"),
 		CertificatePrivateKeyPath: getEnv("CERTIFICATE_PRIVATE_KEY_PATH", "certificates/dislinkt_gateway.key"),
 	}

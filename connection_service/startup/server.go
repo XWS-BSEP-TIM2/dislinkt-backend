@@ -2,14 +2,12 @@ package startup
 
 import (
 	"fmt"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/interceptors"
 	connection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/startup/config"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"google.golang.org/grpc"
 	"log"
@@ -67,11 +65,14 @@ func (server *Server) startGrpcServer(connectionHandler *api.ConnectionHandler) 
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(
+		/*
+			grpc.UnaryInterceptor(
+				grpc_middleware.ChainUnaryServer(
 				interceptors.TokenAuthInterceptor,
+				),
 			),
-		),
+		*/
+
 	)
 	connection.RegisterConnectionServiceServer(grpcServer, connectionHandler)
 	if err := grpcServer.Serve(listener); err != nil {
