@@ -12,6 +12,7 @@ service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
   rpc ExtractDataFromToken(ExtractDataFromTokenRequest) returns (ExtractDataFromTokenResponse) {}
+  rpc Verify(VerifyRequest) returns (VerifyResponse) {}
 }
 
 // Register
@@ -19,6 +20,7 @@ service AuthService {
 message RegisterRequest {
   string username = 1;
   string password = 2;
+  string email = 3;
 }
 
 message RegisterResponse {
@@ -34,7 +36,14 @@ message LoginRequest {
   string password = 2;
 }
 
-
+message VerifyRequest {
+  string username = 1;
+  string code = 2;
+}
+message VerifyResponse{
+  bool verified = 1;
+  string msg = 2;
+}
 
 message LoginResponse {
   int64 status = 1;

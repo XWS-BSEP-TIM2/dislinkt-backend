@@ -30,7 +30,8 @@ func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
 	credentialStore := server.initCredentialStore(mongoClient)
 
-	authService := server.initAuthService(credentialStore)
+	emailService := server.initEmailService()
+	authService := server.initAuthService(credentialStore, emailService)
 
 	authHandler := server.initAuthHandler(authService)
 
@@ -57,9 +58,9 @@ func (server *Server) initCredentialStore(client *mongo.Client) domain.UserStore
 	return store
 }
 
-func (server *Server) initAuthService(store domain.UserStore) *application.AuthService {
+func (server *Server) initAuthService(store domain.UserStore, emailService *application.EmailService) *application.AuthService {
 	profileServiceEndpoint := fmt.Sprintf("%s:%s", server.config.ProfileServiceHost, server.config.ProfileServicePort)
-	return application.NewAuthService(store, profileServiceEndpoint)
+	return application.NewAuthService(store, profileServiceEndpoint, emailService)
 }
 
 func (server *Server) initAuthHandler(service *application.AuthService) *api.AuthHandler {
@@ -76,4 +77,8 @@ func (server *Server) startGrpcServer(authHandler *api.AuthHandler) {
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
+}
+
+func (server *Server) initEmailService() *application.EmailService {
+	return application.NewEmailService(server.config.Email, server.config.PasswordEmail, server.config.ApiGatwayHost, server.config.ApiGatwayPort)
 }

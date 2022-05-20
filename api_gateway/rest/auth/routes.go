@@ -8,6 +8,7 @@ import (
 func RegisterRoutes(r *gin.Engine) {
 	authHandler := handler.InitAuthHandler()
 	routes := r.Group("")
-	routes.POST("/register", authHandler.Register)
+	routes.POST("/api/register", authHandler.Register) //TODO: "/register" treba na frontu obrisati api, priveremo
 	routes.POST("/login", authHandler.Login)
+	routes.GET("/verify/:username/:code", authHandler.Verify)
 }
