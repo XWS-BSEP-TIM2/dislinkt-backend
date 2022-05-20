@@ -6,6 +6,10 @@ type Config struct {
 	UserDBPort         string
 	ProfileServicePort string
 	ProfileServiceHost string
+	ApiGatwayHost      string
+	ApiGatwayPort      string
+	Email              string
+	PasswordEmail      string
 }
 
 func NewConfig() *Config {
@@ -17,5 +21,9 @@ func NewConfig() *Config {
 		UserDBPort:         "27017",     // os.Getenv("CATALOGUE_DB_PORT"),
 		ProfileServiceHost: "localhost",
 		ProfileServicePort: "8082",
+		ApiGatwayHost:      "localhost",
+		ApiGatwayPort:      "9000",
+		Email:              "dislinkt@outlook.com",
+		PasswordEmail:      "disXWSpass2022",
 	}
 }

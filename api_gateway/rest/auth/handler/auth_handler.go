@@ -40,6 +40,21 @@ func (authHandler *AuthHandler) Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &res)
 }
 
+func (authHandler *AuthHandler) Verify(ctx *gin.Context) {
+
+	username := ctx.Param("username")
+	code := ctx.Param("code")
+	v := pbAuth.VerifyRequest{Username: username, Code: code}
+
+	res, err := authHandler.grpcClient.AuthClient.Verify(context.Background(), &v)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &res)
+}
+
 func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 
 	registerDto := dto.RegisterDTO{}
@@ -76,7 +91,7 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 
 func (authHandler *AuthHandler) registerAuth(registerDTO dto.RegisterDTO) (string, error) {
 	authS := authHandler.grpcClient.AuthClient
-	response, err := authS.Register(context.TODO(), &pbAuth.RegisterRequest{Username: registerDTO.Username, Password: registerDTO.Password})
+	response, err := authS.Register(context.TODO(), &pbAuth.RegisterRequest{Username: registerDTO.Username, Password: registerDTO.Password, Email: registerDTO.Email})
 	if err != nil {
 		fmt.Println(err.Error())
 		return "", err

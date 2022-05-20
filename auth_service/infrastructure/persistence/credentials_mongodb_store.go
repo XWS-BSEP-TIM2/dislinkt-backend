@@ -48,6 +48,30 @@ func (store *CreadentialsMongoDBStore) Insert(ctx context.Context, product *doma
 	return nil, product.Id.Hex()
 }
 
+func (store *CreadentialsMongoDBStore) Update(ctx context.Context, user *domain.User) error {
+	userToUpdate := bson.M{"_id": user.Id}
+	updatedUser := bson.M{"$set": bson.M{
+		"username":             user.Username,
+		"password":             user.Password,
+		"role":                 user.Role,
+		"locked":               user.Locked,
+		"lockReason":           user.LockReason,
+		"email":                user.Email,
+		"verified":             user.Verified,
+		"verificationCode":     user.VerificationCode,
+		"verificationCodeTime": user.VerificationCodeTime,
+		"numOfErrTryLogin":     user.NumOfErrTryLogin,
+		"lastErrTryLoginTime":  user.LastErrTryLoginTime,
+	}}
+
+	_, err := store.users.UpdateOne(context.TODO(), userToUpdate, updatedUser)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (store *CreadentialsMongoDBStore) DeleteAll(ctx context.Context) {
 	store.users.DeleteMany(context.TODO(), bson.D{{}})
 }

@@ -11,4 +11,5 @@ type UserStore interface {
 	Insert(ctx context.Context, product *User) (error, string)
 	DeleteAll(ctx context.Context)
 	GetByUsername(ctx context.Context, Username string) (*User, error)
+	Update(ctx context.Context, user *User) error
 }
