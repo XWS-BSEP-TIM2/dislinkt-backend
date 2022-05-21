@@ -68,7 +68,7 @@ var users = []*domain.User{
 		Password: "pass",
 		Role:     domain.USER,
 		Verified: true,
-		Email:    "rasti@gmail.com",
+		Email:    "dislinktx@gmail.com",
 	},
 }
 

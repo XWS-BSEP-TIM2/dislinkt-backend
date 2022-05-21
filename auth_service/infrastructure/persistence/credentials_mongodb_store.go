@@ -51,17 +51,19 @@ func (store *CreadentialsMongoDBStore) Insert(ctx context.Context, product *doma
 func (store *CreadentialsMongoDBStore) Update(ctx context.Context, user *domain.User) error {
 	userToUpdate := bson.M{"_id": user.Id}
 	updatedUser := bson.M{"$set": bson.M{
-		"username":             user.Username,
-		"password":             user.Password,
-		"role":                 user.Role,
-		"locked":               user.Locked,
-		"lockReason":           user.LockReason,
-		"email":                user.Email,
-		"verified":             user.Verified,
-		"verificationCode":     user.VerificationCode,
-		"verificationCodeTime": user.VerificationCodeTime,
-		"numOfErrTryLogin":     user.NumOfErrTryLogin,
-		"lastErrTryLoginTime":  user.LastErrTryLoginTime,
+		"username":                 user.Username,
+		"password":                 user.Password,
+		"role":                     user.Role,
+		"locked":                   user.Locked,
+		"lockReason":               user.LockReason,
+		"email":                    user.Email,
+		"verified":                 user.Verified,
+		"verificationCode":         user.VerificationCode,
+		"verificationCodeTime":     user.VerificationCodeTime,
+		"numOfErrTryLogin":         user.NumOfErrTryLogin,
+		"lastErrTryLoginTime":      user.LastErrTryLoginTime,
+		"recoveryPasswordCode":     user.RecoveryPasswordCode,
+		"recoveryPasswordCodeTime": user.RecoveryPasswordCodeTime,
 	}}
 
 	_, err := store.users.UpdateOne(context.TODO(), userToUpdate, updatedUser)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/utils"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
@@ -75,4 +76,31 @@ func (service *AuthService) Verify(ctx context.Context, username string, code st
 		return &authService.VerifyResponse{Verified: true, Msg: "you have successfully verified your account"}, nil
 	}
 	return &authService.VerifyResponse{Verified: false, Msg: "error"}, nil
+}
+
+func (service *AuthService) Recovery(ctx context.Context, username string) (*authService.RecoveryResponse, error) {
+	user, err := service.store.GetByUsername(ctx, username)
+	if err != nil {
+		return &authService.RecoveryResponse{Status: 1, Msg: "User not found"}, err
+	}
+
+	recoveryCode, err := utils.GenerateRandomString(8)
+	if err != nil {
+		return nil, err
+	}
+
+	user.RecoveryPasswordCode = recoveryCode
+	user.RecoveryPasswordCodeTime = time.Now()
+
+	errSendEmail := service.emailService.SendRecoveryEmail(user.Email, user.Username, recoveryCode)
+	if errSendEmail != nil {
+		return &authService.RecoveryResponse{Status: 2, Msg: "Error sending email"}, errSendEmail
+	}
+
+	errUpdate := service.Update(ctx, user)
+	if errUpdate != nil {
+		return &authService.RecoveryResponse{Status: 3, Msg: "Error"}, errUpdate
+	}
+
+	return &authService.RecoveryResponse{Status: 4, Msg: "Check your email, we sent you recovery code"}, nil
 }

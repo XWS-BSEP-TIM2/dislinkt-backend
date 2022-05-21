@@ -22,6 +22,7 @@ type AuthServiceClient interface {
 	Validate(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error)
 	ExtractDataFromToken(ctx context.Context, in *ExtractDataFromTokenRequest, opts ...grpc.CallOption) (*ExtractDataFromTokenResponse, error)
 	Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error)
+	Recovery(ctx context.Context, in *RecoveryRequest, opts ...grpc.CallOption) (*RecoveryResponse, error)
 }
 
 type authServiceClient struct {
@@ -77,6 +78,15 @@ func (c *authServiceClient) Verify(ctx context.Context, in *VerifyRequest, opts 
 	return out, nil
 }
 
+func (c *authServiceClient) Recovery(ctx context.Context, in *RecoveryRequest, opts ...grpc.CallOption) (*RecoveryResponse, error) {
+	out := new(RecoveryResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/Recovery", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -86,6 +96,7 @@ type AuthServiceServer interface {
 	Validate(context.Context, *ValidateRequest) (*ValidateResponse, error)
 	ExtractDataFromToken(context.Context, *ExtractDataFromTokenRequest) (*ExtractDataFromTokenResponse, error)
 	Verify(context.Context, *VerifyRequest) (*VerifyResponse, error)
+	Recovery(context.Context, *RecoveryRequest) (*RecoveryResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -107,6 +118,9 @@ func (*UnimplementedAuthServiceServer) ExtractDataFromToken(context.Context, *Ex
 }
 func (*UnimplementedAuthServiceServer) Verify(context.Context, *VerifyRequest) (*VerifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Verify not implemented")
+}
+func (*UnimplementedAuthServiceServer) Recovery(context.Context, *RecoveryRequest) (*RecoveryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Recovery not implemented")
 }
 func (*UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -204,6 +218,24 @@ func _AuthService_Verify_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_Recovery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecoveryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).Recovery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/Recovery",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).Recovery(ctx, req.(*RecoveryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AuthService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "auth.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
@@ -227,6 +259,10 @@ var _AuthService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Verify",
 			Handler:    _AuthService_Verify_Handler,
+		},
+		{
+			MethodName: "Recovery",
+			Handler:    _AuthService_Recovery_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

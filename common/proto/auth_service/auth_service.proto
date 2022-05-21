@@ -13,6 +13,7 @@ service AuthService {
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
   rpc ExtractDataFromToken(ExtractDataFromTokenRequest) returns (ExtractDataFromTokenResponse) {}
   rpc Verify(VerifyRequest) returns (VerifyResponse) {}
+  rpc Recovery(RecoveryRequest) returns (RecoveryResponse) {}
 }
 
 // Register
@@ -36,6 +37,15 @@ message LoginRequest {
   string password = 2;
 }
 
+message LoginResponse {
+  int64 status = 1;
+  string error = 2;
+  string token = 3;
+  string username=4;
+  string role=5;
+  string userID = 6;
+}
+
 message VerifyRequest {
   string username = 1;
   string code = 2;
@@ -45,13 +55,12 @@ message VerifyResponse{
   string msg = 2;
 }
 
-message LoginResponse {
-  int64 status = 1;
-  string error = 2;
-  string token = 3;
-  string username=4;
-  string role=5;
-  string userID = 6;
+message RecoveryRequest {
+  string username = 1;
+}
+message RecoveryResponse{
+  int32 status = 1;
+  string msg = 2;
 }
 
 // Validate

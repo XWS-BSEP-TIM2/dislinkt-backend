@@ -70,6 +70,10 @@ func (handler *AuthHandler) Verify(ctx context.Context, req *pb.VerifyRequest) (
 	return handler.service.Verify(ctx, req.Username, req.Code)
 }
 
+func (handler *AuthHandler) Recovery(ctx context.Context, req *pb.RecoveryRequest) (*pb.RecoveryResponse, error) {
+	return handler.service.Recovery(ctx, req.Username)
+}
+
 func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 
 	user, err := handler.service.GetByUsername(ctx, req.Username)
@@ -129,6 +133,7 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	token, _ := handler.Jwt.GenerateToken(user)
 
 	user.NumOfErrTryLogin = 0
+	handler.service.Update(ctx, user)
 
 	return &pb.LoginResponse{
 		Status:   http.StatusOK,
