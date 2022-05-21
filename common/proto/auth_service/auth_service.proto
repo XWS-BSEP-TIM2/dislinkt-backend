@@ -14,6 +14,7 @@ service AuthService {
   rpc ExtractDataFromToken(ExtractDataFromTokenRequest) returns (ExtractDataFromTokenResponse) {}
   rpc Verify(VerifyRequest) returns (VerifyResponse) {}
   rpc Recovery(RecoveryRequest) returns (RecoveryResponse) {}
+  rpc Recover(RecoveryRequestLogin) returns (LoginResponse) {}
 }
 
 // Register
@@ -63,6 +64,12 @@ message RecoveryResponse{
   string msg = 2;
 }
 
+message RecoveryRequestLogin {
+  string username = 1;
+  string recoveryCode = 2;
+  string newPassword = 3;
+  string confirmNewPassword = 4;
+}
 // Validate
 
 message ValidateRequest { string token = 1; }

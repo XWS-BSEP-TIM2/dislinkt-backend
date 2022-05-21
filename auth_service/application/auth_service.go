@@ -7,6 +7,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/utils"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"net/http"
 	"time"
 )
 
@@ -103,4 +104,32 @@ func (service *AuthService) Recovery(ctx context.Context, username string) (*aut
 	}
 
 	return &authService.RecoveryResponse{Status: 4, Msg: "Check your email, we sent you recovery code"}, nil
+}
+
+func (service *AuthService) Recover(ctx context.Context, req *authService.RecoveryRequestLogin) (*authService.LoginResponse, error) {
+	//TODO: validirati password regexom dal je dovoljno dobar? ...
+	if req.NewPassword != req.ConfirmNewPassword {
+		return &authService.LoginResponse{Status: http.StatusBadRequest, Error: "passwords do not match"}, nil
+	}
+
+	user, err := service.store.GetByUsername(ctx, req.Username)
+	if err != nil {
+		return &authService.LoginResponse{Status: http.StatusBadRequest, Error: "User not found"}, err
+	}
+
+	if user.RecoveryPasswordCodeTime.Add(5 * time.Minute).Before(time.Now()) {
+		return &authService.LoginResponse{Status: http.StatusNotAcceptable, Error: "The recovery code is no longer valid"}, nil
+	}
+
+	if user.RecoveryPasswordCode == req.RecoveryCode {
+		if user.Locked {
+			user.Locked = false
+			user.LockReason = ""
+		}
+		user.NumOfErrTryLogin = 0
+		user.Password = req.NewPassword
+		service.Update(ctx, user)
+		return &authService.LoginResponse{Status: http.StatusOK, Error: ""}, nil
+	}
+	return &authService.LoginResponse{Error: "Error"}, nil
 }

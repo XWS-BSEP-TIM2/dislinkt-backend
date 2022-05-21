@@ -12,4 +12,5 @@ func RegisterRoutes(r *gin.Engine) {
 	routes.POST("/login", authHandler.Login)
 	routes.GET("/verify/:username/:code", authHandler.Verify)
 	routes.GET("/login/recovery/:username", authHandler.GetRecovery)
+	routes.POST("/login/recovery", authHandler.Recover)
 }

@@ -74,6 +74,17 @@ func (handler *AuthHandler) Recovery(ctx context.Context, req *pb.RecoveryReques
 	return handler.service.Recovery(ctx, req.Username)
 }
 
+func (handler *AuthHandler) Recover(ctx context.Context, req *pb.RecoveryRequestLogin) (*pb.LoginResponse, error) {
+	response, err := handler.service.Recover(ctx, req)
+	if err != nil {
+		return response, err
+	}
+	if response.Error != "" {
+		return response, nil
+	}
+	return handler.Login(ctx, &pb.LoginRequest{Username: req.Username, Password: req.NewPassword})
+}
+
 func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 
 	user, err := handler.service.GetByUsername(ctx, req.Username)

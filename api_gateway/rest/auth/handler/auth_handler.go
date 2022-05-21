@@ -67,6 +67,27 @@ func (authHandler *AuthHandler) GetRecovery(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &res)
 }
 
+func (authHandler *AuthHandler) Recover(ctx *gin.Context) {
+
+	rl := pbAuth.RecoveryRequestLogin{}
+
+	if err := ctx.BindJSON(&rl); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	fmt.Println(rl)
+
+	res, err := authHandler.grpcClient.AuthClient.Recover(context.Background(), &rl)
+
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &res)
+}
+
 func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 
 	registerDto := dto.RegisterDTO{}
