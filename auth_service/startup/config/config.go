@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -19,7 +20,6 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		//TODO: ENV varibale
 		// mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb
 		Port: goDotEnvVariable("AUTH_SERVICE_PORT"),
 
