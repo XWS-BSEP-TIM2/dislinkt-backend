@@ -55,6 +55,20 @@ func (authHandler *AuthHandler) Verify(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &res)
 }
 
+func (authHandler *AuthHandler) ResendVerify(ctx *gin.Context) {
+
+	username := ctx.Param("username")
+	v := pbAuth.ResendVerifyRequest{Username: username}
+
+	res, err := authHandler.grpcClient.AuthClient.ResendVerify(context.Background(), &v)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &res)
+}
+
 func (authHandler *AuthHandler) GetRecovery(ctx *gin.Context) {
 
 	username := ctx.Param("username")

@@ -11,6 +11,7 @@ func RegisterRoutes(r *gin.Engine) {
 	routes.POST("/api/register", authHandler.Register) //TODO: "/register" treba na frontu obrisati api, priveremo
 	routes.POST("/login", authHandler.Login)
 	routes.GET("/verify/:username/:code", authHandler.Verify)
+	routes.GET("/login/verify/:username", authHandler.ResendVerify)
 	routes.GET("/login/recovery/:username", authHandler.GetRecovery)
 	routes.POST("/login/recovery", authHandler.Recover)
 }

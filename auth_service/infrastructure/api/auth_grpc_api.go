@@ -70,6 +70,10 @@ func (handler *AuthHandler) Verify(ctx context.Context, req *pb.VerifyRequest) (
 	return handler.service.Verify(ctx, req.Username, req.Code)
 }
 
+func (handler *AuthHandler) ResendVerify(ctx context.Context, req *pb.ResendVerifyRequest) (*pb.ResendVerifyResponse, error) {
+	return handler.service.ResendVerify(ctx, req.Username)
+}
+
 func (handler *AuthHandler) Recovery(ctx context.Context, req *pb.RecoveryRequest) (*pb.RecoveryResponse, error) {
 	return handler.service.Recovery(ctx, req.Username)
 }

@@ -13,6 +13,7 @@ service AuthService {
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
   rpc ExtractDataFromToken(ExtractDataFromTokenRequest) returns (ExtractDataFromTokenResponse) {}
   rpc Verify(VerifyRequest) returns (VerifyResponse) {}
+  rpc ResendVerify(ResendVerifyRequest) returns (ResendVerifyResponse) {}
   rpc Recovery(RecoveryRequest) returns (RecoveryResponse) {}
   rpc Recover(RecoveryRequestLogin) returns (LoginResponse) {}
 }
@@ -55,6 +56,14 @@ message VerifyResponse{
   bool verified = 1;
   string msg = 2;
 }
+
+message ResendVerifyRequest {
+  string username = 1;
+}
+message ResendVerifyResponse{
+  string msg = 2;
+}
+
 
 message RecoveryRequest {
   string username = 1;

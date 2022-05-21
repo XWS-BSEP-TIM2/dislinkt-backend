@@ -85,6 +85,10 @@ func (service *AuthService) Recovery(ctx context.Context, username string) (*aut
 		return &authService.RecoveryResponse{Status: 1, Msg: "User not found"}, err
 	}
 
+	if !user.Verified {
+		return &authService.RecoveryResponse{Status: 5, Msg: "Recovery error: Your Acc is not verified"}, nil
+	}
+
 	recoveryCode, err := utils.GenerateRandomString(8)
 	if err != nil {
 		return nil, err
@@ -132,4 +136,30 @@ func (service *AuthService) Recover(ctx context.Context, req *authService.Recove
 		return &authService.LoginResponse{Status: http.StatusOK, Error: ""}, nil
 	}
 	return &authService.LoginResponse{Error: "Error"}, nil
+}
+
+func (service *AuthService) ResendVerify(ctx context.Context, username string) (*authService.ResendVerifyResponse, error) {
+	user, err := service.store.GetByUsername(ctx, username)
+	if err != nil {
+		return &authService.ResendVerifyResponse{Msg: "User not found"}, err
+	}
+
+	if user.Verified {
+		return &authService.ResendVerifyResponse{Msg: "The user has already been verified"}, nil
+	}
+
+	token, errRandom := utils.GenerateRandomStringURLSafe(32)
+	if errRandom != nil {
+		panic(errRandom)
+	}
+	user.VerificationCode = token
+	user.VerificationCodeTime = time.Now()
+	service.Update(ctx, user)
+
+	errSendEmail := service.emailService.SendVerificationEmail(user.Email, user.Username, user.VerificationCode)
+	if errSendEmail != nil {
+		return &authService.ResendVerifyResponse{Msg: "error sending email"}, errSendEmail
+	}
+
+	return &authService.ResendVerifyResponse{Msg: "Check your email, we sent you verification link"}, err
 }
