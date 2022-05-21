@@ -46,17 +46,7 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 	if errV != nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusNotAcceptable,
-			UserID: "",
-		}, errV
-	}
-
-	v := validator.New()
-	handler.ValidatePassword(ctx, v)
-	handler.ValidateUsername(ctx, v)
-	errV := v.Struct(user)
-	if errV != nil {
-		return &pb.RegisterResponse{
-			Status: http.StatusNotAcceptable,
+			Error:  "Validation error" + " " + errV.Error(),
 			UserID: "",
 		}, errV
 	}
@@ -85,8 +75,8 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		}, nil
 	}
 	var userForValidation domain.User
-	userForValidation.Username = req.Data.GetUsername()
-	userForValidation.Password = req.Data.GetPassword()
+	userForValidation.Username = req.Username
+	userForValidation.Password = req.Password
 
 	v := validator.New()
 	handler.ValidatePassword(ctx, v)
