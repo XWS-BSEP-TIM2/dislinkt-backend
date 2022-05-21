@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/joho/godotenv"
 	"os"
 )
 
@@ -13,9 +14,9 @@ type Config struct {
 	AuthHost string
 	AuthPort string
 
-	ProfileHost    string
-	ProfilePort    string
-	
+	ProfileHost string
+	ProfilePort string
+
 	ConnectionHost string
 	ConnectionPort string
 
@@ -25,23 +26,26 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		Port:                      getEnv("GATEWAY_PORT", "9000"),
-		PostHost:                  getEnv("POST_HOST", "localhost"),
-		PostPort:                  getEnv("POST_PORT", "8080"),
-		AuthHost:                  getEnv("AUTH_HOST", "localhost"),
-		AuthPort:                  getEnv("AUTH_PORT", "8081"),
-		ProfileHost:               getEnv("PROFILE_HOST", "localhost"),
-		ProfilePort:               getEnv("PROFILE_PORT", "8082"),
-		ConnectionHost:            getEnv("CONNECTION_HOST", "localhost"),
-		ConnectionPort:            getEnv("CONNECTION_PORT", "8001"),
-		CertificatePath:           getEnv("CERTIFICATE_PATH", "certificates/dislinkt_gateway.crt"),
-		CertificatePrivateKeyPath: getEnv("CERTIFICATE_PRIVATE_KEY_PATH", "certificates/dislinkt_gateway.key"),
+		Port: goDotEnvVariable("GATEWAY_PORT"),
+
+		PostHost: goDotEnvVariable("POST_SERVICE_HOST"),
+		PostPort: goDotEnvVariable("POST_SERVICE_PORT"),
+
+		AuthHost: goDotEnvVariable("AUTH_SERVICE_HOST"),
+		AuthPort: goDotEnvVariable("AUTH_SERVICE_PORT"),
+
+		ProfileHost: goDotEnvVariable("PROFILE_SERVICE_HOST"),
+		ProfilePort: goDotEnvVariable("PROFILE_SERVICE_PORT"),
+
+		ConnectionHost: goDotEnvVariable("CONNECTION_SERVICE_HOST"),
+		ConnectionPort: goDotEnvVariable("CONNECTION_SERVICE_PORT"),
+
+		CertificatePath:           goDotEnvVariable("CERTIFICATE_PATH"),
+		CertificatePrivateKeyPath: goDotEnvVariable("CERTIFICATE_PRIVATE_KEY_PATH"),
 	}
 }
 
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
+func goDotEnvVariable(key string) string {
+	godotenv.Load("../.env")
+	return os.Getenv(key)
 }

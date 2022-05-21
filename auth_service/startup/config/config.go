@@ -1,9 +1,8 @@
 package config
 
 import (
-	"log"
-	"os"
 	"github.com/joho/godotenv"
+	"os"
 )
 
 type Config struct {
@@ -30,21 +29,15 @@ func NewConfig() *Config {
 		ProfileServiceHost: goDotEnvVariable("PROFILE_SERVICE_HOST"),
 		ProfileServicePort: goDotEnvVariable("PROFILE_SERVICE_PORT"),
 
-		ApiGatwayHost:      goDotEnvVariable("GATEWAY_HOST"),
-		ApiGatwayPort:      goDotEnvVariable("GATEWAY_PORT"),
+		ApiGatwayHost: goDotEnvVariable("GATEWAY_HOST"),
+		ApiGatwayPort: goDotEnvVariable("GATEWAY_PORT"),
 
-		Email:              "dislinkt@outlook.com",
-		PasswordEmail:      "disXWSpass2022",
-
+		Email:         goDotEnvVariable("DISLINKT_EMAIL"),
+		PasswordEmail: goDotEnvVariable("EMAIL_PASSWORD"),
 	}
 }
 
 func goDotEnvVariable(key string) string {
-	var err = godotenv.Load("../.env")
-
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	} 
-
+	godotenv.Load("../.env")
 	return os.Getenv(key)
 }

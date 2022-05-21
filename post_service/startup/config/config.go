@@ -38,10 +38,5 @@ func NewConfig() *Config {
 
 func goDotEnvVariable(key string) string {
 	godotenv.Load("../.env")
-
-	/*
-		if err != nil {
-			log.Fatalf("Error loading .env file")
-		} */
 	return os.Getenv(key)
 }
