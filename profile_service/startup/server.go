@@ -3,13 +3,11 @@ package startup
 import (
 	"context"
 	"fmt"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/interceptors"
 	profile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/startup/config"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"log"
@@ -73,11 +71,12 @@ func (server *Server) startGrpcServer(profileHandler *api.ProfileHandler) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(
-				interceptors.TokenAuthInterceptor,
-			),
-		))
+	//grpc.UnaryInterceptor(
+	//	grpc_middleware.ChainUnaryServer(
+	//		interceptors.TokenAuthInterceptor,
+	//	),
+	//)
+	)
 	profile.RegisterProfileServiceServer(grpcServer, profileHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
