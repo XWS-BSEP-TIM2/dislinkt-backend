@@ -34,6 +34,11 @@ func (store *CreadentialsMongoDBStore) GetByUsername(ctx context.Context, userna
 	return store.filterOne(filter)
 }
 
+func (store *CreadentialsMongoDBStore) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+	filter := bson.M{"email": email}
+	return store.filterOne(filter)
+}
+
 func (store *CreadentialsMongoDBStore) GetAll(ctx context.Context) ([]*domain.User, error) {
 	filter := bson.D{{}}
 	return store.filter(filter)

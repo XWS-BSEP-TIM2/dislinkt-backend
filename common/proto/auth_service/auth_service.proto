@@ -9,13 +9,12 @@ import "google/protobuf/timestamp.proto";
 
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
+  rpc PasswordlessLogin(PasswordlessLoginRequest) returns (LoginResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
   rpc ExtractDataFromToken(ExtractDataFromTokenRequest) returns (ExtractDataFromTokenResponse) {}
   rpc Verify(VerifyRequest) returns (VerifyResponse) {}
-  rpc ResendVerify(ResendVerifyRequest) returns (ResendVerifyResponse) {}
-  rpc Recovery(RecoveryRequest) returns (RecoveryResponse) {}
-  rpc Recover(RecoveryRequestLogin) returns (LoginResponse) {}
+  rpc SendEmailForPasswordlessLogin(EmailForPasswordlessLoginRequest) returns (SendEmailForPasswordLoginResponse) {}
 }
 
 // Register
@@ -39,13 +38,12 @@ message LoginRequest {
   string password = 2;
 }
 
-message LoginResponse {
-  int64 status = 1;
-  string error = 2;
-  string token = 3;
-  string username=4;
-  string role=5;
-  string userID = 6;
+message PasswordlessLoginRequest {
+  string tokenCode =1;
+}
+
+message EmailForPasswordlessLoginRequest {
+  string email =1;
 }
 
 message VerifyRequest {
@@ -57,28 +55,15 @@ message VerifyResponse{
   string msg = 2;
 }
 
-message ResendVerifyRequest {
-  string username = 1;
-}
-message ResendVerifyResponse{
-  string msg = 2;
-}
-
-
-message RecoveryRequest {
-  string username = 1;
-}
-message RecoveryResponse{
-  int32 status = 1;
-  string msg = 2;
+message LoginResponse {
+  int64 status = 1;
+  string error = 2;
+  string token = 3;
+  string username=4;
+  string role=5;
+  string userID = 6;
 }
 
-message RecoveryRequestLogin {
-  string username = 1;
-  string recoveryCode = 2;
-  string newPassword = 3;
-  string confirmNewPassword = 4;
-}
 // Validate
 
 message ValidateRequest { string token = 1; }
@@ -98,4 +83,8 @@ message ExtractDataFromTokenResponse{
 
 message ExtractDataFromTokenRequest{
   string token=1;
+}
+
+message SendEmailForPasswordLoginResponse{
+  string error=1;
 }

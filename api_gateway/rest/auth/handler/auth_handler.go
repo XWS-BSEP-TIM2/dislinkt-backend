@@ -136,6 +136,18 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, &responsDTO)
 }
 
+func (authHandler *AuthHandler) SendMailForMagicLinkRegistration(ctx *gin.Context) {
+	authService := authHandler.grpcClient.AuthClient
+	b := pbAuth.EmailForPasswordlessLoginRequest{}
+
+	if err := ctx.BindJSON(&b); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	response, _ := authService.SendEmailForPasswordlessLogin(ctx, &b)
+	ctx.JSON(http.StatusOK, &response)
+}
+
 func (authHandler *AuthHandler) registerAuth(registerDTO dto.RegisterDTO) (string, error) {
 	authS := authHandler.grpcClient.AuthClient
 	response, err := authS.Register(context.TODO(), &pbAuth.RegisterRequest{Username: registerDTO.Username, Password: registerDTO.Password, Email: registerDTO.Email})
@@ -166,4 +178,19 @@ func (authHandler *AuthHandler) registerConnection(userID string, IsPrivate bool
 		fmt.Println(err.Error())
 	}
 	return err
+}
+
+func (authHandler *AuthHandler) MagicLinkLogin(ctx *gin.Context) {
+	authService := authHandler.grpcClient.AuthClient
+	passwordlessMessage := pbAuth.PasswordlessLoginRequest{}
+	if err := ctx.BindJSON(&passwordlessMessage); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	login, err := authService.PasswordlessLogin(ctx, &passwordlessMessage)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, &login)
+		return
+	}
+	ctx.JSON(http.StatusOK, &login)
 }

@@ -45,6 +45,10 @@ func (service *AuthService) GetByUsername(ctx context.Context, username string) 
 	return service.store.GetByUsername(ctx, username)
 }
 
+func (service *AuthService) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+	return service.store.GetByEmail(ctx, email)
+}
+
 func (service *AuthService) SendVerification(ctx context.Context, user *domain.User) error {
 	fmt.Println("DOSLI SMO U METODU AuthService:SendVerification", user.Email)
 	return service.emailService.SendVerificationEmail(user.Email, user.Username, user.VerificationCode)
