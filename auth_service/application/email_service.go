@@ -93,6 +93,8 @@ func (service *EmailService) SendRecoveryEmail(sendTo, username, recoveryCode st
 		</h4>
     </div>`
 	return service.SendEmail(sendTo, "Dislinkt Recovery", body)
+}
+
 func (service *EmailService) SendMagicLink(sendTo, tokenCode, redirectUrl string) error {
 
 	href := fmt.Sprintf("%s/%s", redirectUrl, tokenCode)

@@ -23,6 +23,9 @@ type AuthServiceClient interface {
 	Validate(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error)
 	ExtractDataFromToken(ctx context.Context, in *ExtractDataFromTokenRequest, opts ...grpc.CallOption) (*ExtractDataFromTokenResponse, error)
 	Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error)
+	ResendVerify(ctx context.Context, in *ResendVerifyRequest, opts ...grpc.CallOption) (*ResendVerifyResponse, error)
+	Recovery(ctx context.Context, in *RecoveryRequest, opts ...grpc.CallOption) (*RecoveryResponse, error)
+	Recover(ctx context.Context, in *RecoveryRequestLogin, opts ...grpc.CallOption) (*LoginResponse, error)
 	SendEmailForPasswordlessLogin(ctx context.Context, in *EmailForPasswordlessLoginRequest, opts ...grpc.CallOption) (*SendEmailForPasswordLoginResponse, error)
 }
 
@@ -88,6 +91,33 @@ func (c *authServiceClient) Verify(ctx context.Context, in *VerifyRequest, opts 
 	return out, nil
 }
 
+func (c *authServiceClient) ResendVerify(ctx context.Context, in *ResendVerifyRequest, opts ...grpc.CallOption) (*ResendVerifyResponse, error) {
+	out := new(ResendVerifyResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/ResendVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) Recovery(ctx context.Context, in *RecoveryRequest, opts ...grpc.CallOption) (*RecoveryResponse, error) {
+	out := new(RecoveryResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/Recovery", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) Recover(ctx context.Context, in *RecoveryRequestLogin, opts ...grpc.CallOption) (*LoginResponse, error) {
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/Recover", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) SendEmailForPasswordlessLogin(ctx context.Context, in *EmailForPasswordlessLoginRequest, opts ...grpc.CallOption) (*SendEmailForPasswordLoginResponse, error) {
 	out := new(SendEmailForPasswordLoginResponse)
 	err := c.cc.Invoke(ctx, "/auth.AuthService/SendEmailForPasswordlessLogin", in, out, opts...)
@@ -107,6 +137,9 @@ type AuthServiceServer interface {
 	Validate(context.Context, *ValidateRequest) (*ValidateResponse, error)
 	ExtractDataFromToken(context.Context, *ExtractDataFromTokenRequest) (*ExtractDataFromTokenResponse, error)
 	Verify(context.Context, *VerifyRequest) (*VerifyResponse, error)
+	ResendVerify(context.Context, *ResendVerifyRequest) (*ResendVerifyResponse, error)
+	Recovery(context.Context, *RecoveryRequest) (*RecoveryResponse, error)
+	Recover(context.Context, *RecoveryRequestLogin) (*LoginResponse, error)
 	SendEmailForPasswordlessLogin(context.Context, *EmailForPasswordlessLoginRequest) (*SendEmailForPasswordLoginResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -132,6 +165,15 @@ func (*UnimplementedAuthServiceServer) ExtractDataFromToken(context.Context, *Ex
 }
 func (*UnimplementedAuthServiceServer) Verify(context.Context, *VerifyRequest) (*VerifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Verify not implemented")
+}
+func (*UnimplementedAuthServiceServer) ResendVerify(context.Context, *ResendVerifyRequest) (*ResendVerifyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResendVerify not implemented")
+}
+func (*UnimplementedAuthServiceServer) Recovery(context.Context, *RecoveryRequest) (*RecoveryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Recovery not implemented")
+}
+func (*UnimplementedAuthServiceServer) Recover(context.Context, *RecoveryRequestLogin) (*LoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Recover not implemented")
 }
 func (*UnimplementedAuthServiceServer) SendEmailForPasswordlessLogin(context.Context, *EmailForPasswordlessLoginRequest) (*SendEmailForPasswordLoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendEmailForPasswordlessLogin not implemented")
@@ -250,6 +292,60 @@ func _AuthService_Verify_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_ResendVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResendVerifyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ResendVerify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/ResendVerify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ResendVerify(ctx, req.(*ResendVerifyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_Recovery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecoveryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).Recovery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/Recovery",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).Recovery(ctx, req.(*RecoveryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_Recover_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecoveryRequestLogin)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).Recover(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/Recover",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).Recover(ctx, req.(*RecoveryRequestLogin))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_SendEmailForPasswordlessLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EmailForPasswordlessLoginRequest)
 	if err := dec(in); err != nil {
@@ -295,6 +391,18 @@ var _AuthService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Verify",
 			Handler:    _AuthService_Verify_Handler,
+		},
+		{
+			MethodName: "ResendVerify",
+			Handler:    _AuthService_ResendVerify_Handler,
+		},
+		{
+			MethodName: "Recovery",
+			Handler:    _AuthService_Recovery_Handler,
+		},
+		{
+			MethodName: "Recover",
+			Handler:    _AuthService_Recover_Handler,
 		},
 		{
 			MethodName: "SendEmailForPasswordlessLogin",

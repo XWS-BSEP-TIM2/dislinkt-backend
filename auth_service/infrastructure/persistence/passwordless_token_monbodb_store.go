@@ -43,7 +43,7 @@ func (store *PasswordlessTokenMongoDBStore) Insert(ctx context.Context, product 
 }
 
 func (store PasswordlessTokenMongoDBStore) DeleteById(ctx context.Context, id primitive.ObjectID) (int64, error) {
-	result, err := store.passwordlessTokens.DeleteOne(ctx, bson.M{"_id": id.String()})
+	result, err := store.passwordlessTokens.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		return 0, err
 	}

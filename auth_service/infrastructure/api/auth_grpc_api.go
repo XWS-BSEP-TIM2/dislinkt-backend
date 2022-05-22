@@ -73,15 +73,15 @@ func (handler *AuthHandler) Verify(ctx context.Context, req *pb.VerifyRequest) (
 }
 
 func (handler *AuthHandler) ResendVerify(ctx context.Context, req *pb.ResendVerifyRequest) (*pb.ResendVerifyResponse, error) {
-	return handler.service.ResendVerify(ctx, req.Username)
+	return handler.userService.ResendVerify(ctx, req.Username)
 }
 
 func (handler *AuthHandler) Recovery(ctx context.Context, req *pb.RecoveryRequest) (*pb.RecoveryResponse, error) {
-	return handler.service.Recovery(ctx, req.Username)
+	return handler.userService.Recovery(ctx, req.Username)
 }
 
 func (handler *AuthHandler) Recover(ctx context.Context, req *pb.RecoveryRequestLogin) (*pb.LoginResponse, error) {
-	response, err := handler.service.Recover(ctx, req)
+	response, err := handler.userService.Recover(ctx, req)
 	if err != nil {
 		return response, err
 	}
@@ -150,7 +150,7 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	token, _ := handler.Jwt.GenerateToken(user)
 
 	user.NumOfErrTryLogin = 0
-	handler.service.Update(ctx, user)
+	handler.userService.Update(ctx, user)
 
 	return &pb.LoginResponse{
 		Status:   http.StatusOK,
@@ -278,7 +278,7 @@ func (handler *AuthHandler) SendEmailForPasswordlessLogin(ctx context.Context, r
 			Error: "Email does not exist",
 		}, err
 	}
-	tokenCode, _ := utils.GenerateRandomStringURLSafe(32)
+	tokenCode, _ := utils.GenerateRandomStringURLSafe(30)
 	token := domain.PasswordlessToken{
 		TokenCode:    tokenCode,
 		UserId:       user.Id,
