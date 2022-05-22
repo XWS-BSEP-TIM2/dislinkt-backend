@@ -3,13 +3,17 @@ package api
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/utils"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
-	"time"
 )
 
 type AuthHandler struct {
@@ -45,6 +49,18 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 	}
 	user.VerificationCode = token
 	user.VerificationCodeTime = time.Now()
+
+	v := validator.New()
+	handler.ValidatePassword(ctx, v)
+	handler.ValidateUsername(ctx, v)
+	errV := v.Struct(user)
+	if errV != nil {
+		return &pb.RegisterResponse{
+			Status: http.StatusNotAcceptable,
+			Error:  "Validation error" + " " + errV.Error(),
+			UserID: "",
+		}, errV
+	}
 
 	userID, err := handler.service.Create(ctx, &user) //userID
 	if err != nil {
@@ -90,6 +106,27 @@ func (handler *AuthHandler) Recover(ctx context.Context, req *pb.RecoveryRequest
 }
 
 func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+
+	var userForValidation domain.User
+	userForValidation.Username = req.Username
+	userForValidation.Password = req.Password
+	v := validator.New()
+	handler.ValidateUsername(ctx, v)
+	handler.ValidatePassword(ctx, v)
+	errV := v.Struct(userForValidation)
+	if errV != nil {
+		if strings.Contains(errV.Error(), "Username") {
+			return &pb.LoginResponse{
+				Status: http.StatusNotAcceptable,
+				Error:  "Username validation failed",
+			}, nil
+		} else { //if strings.Contains(errV.Error(), "Password") {
+			return &pb.LoginResponse{
+				Status: http.StatusNotAcceptable,
+				Error:  "Password validation failed",
+			}, nil
+		}
+	}
 
 	user, err := handler.service.GetByUsername(ctx, req.Username)
 	if err != nil {
@@ -207,4 +244,48 @@ func getObjectId(id string) primitive.ObjectID {
 		return objectId
 	}
 	return primitive.NewObjectID()
+}
+
+func (handler *AuthHandler) ValidatePassword(ctx context.Context, v *validator.Validate) {
+	_ = v.RegisterValidation("password_validation", func(fl validator.FieldLevel) bool {
+		if len(fl.Field().String()) < 8 {
+			fmt.Println("Password must contain 8 characters or more!")
+			return false
+		}
+		result, _ := regexp.MatchString("(.*[a-z].*)", fl.Field().String())
+		if !result {
+			fmt.Println("Password must contain lower case characters!")
+		}
+		result, _ = regexp.MatchString("(.*[A-Z].*)", fl.Field().String())
+		if !result {
+			fmt.Println("Password must contain upper case characters!")
+		}
+		result, _ = regexp.MatchString("(.*[0-9].*)", fl.Field().String())
+		if !result {
+			fmt.Println("Password must contain numbers!")
+		}
+
+		result, _ = regexp.MatchString("(.*[!@#$%^&*(){}\\[:;\\]<>,\\.?~_+\\-\\\\=|/].*)", fl.Field().String())
+		if !result {
+			fmt.Println("Password must contain special characters!")
+		}
+		return result
+	})
+
+}
+
+func (handler *AuthHandler) ValidateUsername(ctx context.Context, v *validator.Validate) {
+
+	_ = v.RegisterValidation("username_validation", func(fl validator.FieldLevel) bool {
+		if len(fl.Field().String()) < 4 || len(fl.Field().String()) > 16 {
+			fmt.Println("Your username must be between 4 and 16 characters long.")
+			return false
+		}
+		result, _ := regexp.MatchString("(.*[!@#$%^&*(){}\\[:;\\]<>,\\.?~_+\\-\\\\=|/].*)", fl.Field().String())
+		if result {
+			fmt.Println("Username contains special characters that are not allowed!")
+		}
+		return !result
+	})
+
 }
