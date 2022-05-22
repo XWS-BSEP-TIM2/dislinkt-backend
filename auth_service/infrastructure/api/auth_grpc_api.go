@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 type AuthHandler struct {
@@ -67,26 +68,33 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 
 func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 
+	var userForValidation domain.User
+	userForValidation.Username = req.Username
+	userForValidation.Password = req.Password
+	v := validator.New()
+	handler.ValidateUsername(ctx, v)
+	handler.ValidatePassword(ctx, v)
+	errV := v.Struct(userForValidation)
+	if errV != nil {
+		if strings.Contains(errV.Error(), "Username") {
+			return &pb.LoginResponse{
+				Status: http.StatusNotAcceptable,
+				Error:  "Username validation failed",
+			}, nil
+		} else { //if strings.Contains(errV.Error(), "Password") {
+			return &pb.LoginResponse{
+				Status: http.StatusNotAcceptable,
+				Error:  "Password validation failed",
+			}, nil
+		}
+	}
+
 	user, err := handler.service.GetByUsername(ctx, req.Username)
 	if err != nil {
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
 			Error:  "User not found",
 		}, nil
-	}
-	var userForValidation domain.User
-	userForValidation.Username = req.Username
-	userForValidation.Password = req.Password
-
-	v := validator.New()
-	handler.ValidatePassword(ctx, v)
-	handler.ValidateUsername(ctx, v)
-	errV := v.Struct(userForValidation)
-	if errV != nil {
-		return &pb.LoginResponse{
-			Status: http.StatusNotAcceptable,
-			Error:  "Bad credentials",
-		}, errV
 	}
 
 	match := req.Password == user.Password
@@ -180,7 +188,7 @@ func (handler *AuthHandler) ValidatePassword(ctx context.Context, v *validator.V
 
 		result, _ = regexp.MatchString("(.*[!@#$%^&*(){}\\[:;\\]<>,\\.?~_+\\-\\\\=|/].*)", fl.Field().String())
 		if !result {
-			fmt.Println("Password must contain numbers!")
+			fmt.Println("Password must contain special characters!")
 		}
 		return result
 	})
@@ -190,7 +198,7 @@ func (handler *AuthHandler) ValidatePassword(ctx context.Context, v *validator.V
 func (handler *AuthHandler) ValidateUsername(ctx context.Context, v *validator.Validate) {
 
 	_ = v.RegisterValidation("username_validation", func(fl validator.FieldLevel) bool {
-		if len(fl.Field().String()) < 4 && len(fl.Field().String()) > 16 {
+		if len(fl.Field().String()) < 4 || len(fl.Field().String()) > 16 {
 			fmt.Println("Your username must be between 4 and 16 characters long.")
 			return false
 		}
