@@ -29,11 +29,12 @@ func NewServer(config *config.Config) *Server {
 func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
 	credentialStore := server.initCredentialStore(mongoClient)
-
+	passwordlessTokenStore := server.initPasswordlessTokenStore(mongoClient)
 	emailService := server.initEmailService()
 	authService := server.initAuthService(credentialStore, emailService)
+	passwordlessLoginService := server.initPasswordlessLoginService(passwordlessTokenStore, emailService)
 
-	authHandler := server.initAuthHandler(authService)
+	authHandler := server.initAuthHandler(authService, passwordlessLoginService)
 
 	server.startGrpcServer(authHandler)
 }
@@ -58,13 +59,18 @@ func (server *Server) initCredentialStore(client *mongo.Client) domain.UserStore
 	return store
 }
 
+func (server *Server) initPasswordlessTokenStore(client *mongo.Client) persistence.PasswordlessTokenMongoDBStore {
+	store := persistence.NewPasswordlessTokenMongoDBStore(client)
+	return store
+}
+
 func (server *Server) initAuthService(store domain.UserStore, emailService *application.EmailService) *application.AuthService {
 	profileServiceEndpoint := fmt.Sprintf("%s:%s", server.config.ProfileServiceHost, server.config.ProfileServicePort)
 	return application.NewAuthService(store, profileServiceEndpoint, emailService)
 }
 
-func (server *Server) initAuthHandler(service *application.AuthService) *api.AuthHandler {
-	return api.NewAuthHandler(service)
+func (server *Server) initAuthHandler(service *application.AuthService, passwordlessService *application.PasswordlessTokenService) *api.AuthHandler {
+	return api.NewAuthHandler(service, passwordlessService)
 }
 
 func (server *Server) startGrpcServer(authHandler *api.AuthHandler) {
@@ -81,4 +87,8 @@ func (server *Server) startGrpcServer(authHandler *api.AuthHandler) {
 
 func (server *Server) initEmailService() *application.EmailService {
 	return application.NewEmailService(server.config.Email, server.config.PasswordEmail, server.config.ApiGatwayHost, server.config.ApiGatwayPort)
+}
+
+func (server *Server) initPasswordlessLoginService(store persistence.PasswordlessTokenMongoDBStore, service *application.EmailService) *application.PasswordlessTokenService {
+	return application.NewPasswordlessTokenService(&store, service)
 }

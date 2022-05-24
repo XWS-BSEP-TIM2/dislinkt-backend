@@ -3,6 +3,7 @@ package startup
 import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
 )
 
 var users = []*domain.User{
@@ -60,7 +61,7 @@ var users = []*domain.User{
 		Password: "pass",
 		Role:     domain.USER,
 		Verified: true,
-		Email:    "djordje99@gmail.com",
+		Email:    "djordje1499@gmail.com",
 	},
 	{
 		Id:       getIdFromHex("62752bf27407f54ce1839cb9"),
@@ -69,6 +70,15 @@ var users = []*domain.User{
 		Role:     domain.USER,
 		Verified: true,
 		Email:    "dislinktx@gmail.com",
+	},
+}
+
+var tokens = []*domain.PasswordlessToken{
+	{
+		Id:           getIdFromHex("62752bf27407f54ce1839cb9"),
+		UserId:       getIdFromHex("62752bf27407f54ce1839cb9"),
+		CreationDate: time.Now(),
+		TokenCode:    "adadqbek123krmtgk123e1rfd",
 	},
 }
 

@@ -14,4 +14,6 @@ func RegisterRoutes(r *gin.Engine) {
 	routes.GET("/login/verify/:username", authHandler.ResendVerify)
 	routes.GET("/login/recovery/:username", authHandler.GetRecovery)
 	routes.POST("/login/recovery", authHandler.Recover)
+	routes.POST("magic-link-login/send-mail", authHandler.SendMailForMagicLinkRegistration)
+	routes.POST("magic-link-login", authHandler.MagicLinkLogin)
 }

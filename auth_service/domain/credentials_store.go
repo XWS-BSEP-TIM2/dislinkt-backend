@@ -12,4 +12,5 @@ type UserStore interface {
 	DeleteAll(ctx context.Context)
 	GetByUsername(ctx context.Context, Username string) (*User, error)
 	Update(ctx context.Context, user *User) error
+	GetByEmail(ctx context.Context, Email string) (*User, error)
 }
