@@ -10,7 +10,7 @@ var users = []*domain.User{
 	{
 		Id:       getIdFromHex("62752bf27407f54ce1839cb2"),
 		Username: "marko99",
-		Password: "pass",
+		Password: "$2a$05$ic587IZBvYNLqSRSsTuae.nZISenVmwmg0ddr8DmSI11lZV6VWixu",
 		Role:     domain.USER,
 		Verified: true,
 		Email:    "marko99@gmail.com",
@@ -18,7 +18,7 @@ var users = []*domain.User{
 	{
 		Id:       getIdFromHex("62752bf27407f54ce1839cb3"),
 		Username: "srdjan",
-		Password: "pass",
+		Password: "$2a$05$ic587IZBvYNLqSRSsTuae.nZISenVmwmg0ddr8DmSI11lZV6VWixu",
 		Role:     domain.USER,
 		Verified: true,
 		Email:    "srdjan@gmail.com",
@@ -26,7 +26,7 @@ var users = []*domain.User{
 	{
 		Id:       getIdFromHex("62752bf27407f54ce1839cb4"),
 		Username: "nikola93",
-		Password: "pass",
+		Password: "$2a$05$ic587IZBvYNLqSRSsTuae.nZISenVmwmg0ddr8DmSI11lZV6VWixu",
 		Role:     domain.USER,
 		Verified: true,
 		Email:    "nikola@gmail.com",
@@ -34,7 +34,7 @@ var users = []*domain.User{
 	{
 		Id:       getIdFromHex("62752bf27407f54ce1839cb5"),
 		Username: "svetozar",
-		Password: "pass",
+		Password: "$2a$05$ic587IZBvYNLqSRSsTuae.nZISenVmwmg0ddr8DmSI11lZV6VWixu",
 		Role:     domain.USER,
 		Verified: true,
 		Email:    "svet@gmail.com",
@@ -42,7 +42,7 @@ var users = []*domain.User{
 	{
 		Id:       getIdFromHex("62752bf27407f54ce1839cb6"),
 		Username: "zarkoo",
-		Password: "pass",
+		Password: "$2a$05$ic587IZBvYNLqSRSsTuae.nZISenVmwmg0ddr8DmSI11lZV6VWixu",
 		Role:     domain.USER,
 		Verified: true,
 		Email:    "zare00@gmail.com",
@@ -50,7 +50,7 @@ var users = []*domain.User{
 	{
 		Id:       getIdFromHex("62752bf27407f54ce1839cb7"),
 		Username: "Jelovceva",
-		Password: "pass",
+		Password: "$2a$05$ic587IZBvYNLqSRSsTuae.nZISenVmwmg0ddr8DmSI11lZV6VWixu",
 		Role:     domain.USER,
 		Verified: true,
 		Email:    "tara00@gmail.com",
@@ -58,7 +58,7 @@ var users = []*domain.User{
 	{
 		Id:       getIdFromHex("62752bf27407f54ce1839cb8"),
 		Username: "djordje",
-		Password: "pass",
+		Password: "$2a$05$ic587IZBvYNLqSRSsTuae.nZISenVmwmg0ddr8DmSI11lZV6VWixu",
 		Role:     domain.USER,
 		Verified: true,
 		Email:    "djordje1499@gmail.com",
@@ -66,7 +66,7 @@ var users = []*domain.User{
 	{
 		Id:       getIdFromHex("62752bf27407f54ce1839cb9"),
 		Username: "rasti",
-		Password: "pass",
+		Password: "$2a$05$ic587IZBvYNLqSRSsTuae.nZISenVmwmg0ddr8DmSI11lZV6VWixu",
 		Role:     domain.USER,
 		Verified: true,
 		Email:    "dislinktx@gmail.com",

@@ -3,6 +3,7 @@ module github.com/XWS-BSEP-TIM2/dislinkt-backend/common
 go 1.17
 
 require (
+	github.com/go-playground/validator/v10 v10.11.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0
 	github.com/joho/godotenv v1.4.0
 	github.com/nats-io/nats.go v1.14.0
@@ -13,7 +14,10 @@ require (
 )
 
 require (
+	github.com/go-playground/locales v0.14.0 // indirect
+	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/nats-io/nats-server/v2 v2.8.1 // indirect
 	github.com/nats-io/nkeys v0.3.0 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect

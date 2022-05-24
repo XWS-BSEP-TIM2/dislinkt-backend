@@ -10,14 +10,14 @@ import (
 type RegisterDTO struct {
 	Name            string `json:"name"`
 	Surname         string `json:"surname"`
-	Username        string `json:"username"`
+	Username        string `json:"username" validate:"username_validation"`
 	Email           string `json:"email"`
 	Birthday        string `json:"birthday"`
 	Gender          string `json:"gender"`
 	PhoneNumber     string `json:"phoneNumber"`
 	IsPrivate       bool   `json:"isPrivate"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirmPassword"`
+	Password        string `json:"password" validate:"password_validation"`
+	ConfirmPassword string `json:"confirmPassword" validate:"password_validation"`
 }
 
 func (r *RegisterDTO) ToProto(userID string) *pbProfile.Profile {

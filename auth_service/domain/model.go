@@ -15,8 +15,8 @@ const (
 
 type User struct {
 	Id                       primitive.ObjectID `bson:"_id,omitempty"`
-	Username                 string             `bson:"username" validate:"username_validation"`
-	Password                 string             `bson:"password" validate:"password_validation"`
+	Username                 string             `bson:"username" `
+	Password                 string             `bson:"password"`
 	Role                     Role               `bson:"role"`
 	Locked                   bool               `bson:"locked"`
 	LockReason               string             `bson:"lockReason"`

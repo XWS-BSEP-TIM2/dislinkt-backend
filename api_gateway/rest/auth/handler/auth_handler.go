@@ -9,8 +9,11 @@ import (
 	pbAuth "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	pbConnection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	pbProfile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/validators"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"net/http"
+	"strings"
 )
 
 type AuthHandler struct {
@@ -23,14 +26,27 @@ func InitAuthHandler() *AuthHandler {
 }
 func (authHandler *AuthHandler) Login(ctx *gin.Context) {
 
-	b := pbAuth.LoginRequest{}
+	loginDto := dto.LoginRequestDto{}
 
-	if err := ctx.BindJSON(&b); err != nil {
+	if err := ctx.BindJSON(&loginDto); err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	res, err := authHandler.grpcClient.AuthClient.Login(context.Background(), &b)
+	v := validator.New()
+	validators.UsernameValidator(ctx, v)
+	errV := v.Struct(loginDto)
+	if errV != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
+			Message: "Username validation failed",
+		})
+		return
+	}
+
+	res, err := authHandler.grpcClient.AuthClient.Login(context.Background(), &pbAuth.LoginRequest{
+		Username: loginDto.Username,
+		Password: loginDto.Password,
+	})
 
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
@@ -108,6 +124,25 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 
 	if err := ctx.BindJSON(&registerDto); err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	//todo do validation of register fields
+
+	v := validator.New()
+	validators.UsernameValidator(ctx, v)
+	validators.PasswordValidator(ctx, v)
+	errV := v.Struct(registerDto)
+	if errV != nil {
+		if strings.Contains(errV.Error(), "Username") {
+			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
+				Message: "Username validation failed",
+			})
+		} else {
+			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
+				Message: "Password validation failed",
+			})
+		}
 		return
 	}
 
