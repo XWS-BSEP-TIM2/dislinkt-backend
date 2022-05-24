@@ -64,7 +64,7 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 		}, errV
 	}
 
-	userID, err := handler.service.Create(ctx, &user) //userID
+	userID, err := handler.userService.Create(ctx, &user) //userID
 	if err != nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusUnauthorized,
@@ -130,7 +130,7 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		}
 	}
 
-	user, err := handler.service.GetByUsername(ctx, req.Username)
+	user, err := handler.userService.GetByUsername(ctx, req.Username)
 	if err != nil {
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
