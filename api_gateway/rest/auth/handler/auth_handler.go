@@ -38,7 +38,7 @@ func (authHandler *AuthHandler) Login(ctx *gin.Context) {
 	errV := v.Struct(loginDto)
 	if errV != nil {
 		ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
-			Message: "Username validation failed",
+			Message: "Username is not valid",
 		})
 		return
 	}
@@ -127,20 +127,37 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	//todo do validation of register fields
-
 	v := validator.New()
 	validators.UsernameValidator(ctx, v)
+	validators.EmailValidator(ctx, v)
 	validators.PasswordValidator(ctx, v)
+	validators.NameValidator(ctx, v)
+	validators.NumberValidator(ctx, v)
 	errV := v.Struct(registerDto)
 	if errV != nil {
-		if strings.Contains(errV.Error(), "Username") {
+		if strings.Contains(errV.Error(), "Name") {
 			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
-				Message: "Username validation failed",
+				Message: "Name is not valid",
+			})
+		} else if strings.Contains(errV.Error(), "Surname") {
+			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
+				Message: "Surname is not valid",
+			})
+		} else if strings.Contains(errV.Error(), "Username") {
+			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
+				Message: "Username is not valid",
+			})
+		} else if strings.Contains(errV.Error(), "Email") {
+			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
+				Message: "Email is not valid",
+			})
+		} else if strings.Contains(errV.Error(), "PhoneNumber") {
+			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
+				Message: "Phone number is not valid",
 			})
 		} else {
 			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
-				Message: "Password validation failed",
+				Message: "Password is not valid",
 			})
 		}
 		return

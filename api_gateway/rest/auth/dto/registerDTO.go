@@ -8,13 +8,13 @@ import (
 )
 
 type RegisterDTO struct {
-	Name            string `json:"name"`
-	Surname         string `json:"surname"`
+	Name            string `json:"name" validate:"name_validation"`
+	Surname         string `json:"surname" validate:"name_validation"`
 	Username        string `json:"username" validate:"username_validation"`
-	Email           string `json:"email"`
+	Email           string `json:"email" validate:"email_validation"`
 	Birthday        string `json:"birthday"`
 	Gender          string `json:"gender"`
-	PhoneNumber     string `json:"phoneNumber"`
+	PhoneNumber     string `json:"phoneNumber" validate:"number_validation"`
 	IsPrivate       bool   `json:"isPrivate"`
 	Password        string `json:"password" validate:"password_validation"`
 	ConfirmPassword string `json:"confirmPassword" validate:"password_validation"`

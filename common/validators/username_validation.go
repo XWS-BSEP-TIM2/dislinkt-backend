@@ -12,7 +12,7 @@ func usernameValidation() func(fl validator.FieldLevel) bool {
 			fmt.Println("Your username must be between 4 and 16 characters long.")
 			return false
 		}
-		result, _ := regexp.MatchString("(.*[!@#$%^&*(){}\\[:;\\]<>,\\.?~_+\\-\\\\=|/].*)", fl.Field().String())
+		result, _ := regexp.MatchString("(.*[\"'!@#$%^&*(){}\\[:;\\]<>,\\.?~_+\\-\\\\=|/].*)", fl.Field().String())
 		if result {
 			fmt.Println("Username contains special characters that are not allowed!")
 		}
