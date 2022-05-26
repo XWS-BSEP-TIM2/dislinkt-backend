@@ -17,7 +17,7 @@ func RegisterRoutes(r *gin.Engine) {
 	authorizedRoutes.Use(a.AuthRequired)
 	authorizedRoutes.PUT("", a.Authorize("updateProfile", "update"), profileHandler.Update)
 	authorizedRoutes.POST("/changepassword", a.Authorize("changePassword", "update"), profileHandler.ChangePassword)
-
+	authorizedRoutes.GET("/admin-view", a.Authorize("getProfilesByAdmin", "read"), profileHandler.Get)
 	unauthorizedRoutes := r.Group("/profile")
 	unauthorizedRoutes.GET("", profileHandler.Get)
 	unauthorizedRoutes.GET("/:id", profileHandler.GetById)
