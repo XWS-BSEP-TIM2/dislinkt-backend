@@ -71,6 +71,14 @@ var users = []*domain.User{
 		Verified: true,
 		Email:    "dislinktx@gmail.com",
 	},
+	{
+		Id:       getIdFromHex("62752bf27407f85de1839cb9"),
+		Username: "admin",
+		Password: "$2a$05$ic587IZBvYNLqSRSsTuae.nZISenVmwmg0ddr8DmSI11lZV6VWixu",
+		Role:     domain.ADMIN,
+		Verified: true,
+		Email:    "dislinktx@gmail.com",
+	},
 }
 
 var tokens = []*domain.PasswordlessToken{
