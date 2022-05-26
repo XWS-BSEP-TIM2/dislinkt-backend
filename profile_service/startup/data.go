@@ -150,7 +150,7 @@ var users = []*domain.Profile{
 		Id:          getIdFromHex("62752bf27407f54ce1839cb8"),
 		Name:        "Djordje",
 		Surname:     "Krsmanovic",
-		Username:    "djole",
+		Username:    "djordje",
 		Email:       "djordje99@gmail.com",
 		Biography:   "Student at Faculty of Technical Sciences, University of Novi Sad",
 		Gender:      0,
