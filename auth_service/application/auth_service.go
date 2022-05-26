@@ -135,7 +135,7 @@ func (service *AuthService) Recover(ctx context.Context, req *authService.Recove
 			user.LockReason = ""
 		}
 		user.NumOfErrTryLogin = 0
-		user.Password = req.NewPassword
+		user.Password = utils.HashPassword(req.NewPassword)
 		service.Update(ctx, user)
 		return &authService.LoginResponse{Status: http.StatusOK, Error: ""}, nil
 	}
