@@ -1,8 +1,12 @@
 package validators
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/go-playground/validator/v10"
+	"log"
+	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -31,4 +35,32 @@ func validatePassword() func(fl validator.FieldLevel) bool {
 		}
 		return result
 	}
+}
+
+func IsPasswordCracked(password string) bool {
+
+	p := filepath.FromSlash("./security/cracked_password.txt")
+	println(p)
+
+	f, err := os.Open(p)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// remember to close the file at the end of the program
+	defer f.Close()
+
+	// read the file line by line using scanner
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan() {
+		// do something with a line
+		if password == scanner.Text() {
+			return false
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return true
 }

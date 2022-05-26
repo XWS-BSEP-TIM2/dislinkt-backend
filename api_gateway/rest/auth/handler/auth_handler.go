@@ -163,6 +163,13 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 
+	if !validators.IsPasswordCracked(registerDto.Password) {
+		ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
+			Message: "Password is already cracked",
+		})
+		return
+	}
+
 	userID, errAuth := authHandler.registerAuth(registerDto)
 	if errAuth != nil {
 		ctx.AbortWithError(http.StatusBadGateway, errAuth)

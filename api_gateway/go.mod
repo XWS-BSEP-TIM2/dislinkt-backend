@@ -5,7 +5,7 @@ go 1.18
 replace github.com/XWS-BSEP-TIM2/dislinkt-backend/common => ../common
 
 require (
-	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220426203826-7d3aeb3f989f
+	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220508215318-6e64708e90e7
 	github.com/casbin/casbin v1.9.1
 	github.com/gin-gonic/gin v1.7.7
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0
