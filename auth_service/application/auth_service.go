@@ -115,7 +115,6 @@ func (service *AuthService) Recovery(ctx context.Context, username string) (*aut
 }
 
 func (service *AuthService) Recover(ctx context.Context, req *authService.RecoveryRequestLogin) (*authService.LoginResponse, error) {
-	//TODO: validirati password regexom dal je dovoljno dobar? ...
 	if req.NewPassword != req.ConfirmNewPassword {
 		return &authService.LoginResponse{Status: http.StatusBadRequest, Error: "passwords do not match"}, nil
 	}
@@ -166,4 +165,32 @@ func (service *AuthService) ResendVerify(ctx context.Context, username string) (
 	}
 
 	return &authService.ResendVerifyResponse{Msg: "Check your email, we sent you verification link"}, err
+}
+
+func (service *AuthService) ChangePassword(ctx context.Context, req *authService.ChangePasswordRequest) (*authService.ChangePasswordResponse, error) {
+	if req.NewPassword != req.ConfirmNewPassword {
+		return &authService.ChangePasswordResponse{Status: http.StatusBadRequest, Msg: "passwords do not match"}, nil
+	}
+
+	user, err := service.store.GetByUsername(ctx, req.Username)
+	if err != nil {
+		return &authService.ChangePasswordResponse{Status: http.StatusBadRequest, Msg: "User not found"}, err
+	}
+
+	match := utils.CheckPasswordHash(req.OldPassword, user.Password)
+	if !match {
+		return &authService.ChangePasswordResponse{
+			Status: http.StatusNotFound,
+			Msg:    "Username or password is incorrect",
+		}, nil
+	}
+
+	user.Password = utils.HashPassword(req.NewPassword)
+	service.Update(ctx, user)
+
+	return &authService.ChangePasswordResponse{
+		Status: http.StatusOK,
+		Msg:    "you have successfully change your password",
+	}, nil
+
 }

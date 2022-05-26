@@ -93,6 +93,10 @@ func (handler *AuthHandler) Recover(ctx context.Context, req *pb.RecoveryRequest
 	return handler.Login(ctx, &pb.LoginRequest{Username: req.Username, Password: req.NewPassword})
 }
 
+func (handler *AuthHandler) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.ChangePasswordResponse, error) {
+	return handler.userService.ChangePassword(ctx, req)
+}
+
 func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 
 	user, err := handler.userService.GetByUsername(ctx, req.Username)

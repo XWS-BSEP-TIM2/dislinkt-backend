@@ -108,6 +108,11 @@ func (authHandler *AuthHandler) Recover(ctx *gin.Context) {
 
 	fmt.Println(rl)
 
+	if !validators.IsPasswordCracked(rl.NewPassword) {
+		ctx.JSON(http.StatusUnprocessableEntity, pbAuth.LoginResponse{Status: http.StatusUnprocessableEntity, Error: "Password is already cracked"})
+		return
+	}
+
 	res, err := authHandler.grpcClient.AuthClient.Recover(context.Background(), &rl)
 
 	if err != nil {

@@ -27,6 +27,7 @@ type AuthServiceClient interface {
 	Recovery(ctx context.Context, in *RecoveryRequest, opts ...grpc.CallOption) (*RecoveryResponse, error)
 	Recover(ctx context.Context, in *RecoveryRequestLogin, opts ...grpc.CallOption) (*LoginResponse, error)
 	SendEmailForPasswordlessLogin(ctx context.Context, in *EmailForPasswordlessLoginRequest, opts ...grpc.CallOption) (*SendEmailForPasswordLoginResponse, error)
+	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
 }
 
 type authServiceClient struct {
@@ -127,6 +128,15 @@ func (c *authServiceClient) SendEmailForPasswordlessLogin(ctx context.Context, i
 	return out, nil
 }
 
+func (c *authServiceClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error) {
+	out := new(ChangePasswordResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/ChangePassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -141,6 +151,7 @@ type AuthServiceServer interface {
 	Recovery(context.Context, *RecoveryRequest) (*RecoveryResponse, error)
 	Recover(context.Context, *RecoveryRequestLogin) (*LoginResponse, error)
 	SendEmailForPasswordlessLogin(context.Context, *EmailForPasswordlessLoginRequest) (*SendEmailForPasswordLoginResponse, error)
+	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -177,6 +188,9 @@ func (*UnimplementedAuthServiceServer) Recover(context.Context, *RecoveryRequest
 }
 func (*UnimplementedAuthServiceServer) SendEmailForPasswordlessLogin(context.Context, *EmailForPasswordlessLoginRequest) (*SendEmailForPasswordLoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendEmailForPasswordlessLogin not implemented")
+}
+func (*UnimplementedAuthServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
 }
 func (*UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -364,6 +378,24 @@ func _AuthService_SendEmailForPasswordlessLogin_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ChangePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/ChangePassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ChangePassword(ctx, req.(*ChangePasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AuthService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "auth.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
@@ -407,6 +439,10 @@ var _AuthService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendEmailForPasswordlessLogin",
 			Handler:    _AuthService_SendEmailForPasswordlessLogin_Handler,
+		},
+		{
+			MethodName: "ChangePassword",
+			Handler:    _AuthService_ChangePassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

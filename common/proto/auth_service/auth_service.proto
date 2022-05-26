@@ -18,6 +18,19 @@ service AuthService {
   rpc Recovery(RecoveryRequest) returns (RecoveryResponse) {}
   rpc Recover(RecoveryRequestLogin) returns (LoginResponse) {}
   rpc SendEmailForPasswordlessLogin(EmailForPasswordlessLoginRequest) returns (SendEmailForPasswordLoginResponse) {}
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse){}
+}
+
+message ChangePasswordRequest{
+  string username = 1;
+  string oldPassword = 2;
+  string newPassword = 3;
+  string confirmNewPassword = 4;
+}
+
+message ChangePasswordResponse{
+  int32 status = 1;
+  string msg = 2;
 }
 
 // Register

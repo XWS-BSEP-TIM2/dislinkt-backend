@@ -16,3 +16,4 @@ p, USER, createFriendRequest,create
 p, USER, removeFriendRequest,delete
 p, USER, getRecommendation,read
 p, USER, getConnectionDetails,read
+p, USER, changePassword, update
