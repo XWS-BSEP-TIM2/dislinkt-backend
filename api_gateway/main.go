@@ -24,7 +24,7 @@ func main() {
 	profile.RegisterRoutes(r)
 	post.RegisterRoutes(r)
 	connection.RegisterRoutes(r)
-
+	//
 	//r.Run(":" + c.Port)
 
 	err := r.RunTLS(":"+c.Port, "./certificates/dislinkt_gateway.crt", "./certificates/dislinkt_gateway.key")

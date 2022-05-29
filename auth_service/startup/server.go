@@ -30,11 +30,13 @@ func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
 	credentialStore := server.initCredentialStore(mongoClient)
 	passwordlessTokenStore := server.initPasswordlessTokenStore(mongoClient)
+	apiTokenStore := server.initApiTokenStore(mongoClient)
 	emailService := server.initEmailService()
 	authService := server.initAuthService(credentialStore, emailService)
+	apiTokenService := server.initApiTokenService(apiTokenStore)
 	passwordlessLoginService := server.initPasswordlessLoginService(passwordlessTokenStore, emailService)
 
-	authHandler := server.initAuthHandler(authService, passwordlessLoginService)
+	authHandler := server.initAuthHandler(authService, passwordlessLoginService, apiTokenService)
 
 	server.startGrpcServer(authHandler)
 }
@@ -69,8 +71,8 @@ func (server *Server) initAuthService(store domain.UserStore, emailService *appl
 	return application.NewAuthService(store, profileServiceEndpoint, emailService)
 }
 
-func (server *Server) initAuthHandler(service *application.AuthService, passwordlessService *application.PasswordlessTokenService) *api.AuthHandler {
-	return api.NewAuthHandler(service, passwordlessService)
+func (server *Server) initAuthHandler(service *application.AuthService, passwordlessService *application.PasswordlessTokenService, tokenService *application.ApiTokenService) *api.AuthHandler {
+	return api.NewAuthHandler(service, passwordlessService, tokenService)
 }
 
 func (server *Server) startGrpcServer(authHandler *api.AuthHandler) {
@@ -91,4 +93,13 @@ func (server *Server) initEmailService() *application.EmailService {
 
 func (server *Server) initPasswordlessLoginService(store persistence.PasswordlessTokenMongoDBStore, service *application.EmailService) *application.PasswordlessTokenService {
 	return application.NewPasswordlessTokenService(&store, service)
+}
+
+func (server *Server) initApiTokenStore(client *mongo.Client) persistence.ApiTokenMongoDBStore {
+	return persistence.NewApiTokenMongoDBStore(client)
+
+}
+
+func (server *Server) initApiTokenService(store persistence.ApiTokenMongoDBStore) *application.ApiTokenService {
+	return application.NewApiTokenService(&store)
 }

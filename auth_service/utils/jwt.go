@@ -1,11 +1,11 @@
 package utils
 
 import (
+	"encoding/base64"
 	"errors"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
-	"time"
-
 	"github.com/golang-jwt/jwt"
+	"time"
 )
 
 type JwtWrapper struct {
@@ -16,16 +16,20 @@ type JwtWrapper struct {
 
 type jwtClaims struct {
 	jwt.StandardClaims
-	Id       string
-	Username string
-	Role     string
+	Id        string
+	Username  string
+	Role      string
+	TokenType string
+	ApiCode   string
 }
 
 func (w *JwtWrapper) GenerateToken(user *domain.User) (signedToken string, err error) {
 	claims := &jwtClaims{
-		Id:       user.Id.Hex(),
-		Username: user.Username,
-		Role:     domain.ConvertRoleToString(user.Role),
+		Id:        user.Id.Hex(),
+		Username:  user.Username,
+		Role:      domain.ConvertRoleToString(user.Role),
+		TokenType: "JWT",
+		ApiCode:   "",
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(8)).Unix(),
 			Issuer:    w.Issuer,
@@ -34,7 +38,8 @@ func (w *JwtWrapper) GenerateToken(user *domain.User) (signedToken string, err e
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err = token.SignedString([]byte(w.SecretKey))
+	secret, _ := base64.URLEncoding.DecodeString("dislinkt")
+	signedToken, err = token.SignedString(secret)
 
 	if err != nil {
 		return "", err
@@ -48,7 +53,7 @@ func (w *JwtWrapper) ValidateToken(signedToken string) (claims *jwtClaims, err e
 		signedToken,
 		&jwtClaims{},
 		func(token *jwt.Token) (interface{}, error) {
-			return []byte(w.SecretKey), nil
+			return base64.URLEncoding.DecodeString("dislinkt")
 		},
 	)
 

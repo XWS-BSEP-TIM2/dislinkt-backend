@@ -18,12 +18,14 @@ type AuthHandler struct {
 	userService         *application.AuthService
 	Jwt                 utils.JwtWrapper
 	passwordlessService *application.PasswordlessTokenService
+	apiTokenService     *application.ApiTokenService
 }
 
-func NewAuthHandler(service *application.AuthService, passwordlessServices *application.PasswordlessTokenService) *AuthHandler {
+func NewAuthHandler(service *application.AuthService, passwordlessServices *application.PasswordlessTokenService, apiTokenService *application.ApiTokenService) *AuthHandler {
 	return &AuthHandler{
 		userService:         service,
 		passwordlessService: passwordlessServices,
+		apiTokenService:     apiTokenService,
 	}
 }
 
@@ -203,9 +205,11 @@ func (handler *AuthHandler) ExtractDataFromToken(ctx context.Context, req *pb.Ex
 	}
 
 	return &pb.ExtractDataFromTokenResponse{
-		Id:       claims.Id,
-		Username: claims.Username,
-		Role:     claims.Role,
+		Id:        claims.Id,
+		Username:  claims.Username,
+		Role:      claims.Role,
+		TokenType: claims.TokenType,
+		ApiCode:   claims.ApiCode,
 	}, nil
 
 }
@@ -302,4 +306,31 @@ func getObjectId(id string) primitive.ObjectID {
 		return objectId
 	}
 	return primitive.NewObjectID()
+}
+
+func (handler *AuthHandler) GenerateApiToken(ctx context.Context, request *pb.ApiTokenRequest) (*pb.ApiTokenResponse, error) {
+	user, _ := handler.userService.Get(ctx, getObjectId(request.UserId))
+	if user == nil {
+		error := pb.ErrorResponse{ErrorCode: 500, Message: "User ID does not exist"}
+		return &pb.ApiTokenResponse{Error: &error}, nil
+	}
+	tokenCode, err := handler.apiTokenService.Create(ctx, getObjectId(request.UserId))
+	if err != nil {
+		error := pb.ErrorResponse{ErrorCode: 500, Message: "Unable to create api token"}
+		return &pb.ApiTokenResponse{Error: &error}, nil
+	}
+	return &pb.ApiTokenResponse{TokenCode: tokenCode, Error: nil}, nil
+}
+
+func (handler *AuthHandler) ValidateApiToken(ctx context.Context, request *pb.ValidateApiTokenRequest) (*pb.ValidateApiTokenResponse, error) {
+	token, err := handler.apiTokenService.GetByTokenCode(ctx, request.TokenCode)
+	if err != nil {
+		error := pb.ErrorResponse{ErrorCode: 500, Message: "Error while searching token"}
+		return &pb.ValidateApiTokenResponse{Error: &error}, nil
+	}
+	if token == nil {
+		error := pb.ErrorResponse{ErrorCode: 500, Message: "Invalid token"}
+		return &pb.ValidateApiTokenResponse{Error: &error}, nil
+	}
+	return &pb.ValidateApiTokenResponse{Error: nil}, nil
 }

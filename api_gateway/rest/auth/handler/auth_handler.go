@@ -258,3 +258,23 @@ func (authHandler *AuthHandler) MagicLinkLogin(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, &login)
 }
+
+func (authHandler *AuthHandler) GenerateApiToken(ctx *gin.Context) {
+	userId := ctx.Param("userId")
+	authService := authHandler.grpcClient.AuthClient
+	res, err := authService.GenerateApiToken(ctx, &pbAuth.ApiTokenRequest{UserId: userId})
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, &res)
+		return
+	}
+	if res.Error != nil {
+		ctx.JSON(int(res.Error.ErrorCode), &res.Error)
+		return
+	}
+	ctx.JSON(http.StatusCreated, &res)
+
+}
+
+func (authHandler *AuthHandler) Test(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, "Everything is OK")
+}

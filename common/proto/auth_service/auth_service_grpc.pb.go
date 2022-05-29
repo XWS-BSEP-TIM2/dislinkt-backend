@@ -28,6 +28,8 @@ type AuthServiceClient interface {
 	Recover(ctx context.Context, in *RecoveryRequestLogin, opts ...grpc.CallOption) (*LoginResponse, error)
 	SendEmailForPasswordlessLogin(ctx context.Context, in *EmailForPasswordlessLoginRequest, opts ...grpc.CallOption) (*SendEmailForPasswordLoginResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
+	GenerateApiToken(ctx context.Context, in *ApiTokenRequest, opts ...grpc.CallOption) (*ApiTokenResponse, error)
+	ValidateApiToken(ctx context.Context, in *ValidateApiTokenRequest, opts ...grpc.CallOption) (*ValidateApiTokenResponse, error)
 }
 
 type authServiceClient struct {
@@ -137,6 +139,24 @@ func (c *authServiceClient) ChangePassword(ctx context.Context, in *ChangePasswo
 	return out, nil
 }
 
+func (c *authServiceClient) GenerateApiToken(ctx context.Context, in *ApiTokenRequest, opts ...grpc.CallOption) (*ApiTokenResponse, error) {
+	out := new(ApiTokenResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/GenerateApiToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ValidateApiToken(ctx context.Context, in *ValidateApiTokenRequest, opts ...grpc.CallOption) (*ValidateApiTokenResponse, error) {
+	out := new(ValidateApiTokenResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/ValidateApiToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -152,6 +172,8 @@ type AuthServiceServer interface {
 	Recover(context.Context, *RecoveryRequestLogin) (*LoginResponse, error)
 	SendEmailForPasswordlessLogin(context.Context, *EmailForPasswordlessLoginRequest) (*SendEmailForPasswordLoginResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
+	GenerateApiToken(context.Context, *ApiTokenRequest) (*ApiTokenResponse, error)
+	ValidateApiToken(context.Context, *ValidateApiTokenRequest) (*ValidateApiTokenResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -191,6 +213,12 @@ func (*UnimplementedAuthServiceServer) SendEmailForPasswordlessLogin(context.Con
 }
 func (*UnimplementedAuthServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
+}
+func (*UnimplementedAuthServiceServer) GenerateApiToken(context.Context, *ApiTokenRequest) (*ApiTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateApiToken not implemented")
+}
+func (*UnimplementedAuthServiceServer) ValidateApiToken(context.Context, *ValidateApiTokenRequest) (*ValidateApiTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateApiToken not implemented")
 }
 func (*UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -396,6 +424,42 @@ func _AuthService_ChangePassword_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GenerateApiToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApiTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GenerateApiToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/GenerateApiToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GenerateApiToken(ctx, req.(*ApiTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ValidateApiToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateApiTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ValidateApiToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/ValidateApiToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ValidateApiToken(ctx, req.(*ValidateApiTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AuthService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "auth.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
@@ -443,6 +507,14 @@ var _AuthService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangePassword",
 			Handler:    _AuthService_ChangePassword_Handler,
+		},
+		{
+			MethodName: "GenerateApiToken",
+			Handler:    _AuthService_GenerateApiToken_Handler,
+		},
+		{
+			MethodName: "ValidateApiToken",
+			Handler:    _AuthService_ValidateApiToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

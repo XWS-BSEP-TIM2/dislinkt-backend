@@ -18,3 +18,4 @@ p, USER, getRecommendation,read
 p, USER, getConnectionDetails,read
 p, USER, changePassword, update
 p, ADMIN,getProfilesByAdmin,read
+p, API, test,create

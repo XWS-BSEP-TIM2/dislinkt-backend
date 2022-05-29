@@ -61,15 +61,29 @@ func (auth *AuthMiddleware) AuthRequired(ctx *gin.Context) {
 }
 
 // Authorize determines if current subject has been authorized to take an action on an object.
-func (auth *AuthMiddleware) Authorize(obj string, act string) gin.HandlerFunc {
+func (auth *AuthMiddleware) Authorize(obj string, act string, isApiMethod bool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+
 		metadata, err := ExtractTokenDataFromContext(ctx)
 		if err != nil {
 			ctx.AbortWithStatusJSON(401, "error while trying to extract token data")
 			return
 		}
+		if isApiMethod {
+			response, _ := auth.authClient.ValidateApiToken(ctx, &authService.ValidateApiTokenRequest{TokenCode: metadata.ApiCode})
+			if response.Error != nil {
+				ctx.AbortWithStatusJSON(401, "Invalid Api Token")
+			}
+
+		}
 		// casbin enforces policy
-		ok, err := enforce(metadata.Role, obj, act)
+		var ok = false
+		if isApiMethod {
+			ok, err = enforce(metadata.TokenType, obj, act)
+		} else {
+			ok, err = enforce(metadata.Role, obj, act)
+		}
+
 		if err != nil {
 			log.Println(err)
 			ctx.AbortWithStatusJSON(500, "error occurred when authorizing user")
@@ -109,58 +123,3 @@ func enforce(sub string, obj string, act string) (bool, error) {
 	ok := enforcer.Enforce(sub, obj, act)
 	return ok, nil
 }
-
-//func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
-//	token, err := VerifyToken(r)
-//	if err != nil {
-//		return nil, err
-//	}
-//	acc, err := Extract(token)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return acc, nil
-//}
-
-//func VerifyToken(r *http.Request) (*jwt.Token, error) {
-//	tokenString := ExtractToken(r)
-//	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-//		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-//			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-//		}
-//		return []byte("r43t18sc"), nil
-//	})
-//	if err != nil {
-//		return nil, err
-//	}
-//	return token, nil
-//}
-
-//get the token from the request header
-//func ExtractToken(r *http.Request) string {
-//	bearToken := r.Header.Get("Authorization")
-//	strArr := strings.Split(bearToken, " ")
-//	if len(strArr) == 2 {
-//		return strArr[1]
-//	}
-//	return ""
-//}
-
-//func Extract(token *jwt.Token) (*AccessDetails, error) {
-//
-//	claims, ok := token.Claims.(jwt.MapClaims)
-//	if ok && token.Valid {
-//		userId, userOk := claims["Id"].(string)
-//		userName, userNameOk := claims["Email"].(string)
-//		if ok == false || userOk == false || userNameOk == false {
-//			return nil, errors.New("unauthorized")
-//		} else {
-//			return &AccessDetails{
-//				TokenUuid: "",
-//				UserId:    userId,
-//				UserName:  userName,
-//			}, nil
-//		}
-//	}
-//	return nil, errors.New("something went wrong")
-//}
