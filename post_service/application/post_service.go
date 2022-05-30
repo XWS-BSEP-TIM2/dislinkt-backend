@@ -3,8 +3,6 @@ package application
 import (
 	"context"
 	"fmt"
-	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
-	serviceClients "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/service-clients"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/ecoding"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
@@ -102,16 +100,16 @@ func (service *PostService) GetAllPosts() ([]*domain.Post, error) {
 //	}
 //}
 
-func (service *PostService) getPostOwnerProfile(ctx context.Context, ownerId primitive.ObjectID) *profileService.Profile {
-	profileClient := serviceClients.NewProfileClient(service.profileServiceAddress)
-	hexId := ownerId.Hex()
-	profileResponse, err := profileClient.Get(ctx, &profileService.GetRequest{Id: hexId})
-	if err != nil {
-		log(fmt.Sprintf("Error getting post owner with id: %s", hexId))
-		panic(fmt.Errorf("error getting post owner"))
-	}
-	return profileResponse.Profile
-}
+//func (service *PostService) getPostOwnerProfile(ctx context.Context, ownerId primitive.ObjectID) *profileService.Profile {
+//	profileClient := serviceClients.NewProfileClient(service.profileServiceAddress)
+//	hexId := ownerId.Hex()
+//	profileResponse, err := profileClient.Get(ctx, &profileService.GetRequest{Id: hexId})
+//	if err != nil {
+//		log(fmt.Sprintf("Error getting post owner with id: %s", hexId))
+//		panic(fmt.Errorf("error getting post owner"))
+//	}
+//	return profileResponse.Profile
+//}
 
 func log(message string) {
 	fmt.Printf("[%v] [Post Service]: %s\n", time.Now(), message)

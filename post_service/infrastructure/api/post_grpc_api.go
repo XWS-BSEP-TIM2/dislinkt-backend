@@ -8,6 +8,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/ecoding"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/api/error_mappers"
 	"github.com/thoas/go-funk"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
@@ -19,6 +20,7 @@ type PostHandler struct {
 	commentSubHandler *CommentSubHandler
 	likeSubHandler    *LikeSubHandler
 	dislikeSubHandler *DislikeSubHandler
+	errorMapper       *error_mappers.ErrorMapperRegistry
 }
 
 func NewPostHandler(service *application.PostService) *PostHandler {
@@ -27,11 +29,12 @@ func NewPostHandler(service *application.PostService) *PostHandler {
 		commentSubHandler: NewCommentHandler(service),
 		likeSubHandler:    NewLikeHandler(service),
 		dislikeSubHandler: NewDislikeHandler(service),
+		errorMapper:       error_mappers.NewErrorMapperRegistry(),
 	}
 }
 
 func (handler *PostHandler) GetPost(ctx context.Context, request *pb.GetPostRequest) (postResponse *pb.PostResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	objectId, idFromHexErr := primitive.ObjectIDFromHex(request.PostId)
 	if idFromHexErr != nil {
 		return nil, err
@@ -43,7 +46,7 @@ func (handler *PostHandler) GetPost(ctx context.Context, request *pb.GetPostRequ
 }
 
 func (handler *PostHandler) CreatePost(ctx context.Context, request *pb.CreatePostRequest) (postResponse *pb.PostResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	postDetails := handler.service.CreatePost(ctx, mapNewPostToPost(request.NewPost))
 	postResponse = mapPostDetailsToResponse(postDetails)
 	err = nil
@@ -51,7 +54,7 @@ func (handler *PostHandler) CreatePost(ctx context.Context, request *pb.CreatePo
 }
 
 func (handler *PostHandler) GetPosts(ctx context.Context, request *pb.EmptyRequest) (postResponse *pb.MultiplePostsResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	postsDetails := handler.service.GetPosts(ctx)
 	postsResponse, ok := funk.Map(postsDetails, func(dto *domain.PostDetailsDTO) *pb.Post { return mapPost(dto) }).([]*pb.Post)
 	if !ok {
@@ -87,11 +90,11 @@ func mapNewPostToPost(newPost *pb.NewPost) *domain.Post {
 	}
 }
 
-func handleError(err *error) {
+func (handler *PostHandler) handleError(err *error) {
 	if r := recover(); r != nil {
 		e, ok := r.(error)
 		if ok {
-			*err = e
+			*err = handler.errorMapper.ToStatusError(e)
 		}
 	}
 }
@@ -99,60 +102,60 @@ func handleError(err *error) {
 // comments subresource
 
 func (handler *PostHandler) GetComment(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.CommentResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.commentSubHandler.GetComment(ctx, request)
 }
 
 func (handler *PostHandler) CreateComment(ctx context.Context, request *pb.CreateCommentRequest) (postResponse *pb.CommentResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.commentSubHandler.CreateComment(ctx, request)
 }
 
 func (handler *PostHandler) GetComments(ctx context.Context, request *pb.GetPostRequest) (postResponse *pb.MultipleCommentsResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.commentSubHandler.GetComments(ctx, request)
 }
 
 // likes subresource
 
 func (handler *PostHandler) GetLike(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.ReactionResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.likeSubHandler.GetLike(ctx, request)
 }
 
 func (handler *PostHandler) GiveLike(ctx context.Context, request *pb.CreateReactionRequest) (postResponse *pb.ReactionResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.likeSubHandler.GiveLike(ctx, request)
 }
 
 func (handler *PostHandler) GetLikes(ctx context.Context, request *pb.GetPostRequest) (postResponse *pb.MultipleReactionsResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.likeSubHandler.GetLikes(ctx, request)
 }
 
 func (handler *PostHandler) UndoLike(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.EmptyRequest, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.likeSubHandler.UndoLike(ctx, request)
 }
 
 // dislikes subresource
 
 func (handler *PostHandler) GetDislike(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.ReactionResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.dislikeSubHandler.GetDislike(ctx, request)
 }
 
 func (handler *PostHandler) GiveDislike(ctx context.Context, request *pb.CreateReactionRequest) (postResponse *pb.ReactionResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.dislikeSubHandler.GiveDislike(ctx, request)
 }
 
 func (handler *PostHandler) GetDislikes(ctx context.Context, request *pb.GetPostRequest) (postResponse *pb.MultipleReactionsResponse, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.dislikeSubHandler.GetDislikes(ctx, request)
 }
 
 func (handler *PostHandler) UndoDislike(ctx context.Context, request *pb.GetSubresourceRequest) (postResponse *pb.EmptyRequest, err error) {
-	defer handleError(&err)
+	defer handler.handleError(&err)
 	return handler.dislikeSubHandler.UndoDislike(ctx, request)
 }

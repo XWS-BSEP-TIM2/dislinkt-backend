@@ -6,25 +6,29 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	pbPost "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/status"
 	"net/http"
 )
 
 type PostHandler struct {
-	grpcClient *rest.ServiceClientGrpc
+	grpcClient  *rest.ServiceClientGrpc
+	errorMapper *rest.GrpcToHttpErrorCodeMapper
 }
 
 func InitPostHandler() *PostHandler {
 	client := rest.InitServiceClient(config.NewConfig())
-	return &PostHandler{grpcClient: client}
+	mapper := rest.NewGrpcToHttpErrorCodeMapper()
+	return &PostHandler{grpcClient: client, errorMapper: mapper}
 }
 
 func (handler *PostHandler) Get(ctx *gin.Context) {
 	postService := handler.grpcClient.PostClient
 	res, err := postService.GetPosts(ctx, &pbPost.EmptyRequest{})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
-	ctx.JSON(http.StatusCreated, &res)
+	ctx.JSON(http.StatusOK, &res)
 }
 
 func (handler *PostHandler) CreatePost(ctx *gin.Context) {
@@ -38,7 +42,8 @@ func (handler *PostHandler) CreatePost(ctx *gin.Context) {
 	newPostProto := pbPost.NewPost{OwnerId: newPost.OwnerId, Content: newPost.Content, Links: newPost.Links, ImageBase64: newPost.ImageBase64}
 	res, err := postService.CreatePost(ctx, &pbPost.CreatePostRequest{NewPost: &newPostProto})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusCreated, &res)
 }
@@ -50,9 +55,10 @@ func (handler *PostHandler) GetPostById(ctx *gin.Context) {
 		PostId: id,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
-	ctx.JSON(http.StatusCreated, &res)
+	ctx.JSON(http.StatusOK, &res)
 }
 
 func (handler *PostHandler) GetPostComments(ctx *gin.Context) {
@@ -62,7 +68,8 @@ func (handler *PostHandler) GetPostComments(ctx *gin.Context) {
 		PostId: id,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusOK, &res)
 
@@ -78,7 +85,8 @@ func (handler *PostHandler) CreateComment(ctx *gin.Context) {
 	}
 	res, err := postService.CreateComment(ctx, &pbPost.CreateCommentRequest{NewComment: &comment, PostId: postId})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusCreated, &res)
 
@@ -93,7 +101,8 @@ func (handler *PostHandler) GetPostComment(ctx *gin.Context) {
 		SubresourceId: commentId,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusOK, &res)
 }
@@ -105,7 +114,8 @@ func (handler *PostHandler) GetLikes(ctx *gin.Context) {
 		PostId: postId,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusOK, &res)
 }
@@ -125,7 +135,8 @@ func (handler *PostHandler) LikePost(ctx *gin.Context) {
 		NewReaction: &reactionProto,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusCreated, &res)
 }
@@ -139,7 +150,8 @@ func (handler *PostHandler) GetLike(ctx *gin.Context) {
 		SubresourceId: likeId,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusOK, &res)
 }
@@ -153,7 +165,8 @@ func (handler *PostHandler) RemoveLike(ctx *gin.Context) {
 		SubresourceId: likeId,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusOK, &res)
 }
@@ -165,7 +178,8 @@ func (handler *PostHandler) GetDislikes(ctx *gin.Context) {
 		PostId: postId,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusOK, &res)
 }
@@ -183,7 +197,8 @@ func (handler *PostHandler) DislikePost(ctx *gin.Context) {
 		NewReaction: &reaction,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusCreated, &res)
 }
@@ -197,7 +212,8 @@ func (handler *PostHandler) GetDislike(ctx *gin.Context) {
 		SubresourceId: likeId,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusOK, &res)
 }
@@ -211,7 +227,18 @@ func (handler *PostHandler) RemoveDislike(ctx *gin.Context) {
 		SubresourceId: likeId,
 	})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		handler.handleError(ctx, err)
+		return
 	}
 	ctx.JSON(http.StatusOK, &res)
+}
+
+func (handler *PostHandler) handleError(ctx *gin.Context, err error) {
+	s, ok := status.FromError(err)
+	if ok {
+		httpStatus := handler.errorMapper.MapGrpcToHttpError(s.Code())
+		ctx.AbortWithError(httpStatus, err)
+	} else {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+	}
 }

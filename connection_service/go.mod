@@ -8,7 +8,6 @@ replace github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service => ../conne
 
 require (
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220426203826-7d3aeb3f989f
-	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/joho/godotenv v1.4.0
 	github.com/neo4j/neo4j-go-driver/v4 v4.3.3
 	google.golang.org/grpc v1.45.0
