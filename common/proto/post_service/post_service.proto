@@ -25,6 +25,12 @@ service PostService{
       get: "/posts/{post_id}"
     };
   }
+  rpc GetPostsFromUser(GetPostsFromUserRequest) returns(MultiplePostsResponse) {
+    option (google.api.http) = {
+      get: "/posts/user/{user_id}"
+    };
+  }
+
 
   // comments
   rpc GetComments(GetPostRequest) returns(MultipleCommentsResponse) {
@@ -132,6 +138,10 @@ message NewPost {
 
 message GetPostRequest {
   string post_id = 1;
+}
+
+message GetPostsFromUserRequest {
+  string user_id = 1;
 }
 
 message Comment {

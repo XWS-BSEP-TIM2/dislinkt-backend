@@ -22,8 +22,8 @@ func InitPostHandler() *PostHandler {
 }
 
 func (handler *PostHandler) Get(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
-	res, err := postService.GetPosts(ctx, &pbPost.EmptyRequest{})
+	postClient := handler.grpcClient.PostClient
+	res, err := postClient.GetPosts(ctx, &pbPost.EmptyRequest{})
 	if err != nil {
 		handler.handleError(ctx, err)
 		return
@@ -32,7 +32,7 @@ func (handler *PostHandler) Get(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) CreatePost(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	newPost := dto.CreatePostDto{}
 	if err := ctx.BindJSON(&newPost); err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
@@ -40,7 +40,7 @@ func (handler *PostHandler) CreatePost(ctx *gin.Context) {
 	}
 
 	newPostProto := pbPost.NewPost{OwnerId: newPost.OwnerId, Content: newPost.Content, Links: newPost.Links, ImageBase64: newPost.ImageBase64}
-	res, err := postService.CreatePost(ctx, &pbPost.CreatePostRequest{NewPost: &newPostProto})
+	res, err := postClient.CreatePost(ctx, &pbPost.CreatePostRequest{NewPost: &newPostProto})
 	if err != nil {
 		handler.handleError(ctx, err)
 		return
@@ -49,9 +49,9 @@ func (handler *PostHandler) CreatePost(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetPostById(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	id := ctx.Param("id")
-	res, err := postService.GetPost(ctx, &pbPost.GetPostRequest{
+	res, err := postClient.GetPost(ctx, &pbPost.GetPostRequest{
 		PostId: id,
 	})
 	if err != nil {
@@ -61,10 +61,23 @@ func (handler *PostHandler) GetPostById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &res)
 }
 
+func (handler *PostHandler) GetPostsFromUser(ctx *gin.Context) {
+	postClient := handler.grpcClient.PostClient
+	id := ctx.Param("user-id")
+	res, err := postClient.GetPostsFromUser(ctx, &pbPost.GetPostsFromUserRequest{
+		UserId: id,
+	})
+	if err != nil {
+		handler.handleError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, &res)
+}
+
 func (handler *PostHandler) GetPostComments(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	id := ctx.Param("id")
-	res, err := postService.GetComments(ctx, &pbPost.GetPostRequest{
+	res, err := postClient.GetComments(ctx, &pbPost.GetPostRequest{
 		PostId: id,
 	})
 	if err != nil {
@@ -76,14 +89,14 @@ func (handler *PostHandler) GetPostComments(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) CreateComment(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	comment := pbPost.NewComment{}
 	if err := ctx.BindJSON(&comment); err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	res, err := postService.CreateComment(ctx, &pbPost.CreateCommentRequest{NewComment: &comment, PostId: postId})
+	res, err := postClient.CreateComment(ctx, &pbPost.CreateCommentRequest{NewComment: &comment, PostId: postId})
 	if err != nil {
 		handler.handleError(ctx, err)
 		return
@@ -93,10 +106,10 @@ func (handler *PostHandler) CreateComment(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetPostComment(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	commentId := ctx.Param("comment-id")
-	res, err := postService.GetComment(ctx, &pbPost.GetSubresourceRequest{
+	res, err := postClient.GetComment(ctx, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: commentId,
 	})
@@ -108,9 +121,9 @@ func (handler *PostHandler) GetPostComment(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetLikes(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
-	res, err := postService.GetLikes(ctx, &pbPost.GetPostRequest{
+	res, err := postClient.GetLikes(ctx, &pbPost.GetPostRequest{
 		PostId: postId,
 	})
 	if err != nil {
@@ -121,7 +134,7 @@ func (handler *PostHandler) GetLikes(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) LikePost(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	reaction := dto.ReactionDto{}
 	if err := ctx.BindJSON(&reaction); err != nil {
@@ -130,7 +143,7 @@ func (handler *PostHandler) LikePost(ctx *gin.Context) {
 	}
 
 	reactionProto := pbPost.NewReaction{OwnerId: reaction.OwnerId}
-	res, err := postService.GiveLike(ctx, &pbPost.CreateReactionRequest{
+	res, err := postClient.GiveLike(ctx, &pbPost.CreateReactionRequest{
 		PostId:      postId,
 		NewReaction: &reactionProto,
 	})
@@ -142,10 +155,10 @@ func (handler *PostHandler) LikePost(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetLike(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	likeId := ctx.Param("like-id")
-	res, err := postService.GetLike(ctx, &pbPost.GetSubresourceRequest{
+	res, err := postClient.GetLike(ctx, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: likeId,
 	})
@@ -157,10 +170,10 @@ func (handler *PostHandler) GetLike(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) RemoveLike(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	likeId := ctx.Param("like-id")
-	res, err := postService.UndoLike(ctx, &pbPost.GetSubresourceRequest{
+	res, err := postClient.UndoLike(ctx, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: likeId,
 	})
@@ -172,9 +185,9 @@ func (handler *PostHandler) RemoveLike(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetDislikes(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
-	res, err := postService.GetDislikes(ctx, &pbPost.GetPostRequest{
+	res, err := postClient.GetDislikes(ctx, &pbPost.GetPostRequest{
 		PostId: postId,
 	})
 	if err != nil {
@@ -185,14 +198,14 @@ func (handler *PostHandler) GetDislikes(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) DislikePost(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	reaction := pbPost.NewReaction{}
 	if err := ctx.BindJSON(&reaction); err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	res, err := postService.GiveDislike(ctx, &pbPost.CreateReactionRequest{
+	res, err := postClient.GiveDislike(ctx, &pbPost.CreateReactionRequest{
 		PostId:      postId,
 		NewReaction: &reaction,
 	})
@@ -204,10 +217,10 @@ func (handler *PostHandler) DislikePost(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetDislike(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	likeId := ctx.Param("like-id")
-	res, err := postService.GetDislike(ctx, &pbPost.GetSubresourceRequest{
+	res, err := postClient.GetDislike(ctx, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: likeId,
 	})
@@ -219,10 +232,10 @@ func (handler *PostHandler) GetDislike(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) RemoveDislike(ctx *gin.Context) {
-	postService := handler.grpcClient.PostClient
+	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	likeId := ctx.Param("like-id")
-	res, err := postService.UndoDislike(ctx, &pbPost.GetSubresourceRequest{
+	res, err := postClient.UndoDislike(ctx, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: likeId,
 	})

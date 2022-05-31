@@ -25,6 +25,7 @@ type PostServiceClient interface {
 	GetPosts(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*MultiplePostsResponse, error)
 	CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*PostResponse, error)
 	GetPost(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (*PostResponse, error)
+	GetPostsFromUser(ctx context.Context, in *GetPostsFromUserRequest, opts ...grpc.CallOption) (*MultiplePostsResponse, error)
 	// comments
 	GetComments(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (*MultipleCommentsResponse, error)
 	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*CommentResponse, error)
@@ -70,6 +71,15 @@ func (c *postServiceClient) CreatePost(ctx context.Context, in *CreatePostReques
 func (c *postServiceClient) GetPost(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (*PostResponse, error) {
 	out := new(PostResponse)
 	err := c.cc.Invoke(ctx, "/post_service.PostService/GetPost", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postServiceClient) GetPostsFromUser(ctx context.Context, in *GetPostsFromUserRequest, opts ...grpc.CallOption) (*MultiplePostsResponse, error) {
+	out := new(MultiplePostsResponse)
+	err := c.cc.Invoke(ctx, "/post_service.PostService/GetPostsFromUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -182,6 +192,7 @@ type PostServiceServer interface {
 	GetPosts(context.Context, *EmptyRequest) (*MultiplePostsResponse, error)
 	CreatePost(context.Context, *CreatePostRequest) (*PostResponse, error)
 	GetPost(context.Context, *GetPostRequest) (*PostResponse, error)
+	GetPostsFromUser(context.Context, *GetPostsFromUserRequest) (*MultiplePostsResponse, error)
 	// comments
 	GetComments(context.Context, *GetPostRequest) (*MultipleCommentsResponse, error)
 	CreateComment(context.Context, *CreateCommentRequest) (*CommentResponse, error)
@@ -211,6 +222,9 @@ func (UnimplementedPostServiceServer) CreatePost(context.Context, *CreatePostReq
 }
 func (UnimplementedPostServiceServer) GetPost(context.Context, *GetPostRequest) (*PostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPost not implemented")
+}
+func (UnimplementedPostServiceServer) GetPostsFromUser(context.Context, *GetPostsFromUserRequest) (*MultiplePostsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPostsFromUser not implemented")
 }
 func (UnimplementedPostServiceServer) GetComments(context.Context, *GetPostRequest) (*MultipleCommentsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetComments not implemented")
@@ -308,6 +322,24 @@ func _PostService_GetPost_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostServiceServer).GetPost(ctx, req.(*GetPostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostService_GetPostsFromUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPostsFromUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GetPostsFromUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post_service.PostService/GetPostsFromUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GetPostsFromUser(ctx, req.(*GetPostsFromUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -528,6 +560,10 @@ var PostService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPost",
 			Handler:    _PostService_GetPost_Handler,
+		},
+		{
+			MethodName: "GetPostsFromUser",
+			Handler:    _PostService_GetPostsFromUser_Handler,
 		},
 		{
 			MethodName: "GetComments",

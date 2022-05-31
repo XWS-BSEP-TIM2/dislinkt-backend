@@ -25,6 +25,7 @@ func RegisterRoutes(r *gin.Engine) {
 	unauthorizedRoutes := r.Group("/posts")
 	unauthorizedRoutes.GET("", postHandler.Get)
 	unauthorizedRoutes.GET("/:id", postHandler.GetPostById)
+	unauthorizedRoutes.GET("/user/:user-id", postHandler.GetPostsFromUser)
 	unauthorizedRoutes.GET("/:id/comments", postHandler.GetPostComments)
 	unauthorizedRoutes.GET("/:id/comments/:comment-id", postHandler.GetPostComment)
 	unauthorizedRoutes.GET("/:id/likes", postHandler.GetLikes)

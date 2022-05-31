@@ -65,6 +65,22 @@ func (handler *PostHandler) GetPosts(ctx context.Context, request *pb.EmptyReque
 	return
 }
 
+func (handler *PostHandler) GetPostsFromUser(ctx context.Context, request *pb.GetPostsFromUserRequest) (postResponse *pb.MultiplePostsResponse, err error) {
+	defer handler.handleError(&err)
+	userId, idFromHexErr := primitive.ObjectIDFromHex(request.UserId)
+	if idFromHexErr != nil {
+		return nil, err
+	}
+	postsDetails := handler.service.GetPostsFromUser(ctx, userId)
+	postsResponse, ok := funk.Map(postsDetails, func(dto *domain.PostDetailsDTO) *pb.Post { return mapPost(dto) }).([]*pb.Post)
+	if !ok {
+		panic(fmt.Errorf("error during conversion of posts"))
+	}
+	postResponse = &pb.MultiplePostsResponse{Posts: postsResponse}
+	err = nil
+	return
+}
+
 func mapPostDetailsToResponse(postDetails *domain.PostDetailsDTO) *pb.PostResponse {
 	return &pb.PostResponse{Post: mapPost(postDetails)}
 }

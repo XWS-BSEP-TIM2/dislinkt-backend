@@ -7,6 +7,7 @@ import (
 type PostStore interface {
 	Get(id primitive.ObjectID) (*Post, error)
 	GetAll() ([]*Post, error)
+	GetPostsFromUser(userId primitive.ObjectID) ([]*Post, error)
 	Insert(post *Post) error
 	Update(post *Post) error
 	InsertComment(postId primitive.ObjectID, comment *Comment) error

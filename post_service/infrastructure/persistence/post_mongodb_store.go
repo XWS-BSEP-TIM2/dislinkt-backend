@@ -36,6 +36,11 @@ func (store *PostMongoDBStore) GetAll() ([]*domain.Post, error) {
 	return store.filter(filter)
 }
 
+func (store *PostMongoDBStore) GetPostsFromUser(userId primitive.ObjectID) ([]*domain.Post, error) {
+	filter := bson.M{"ownerId": userId}
+	return store.filter(filter)
+}
+
 func (store *PostMongoDBStore) Insert(post *domain.Post) error {
 	result, err := store.posts.InsertOne(context.TODO(), post)
 	if err != nil {

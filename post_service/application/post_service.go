@@ -91,6 +91,16 @@ func (service *PostService) GetAllPosts() ([]*domain.Post, error) {
 	return service.store.GetAll()
 }
 
+func (service *PostService) GetPostsFromUser(ctx context.Context, userId primitive.ObjectID) []*domain.PostDetailsDTO {
+	posts, err := service.store.GetPostsFromUser(userId)
+	if err != nil {
+		log("Error loading posts")
+		panic(errors.NewEntityNotFoundError("Posts unavailable."))
+	}
+
+	return service.getMultiplePostsDetails(posts)
+}
+
 //func mapProfileToOwner(ownerProfile *profileService.Profile) *domain.Owner {
 //	return &domain.Owner{
 //		UserId:   ownerProfile.Id,
