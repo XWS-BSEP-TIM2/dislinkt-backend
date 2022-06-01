@@ -46,6 +46,10 @@ func mapPost(postDTO *domain.PostDetailsDTO) *pb.Post {
 			LikesNumber:    int64(postDTO.Stats.LikesNumber),
 			DislikesNumber: int64(postDTO.Stats.DislikesNumber),
 		},
+		Reactions: &pb.PostReactionsByCU{
+			Liked:    postDTO.Reactions.Liked,
+			Disliked: postDTO.Reactions.Disliked,
+		},
 	}
 
 	return postPb

@@ -31,7 +31,7 @@ func (h *DislikeSubHandler) GetDislike(ctx context.Context, request *pb.GetSubre
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given reaction id is invalid."))
 	}
-	likeDetails := h.service.GetDislike(postId, reactionId)
+	likeDetails := h.service.GetDislike(ctx, postId, reactionId)
 	return &pb.ReactionResponse{Reaction: mapDislike(likeDetails)}, nil
 
 }
@@ -45,7 +45,7 @@ func (h *DislikeSubHandler) GiveDislike(ctx context.Context, request *pb.CreateR
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given owner id is invalid."))
 	}
-	dislikeDetails := h.service.GiveDislike(postId, &domain.Dislike{
+	dislikeDetails := h.service.GiveDislike(ctx, postId, &domain.Dislike{
 		OwnerId:      ownerId,
 		CreationTime: time.Now(),
 	})
@@ -58,7 +58,7 @@ func (h *DislikeSubHandler) GetDislikes(ctx context.Context, request *pb.GetPost
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
 	}
-	dislikes := h.service.GetDislikesForPost(postId)
+	dislikes := h.service.GetDislikesForPost(ctx, postId)
 	reactionsResponse, ok := funk.Map(dislikes, func(dto *domain.DislikeDetailsDTO) *pb.Reaction { return mapDislike(dto) }).([]*pb.Reaction)
 	if !ok {
 		panic(fmt.Errorf("error during conversion of posts"))
@@ -75,6 +75,6 @@ func (h *DislikeSubHandler) UndoDislike(ctx context.Context, request *pb.GetSubr
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given reaction id is invalid."))
 	}
-	h.service.UndoDislike(postId, reactionId)
+	h.service.UndoDislike(ctx, postId, reactionId)
 	return &pb.EmptyRequest{}, nil
 }

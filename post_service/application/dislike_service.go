@@ -1,29 +1,38 @@
 package application
 
 import (
+	"context"
 	"fmt"
+	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
+	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/util"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
 	"github.com/thoas/go-funk"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type DislikeService struct {
 	store                    domain.PostStore
-	authServiceAddress       string
-	connectionServiceAddress string
+	authServiceAdapter       asa.IAuthServiceAdapter
+	connectionServiceAdapter csa.IConnectionServiceAdapter
 	profileServiceAddress    string
+	postAccessValidator      *util.PostAccessValidator
 }
 
 func NewDislikeService(postService *PostService) *DislikeService {
 	return &DislikeService{
 		store:                    postService.store,
-		authServiceAddress:       postService.authServiceAddress,
-		connectionServiceAddress: postService.connectionServiceAddress,
+		authServiceAdapter:       postService.authServiceAdapter,
+		connectionServiceAdapter: postService.connectionServiceAdapter,
 		profileServiceAddress:    postService.profileServiceAddress,
+		postAccessValidator:      postService.postAccessValidator,
 	}
 }
 
-func (service *DislikeService) GiveDislike(postId primitive.ObjectID, dislike *domain.Dislike) *domain.DislikeDetailsDTO {
+func (service *DislikeService) GiveDislike(ctx context.Context, postId primitive.ObjectID, dislike *domain.Dislike) *domain.DislikeDetailsDTO {
+	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
+	service.authServiceAdapter.ValidateCurrentUser(ctx, dislike.OwnerId)
 	err := service.store.InsertDislike(postId, dislike)
 	if err != nil {
 		panic(fmt.Errorf("Invalid dislike"))
@@ -31,7 +40,8 @@ func (service *DislikeService) GiveDislike(postId primitive.ObjectID, dislike *d
 	return service.getDislikeDetails(postId, dislike)
 }
 
-func (service *DislikeService) GetDislike(postId primitive.ObjectID, dislikeId primitive.ObjectID) *domain.DislikeDetailsDTO {
+func (service *DislikeService) GetDislike(ctx context.Context, postId primitive.ObjectID, dislikeId primitive.ObjectID) *domain.DislikeDetailsDTO {
+	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
 	dislike, err := service.store.GetDislike(postId, dislikeId)
 	if err != nil {
 		panic(fmt.Errorf("Invalid dislike"))
@@ -39,7 +49,8 @@ func (service *DislikeService) GetDislike(postId primitive.ObjectID, dislikeId p
 	return service.getDislikeDetails(postId, dislike)
 }
 
-func (service *DislikeService) GetDislikesForPost(postId primitive.ObjectID) []*domain.DislikeDetailsDTO {
+func (service *DislikeService) GetDislikesForPost(ctx context.Context, postId primitive.ObjectID) []*domain.DislikeDetailsDTO {
+	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
 	dislikes, err := service.store.GetDislikesForPost(postId)
 	if err != nil {
 		panic(fmt.Errorf("dislikes for post unavailable"))
@@ -57,7 +68,13 @@ func (service *DislikeService) GetDislikesForPost(postId primitive.ObjectID) []*
 	return dislikeDetails
 }
 
-func (service *DislikeService) UndoDislike(postId primitive.ObjectID, reactionId primitive.ObjectID) {
+func (service *DislikeService) UndoDislike(ctx context.Context, postId primitive.ObjectID, reactionId primitive.ObjectID) {
+	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
+	dislike, err := service.store.GetDislike(postId, reactionId)
+	if err != nil {
+		panic(errors.NewEntityNotFoundError("Cannot remove dislike with id: " + reactionId.Hex()))
+	}
+	service.authServiceAdapter.ValidateCurrentUser(ctx, dislike.OwnerId)
 	service.store.UndoDislike(postId, reactionId)
 }
 

@@ -31,7 +31,7 @@ func (h *CommentSubHandler) GetComment(ctx context.Context, request *pb.GetSubre
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given owner id is invalid."))
 	}
-	commentDetails := h.service.GetComment(postId, commentId)
+	commentDetails := h.service.GetComment(ctx, postId, commentId)
 	return &pb.CommentResponse{Comment: mapComment(commentDetails)}, nil
 
 }
@@ -43,9 +43,9 @@ func (h *CommentSubHandler) CreateComment(ctx context.Context, request *pb.Creat
 	}
 	ownerId, err2 := primitive.ObjectIDFromHex(request.NewComment.OwnerId)
 	if err2 != nil {
-		panic(errors.NewInvalidArgumentError("Given comment id is invalid."))
+		panic(errors.NewInvalidArgumentError("Given owner id is invalid."))
 	}
-	commentDetails := h.service.CreateComment(postId, &domain.Comment{
+	commentDetails := h.service.CreateComment(ctx, postId, &domain.Comment{
 		OwnerId:      ownerId,
 		CreationTime: time.Now(),
 		Content:      request.NewComment.Content,
@@ -59,7 +59,7 @@ func (h *CommentSubHandler) GetComments(ctx context.Context, request *pb.GetPost
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
 	}
-	commentsDetails := h.service.GetCommentsForPost(postId)
+	commentsDetails := h.service.GetCommentsForPost(ctx, postId)
 	commentsResponse, ok := funk.Map(commentsDetails, func(dto *domain.CommentDetailsDTO) *pb.Comment { return mapComment(dto) }).([]*pb.Comment)
 	if !ok {
 		panic(fmt.Errorf("error during conversion of posts"))

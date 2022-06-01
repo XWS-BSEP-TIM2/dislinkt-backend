@@ -106,6 +106,7 @@ func (store *PostMongoDBStore) InsertLike(postId primitive.ObjectID, like *domai
 			panic(errors.NewInvalidArgumentError("User cannot give like multiple times"))
 		}
 	}
+
 	like.Id = primitive.NewObjectID()
 	post.Likes = append(post.Likes, like)
 
@@ -113,6 +114,14 @@ func (store *PostMongoDBStore) InsertLike(postId primitive.ObjectID, like *domai
 	if err != nil {
 		return err
 	}
+
+	for _, existingDislike := range post.Dislikes {
+		if like.OwnerId == existingDislike.OwnerId {
+			store.UndoDislike(postId, existingDislike.Id)
+			break
+		}
+	}
+
 	return nil
 }
 
@@ -171,7 +180,7 @@ func (store *PostMongoDBStore) InsertDislike(postId primitive.ObjectID, dislike 
 		return err
 	}
 
-	for _, existingDislike := range post.Likes {
+	for _, existingDislike := range post.Dislikes {
 		if dislike.OwnerId == existingDislike.OwnerId {
 			panic(errors.NewInvalidArgumentError("User cannot give dislike multiple times"))
 		}
@@ -183,6 +192,14 @@ func (store *PostMongoDBStore) InsertDislike(postId primitive.ObjectID, dislike 
 	if err != nil {
 		return err
 	}
+
+	for _, existingLike := range post.Likes {
+		if dislike.OwnerId == existingLike.OwnerId {
+			store.UndoLike(postId, existingLike.Id)
+			break
+		}
+	}
+
 	return nil
 }
 
@@ -232,6 +249,36 @@ func (store *PostMongoDBStore) UndoDislike(postId primitive.ObjectID, reactionId
 		return err
 	}
 	return nil
+}
+
+func (store *PostMongoDBStore) GetReactions(postId primitive.ObjectID, userId primitive.ObjectID) *domain.Reactions {
+	post, err := store.Get(postId)
+	if err != nil {
+		panic(errors.NewEntityNotFoundError("No post with given id"))
+	}
+
+	for _, existingLike := range post.Likes {
+		if userId == existingLike.OwnerId {
+			return &domain.Reactions{
+				Liked:    true,
+				Disliked: false,
+			}
+		}
+	}
+
+	for _, existingDislike := range post.Dislikes {
+		if userId == existingDislike.OwnerId {
+			return &domain.Reactions{
+				Liked:    false,
+				Disliked: true,
+			}
+		}
+	}
+
+	return &domain.Reactions{
+		Liked:    false,
+		Disliked: false,
+	}
 }
 
 func (store *PostMongoDBStore) DeleteAll() {

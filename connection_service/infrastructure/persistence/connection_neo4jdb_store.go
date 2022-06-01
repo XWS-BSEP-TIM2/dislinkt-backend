@@ -627,6 +627,23 @@ func (store *ConnectionDBStore) GetConnectionDetail(userIDa, userIDb string) (*p
 
 		connectionDetail := &pb.ConnectionDetail{UserIDa: userIDa, UserIDb: userIDb}
 
+		// userIDa is not logged in or irrelevant
+		// used for checking if userIDb account is private
+		if userIDa == "000000000000000000000000" {
+			if !checkIfUserExist(userIDb, transaction) {
+				connectionDetail.Error = "user does not exist"
+				return connectionDetail, nil
+			}
+			isPrivate, err := isUserPrivate(userIDb, transaction)
+			if err != nil {
+				connectionDetail.Error = err.Error()
+				return connectionDetail, err
+			}
+			connectionDetail.IsPrivate = isPrivate
+			connectionDetail.Relation = "NO_RELATION"
+			return connectionDetail, nil
+		}
+
 		if checkIfUserExist(userIDa, transaction) && checkIfUserExist(userIDb, transaction) {
 
 			isPrivate, err := isUserPrivate(userIDb, transaction)

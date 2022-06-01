@@ -18,9 +18,9 @@ func RegisterRoutes(r *gin.Engine) {
 	authorizedRoutes.POST("", a.Authorize("createPost", "create", false), postHandler.CreatePost)
 	authorizedRoutes.POST("/:id/comments", a.Authorize("createComment", "create", false), postHandler.CreateComment)
 	authorizedRoutes.POST("/:id/likes", a.Authorize("likePost", "create", false), postHandler.LikePost)
-	authorizedRoutes.DELETE(":id/likes/:like-id", a.Authorize("removeLike", "delete", false), postHandler.RemoveLike)
+	authorizedRoutes.DELETE("/:id/likes/:like-id", a.Authorize("removeLike", "delete", false), postHandler.RemoveLike)
 	authorizedRoutes.POST("/:id/dislikes", a.Authorize("dislikePost", "create", false), postHandler.DislikePost)
-	authorizedRoutes.DELETE(":id/dislikes/:dislike-id", a.Authorize("removeDislike", "delete", false), postHandler.RemoveDislike)
+	authorizedRoutes.DELETE("/:id/dislikes/:dislike-id", a.Authorize("removeDislike", "delete", false), postHandler.RemoveDislike)
 
 	unauthorizedRoutes := r.Group("/posts")
 	unauthorizedRoutes.GET("", postHandler.Get)

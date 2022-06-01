@@ -1,4 +1,4 @@
-package rest
+package handler
 
 import (
 	"google.golang.org/grpc/codes"

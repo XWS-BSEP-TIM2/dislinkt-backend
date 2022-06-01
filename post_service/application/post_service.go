@@ -3,6 +3,9 @@ package application
 import (
 	"context"
 	"fmt"
+	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
+	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/util"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/ecoding"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
@@ -13,9 +16,10 @@ import (
 
 type PostService struct {
 	store                    domain.PostStore
-	authServiceAddress       string
-	connectionServiceAddress string
+	authServiceAdapter       asa.IAuthServiceAdapter
+	connectionServiceAdapter csa.IConnectionServiceAdapter
 	profileServiceAddress    string
+	postAccessValidator      *util.PostAccessValidator
 }
 
 func NewPostService(
@@ -24,30 +28,36 @@ func NewPostService(
 	connectionServiceAddress,
 	profileServiceAddress string) *PostService {
 
+	authServiceAdapter := asa.NewAuthServiceAdapter(authServiceAddress)
+	connectionServiceAdapter := csa.NewConnectionServiceAdapter(connectionServiceAddress)
+	postAccessValidator := util.NewPostAccessValidator(store, authServiceAdapter, connectionServiceAdapter)
 	return &PostService{
 		store:                    store,
-		authServiceAddress:       authServiceAddress,
-		connectionServiceAddress: connectionServiceAddress,
+		authServiceAdapter:       authServiceAdapter,
+		connectionServiceAdapter: connectionServiceAdapter,
 		profileServiceAddress:    profileServiceAddress,
+		postAccessValidator:      postAccessValidator,
 	}
 }
 
 func (service *PostService) GetPost(ctx context.Context, id primitive.ObjectID) *domain.PostDetailsDTO {
+	service.postAccessValidator.ValidateUserAccessPost(ctx, id)
 	post, postNotFoundErr := service.store.Get(id)
 	if postNotFoundErr != nil {
 		log(fmt.Sprintf("Post with id: %v not found", id))
 		panic(errors.NewEntityNotFoundError("Post with given id does not exist."))
 	}
-	return service.getPostDetails(post)
+	return service.getPostDetailsMapper(ctx)(post)
 }
 
 func (service *PostService) CreatePost(ctx context.Context, post *domain.Post) *domain.PostDetailsDTO {
+	service.authServiceAdapter.ValidateCurrentUser(ctx, post.OwnerId)
 	err := service.store.Insert(post)
 	if err != nil {
 		log("Error during post creation")
 		panic(fmt.Errorf("error during post creation"))
 	}
-	return service.getPostDetails(post)
+	return service.getPostDetailsMapper(ctx)(post)
 }
 
 func (service *PostService) GetPosts(ctx context.Context) []*domain.PostDetailsDTO {
@@ -57,16 +67,16 @@ func (service *PostService) GetPosts(ctx context.Context) []*domain.PostDetailsD
 		panic(errors.NewEntityNotFoundError("Posts unavailable."))
 	}
 
-	return service.getMultiplePostsDetails(posts)
+	return service.getMultiplePostsDetails(ctx, posts)
 }
 
-func (service *PostService) getMultiplePostsDetails(posts []*domain.Post) []*domain.PostDetailsDTO {
+func (service *PostService) getMultiplePostsDetails(ctx context.Context, posts []*domain.Post) []*domain.PostDetailsDTO {
 	//profiles, err := serviceClients.NewProfileClient(service.profileServiceAddress).GetAll(ctx, &profileService.EmptyRequest{})
 	//if err != nil {
 	//	log(fmt.Sprintf("Error loading profiles: %v", err))
 	//	panic(fmt.Errorf("posts unavailable"))
 	//}
-	postsDetails, ok := funk.Map(posts, service.getPostDetails).([]*domain.PostDetailsDTO)
+	postsDetails, ok := funk.Map(posts, service.getPostDetailsMapper(ctx)).([]*domain.PostDetailsDTO)
 	if !ok {
 		log("Error in conversion of posts to postDetails")
 		panic(fmt.Errorf("posts unavailable"))
@@ -74,31 +84,48 @@ func (service *PostService) getMultiplePostsDetails(posts []*domain.Post) []*dom
 	return postsDetails
 }
 
-func (service *PostService) getPostDetails(post *domain.Post) *domain.PostDetailsDTO {
-	return &domain.PostDetailsDTO{
-		//Owner:       mapProfileToOwner(service.getPostOwnerProfile(ctx, post.OwnerId)),
-		Post:        post,
-		ImageBase64: ecoding.NewBase64Coder().Encode(post.Image),
-		Stats: &domain.Stats{
-			CommentsNumber: len(post.Comments),
-			LikesNumber:    len(post.Likes),
-			DislikesNumber: len(post.Dislikes),
-		},
+func (service *PostService) getPostDetailsMapper(ctx context.Context) func(post *domain.Post) *domain.PostDetailsDTO {
+	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
+
+	return func(post *domain.Post) *domain.PostDetailsDTO {
+		var reactions *domain.Reactions
+		if currentUserId == primitive.NilObjectID {
+			reactions = &domain.Reactions{
+				Liked:    false,
+				Disliked: false,
+			}
+		} else {
+			reactions = service.store.GetReactions(post.Id, currentUserId)
+		}
+		return &domain.PostDetailsDTO{
+			//Owner:       mapProfileToOwner(service.getPostOwnerProfile(ctx, post.OwnerId)),
+			Post:        post,
+			ImageBase64: ecoding.NewBase64Coder().Encode(post.Image),
+			Stats: &domain.Stats{
+				CommentsNumber: len(post.Comments),
+				LikesNumber:    len(post.Likes),
+				DislikesNumber: len(post.Dislikes),
+			},
+			Reactions: reactions,
+		}
 	}
 }
 
-func (service *PostService) GetAllPosts() ([]*domain.Post, error) {
-	return service.store.GetAll()
-}
-
 func (service *PostService) GetPostsFromUser(ctx context.Context, userId primitive.ObjectID) []*domain.PostDetailsDTO {
+	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
+	if currentUserId != userId {
+		result := service.connectionServiceAdapter.CanUserAccessPostFromOwner(ctx, currentUserId, userId)
+		if !result {
+			panic(errors.NewEntityForbiddenError("Current user cannot access posts from given user."))
+		}
+	}
 	posts, err := service.store.GetPostsFromUser(userId)
 	if err != nil {
 		log("Error loading posts")
 		panic(errors.NewEntityNotFoundError("Posts unavailable."))
 	}
 
-	return service.getMultiplePostsDetails(posts)
+	return service.getMultiplePostsDetails(ctx, posts)
 }
 
 //func mapProfileToOwner(ownerProfile *profileService.Profile) *domain.Owner {

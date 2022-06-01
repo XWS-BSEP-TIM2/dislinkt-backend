@@ -4,7 +4,6 @@ option go_package = "common/proto/post_service";
 
 package post_service;
 
-
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -109,20 +108,26 @@ message Post {
   repeated string links = 5;
   repeated Href hrefs = 6;
   PostStats stats = 7;
+  PostReactionsByCU reactions = 8;
 }
 
 message PostStats {
-  int64 comments_number = 8;
-  int64 likes_number = 9;
-  int64 dislikes_number = 10;
+  int64 comments_number = 1;
+  int64 likes_number = 2;
+  int64 dislikes_number = 3;
+}
+
+message PostReactionsByCU {
+  bool liked = 1;
+  bool disliked = 2;
 }
 
 message PostResponse {
-      Post post = 1;
+  Post post = 1;
 }
 
 message MultiplePostsResponse {
-    repeated Post posts = 1;
+  repeated Post posts = 1;
 }
 
 message CreatePostRequest {

@@ -10,12 +10,18 @@ type PostDetailsDTO struct {
 	Post        *Post
 	ImageBase64 string
 	Stats       *Stats
+	Reactions   *Reactions
 }
 
 type Stats struct {
 	CommentsNumber int
 	LikesNumber    int
 	DislikesNumber int
+}
+
+type Reactions struct {
+	Liked    bool
+	Disliked bool
 }
 
 type CommentDetailsDTO struct {

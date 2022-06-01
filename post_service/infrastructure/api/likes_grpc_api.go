@@ -31,7 +31,7 @@ func (h *LikeSubHandler) GetLike(ctx context.Context, request *pb.GetSubresource
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given reaction id is invalid."))
 	}
-	likeDetails := h.service.GetLike(postId, reactionId)
+	likeDetails := h.service.GetLike(ctx, postId, reactionId)
 	return &pb.ReactionResponse{Reaction: mapLike(likeDetails)}, nil
 
 }
@@ -45,7 +45,7 @@ func (h *LikeSubHandler) GiveLike(ctx context.Context, request *pb.CreateReactio
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given owner id is invalid."))
 	}
-	likeDetails := h.service.GiveLike(postId, &domain.Like{
+	likeDetails := h.service.GiveLike(ctx, postId, &domain.Like{
 		OwnerId:      ownerId,
 		CreationTime: time.Now(),
 	})
@@ -58,7 +58,7 @@ func (h *LikeSubHandler) GetLikes(ctx context.Context, request *pb.GetPostReques
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
 	}
-	likeDetails := h.service.GetLikesForPost(postId)
+	likeDetails := h.service.GetLikesForPost(ctx, postId)
 	reactionsResponse, ok := funk.Map(likeDetails, func(dto *domain.LikeDetailsDTO) *pb.Reaction { return mapLike(dto) }).([]*pb.Reaction)
 	if !ok {
 		panic(fmt.Errorf("error during conversion of posts"))
@@ -75,6 +75,6 @@ func (h *LikeSubHandler) UndoLike(ctx context.Context, request *pb.GetSubresourc
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given reaction id is invalid."))
 	}
-	h.service.UndoLike(postId, reactionId)
+	h.service.UndoLike(ctx, postId, reactionId)
 	return &pb.EmptyRequest{}, nil
 }

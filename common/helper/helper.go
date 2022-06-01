@@ -16,7 +16,7 @@ func ExtractTokenFromContext(ctx context.Context) (string, error) {
 
 	const prefix = "Bearer "
 	if !strings.HasPrefix(auth, prefix) {
-		return "", status.Error(codes.Unauthenticated, `missing "Bearer " prefix in "Authorization" header`)
+		return "invalid_auth_header", status.Error(codes.Unauthenticated, `missing "Bearer " prefix in "Authorization" header`)
 	}
 	var token = strings.TrimPrefix(auth, prefix)
 	return token, nil
