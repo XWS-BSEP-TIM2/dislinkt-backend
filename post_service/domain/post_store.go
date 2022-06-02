@@ -23,4 +23,5 @@ type PostStore interface {
 	GetDislikesForPost(postId primitive.ObjectID) ([]*Dislike, error)
 	UndoDislike(postId primitive.ObjectID, reactionId primitive.ObjectID) error
 	GetReactions(postId primitive.ObjectID, userId primitive.ObjectID) *Reactions
+	GetAllPostsFromIds(ids []*primitive.ObjectID) []*Post
 }

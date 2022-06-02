@@ -19,11 +19,11 @@ func NewConnectionServiceAdapter(address string) *ConnectionServiceAdapter {
 
 func (conn *ConnectionServiceAdapter) GetAllUserConnections(ctx context.Context, id primitive.ObjectID) []*primitive.ObjectID {
 	connClient := services.NewConnectionClient(conn.address)
-	users, connErr := connClient.GetFriends(ctx, &cb.GetRequest{UserID: id.Hex()})
+	response, connErr := connClient.GetFriends(ctx, &cb.GetRequest{UserID: id.Hex()})
 	if connErr != nil {
 		panic(fmt.Errorf("Error during getting all connections: Connection Service"))
 	}
-	res, ok := funk.Map(users, mapUserToUserId).([]*primitive.ObjectID)
+	res, ok := funk.Map(response.Users, mapUserToUserId).([]*primitive.ObjectID)
 	if !ok {
 		panic(fmt.Errorf("Cannot cast list as []*primitive.ObjectId"))
 	}

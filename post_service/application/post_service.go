@@ -22,6 +22,7 @@ type PostService struct {
 	profileServiceAdapter    psa.IProfileServiceAdapter
 	postAccessValidator      *util.PostAccessValidator
 	ownerFinder              *util.OwnerFinder
+	feedCreator              *util.FeedCreator
 }
 
 func NewPostService(
@@ -35,6 +36,7 @@ func NewPostService(
 	profileServiceAdapter := psa.NewProfileServiceAdapter(profileServiceAddress)
 	postAccessValidator := util.NewPostAccessValidator(store, authServiceAdapter, connectionServiceAdapter)
 	ownerFinder := util.NewOwnerFinder(profileServiceAdapter)
+	feedCreator := util.NewFeedCreator(store, connectionServiceAdapter, profileServiceAdapter)
 	return &PostService{
 		store:                    store,
 		authServiceAdapter:       authServiceAdapter,
@@ -42,6 +44,7 @@ func NewPostService(
 		profileServiceAdapter:    profileServiceAdapter,
 		postAccessValidator:      postAccessValidator,
 		ownerFinder:              ownerFinder,
+		feedCreator:              feedCreator,
 	}
 }
 
@@ -66,7 +69,20 @@ func (service *PostService) CreatePost(ctx context.Context, post *domain.Post) *
 }
 
 func (service *PostService) GetPosts(ctx context.Context) []*domain.PostDetailsDTO {
-	posts, err := service.store.GetAll()
+	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
+	posts := service.feedCreator.CreateFeedForUser(ctx, currentUserId)
+	return service.getMultiplePostsDetails(ctx, posts)
+}
+
+func (service *PostService) GetPostsFromUser(ctx context.Context, userId primitive.ObjectID) []*domain.PostDetailsDTO {
+	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
+	if currentUserId != userId {
+		result := service.connectionServiceAdapter.CanUserAccessPostFromOwner(ctx, currentUserId, userId)
+		if !result {
+			panic(errors.NewEntityForbiddenError("Current user cannot access posts from given user."))
+		}
+	}
+	posts, err := service.store.GetPostsFromUser(userId)
 	if err != nil {
 		log("Error loading posts")
 		panic(errors.NewEntityNotFoundError("Posts unavailable."))
@@ -109,23 +125,6 @@ func (service *PostService) getPostDetailsMapper(ctx context.Context) func(post 
 			Reactions: reactions,
 		}
 	}
-}
-
-func (service *PostService) GetPostsFromUser(ctx context.Context, userId primitive.ObjectID) []*domain.PostDetailsDTO {
-	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
-	if currentUserId != userId {
-		result := service.connectionServiceAdapter.CanUserAccessPostFromOwner(ctx, currentUserId, userId)
-		if !result {
-			panic(errors.NewEntityForbiddenError("Current user cannot access posts from given user."))
-		}
-	}
-	posts, err := service.store.GetPostsFromUser(userId)
-	if err != nil {
-		log("Error loading posts")
-		panic(errors.NewEntityNotFoundError("Posts unavailable."))
-	}
-
-	return service.getMultiplePostsDetails(ctx, posts)
 }
 
 func log(message string) {

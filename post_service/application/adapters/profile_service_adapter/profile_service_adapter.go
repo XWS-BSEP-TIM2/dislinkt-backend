@@ -42,15 +42,36 @@ func (p *ProfileServiceAdapter) GetSingleProfile(ctx context.Context, profileId 
 	return mapProfileToOwner(response.Profile)
 }
 
-func mapProfileToOwner(profile *pb.Profile) *domain.Owner {
-	profileId, err := primitive.ObjectIDFromHex(profile.Id)
-	if err != nil {
-		panic(fmt.Errorf("Given profile id is invalid."))
+func (p *ProfileServiceAdapter) GetAllPublicProfilesIds(ctx context.Context) []*primitive.ObjectID {
+	profileClient := services.NewProfileClient(p.address)
+	response, profileErr := profileClient.GetAll(ctx, &pb.EmptyRequest{})
+
+	if profileErr != nil {
+		panic(fmt.Errorf("Error during getting all profiles: Profile Service"))
 	}
+
+	publicProfiles := funk.Filter(response.Profiles, func(profile *pb.Profile) bool {
+		return !profile.IsPrivate
+	}).([]*pb.Profile)
+	res := funk.Map(publicProfiles, getProfileId).([]*primitive.ObjectID)
+
+	return res
+}
+
+func mapProfileToOwner(profile *pb.Profile) *domain.Owner {
+	profileId := getProfileId(profile)
 	return &domain.Owner{
-		UserId:   profileId,
+		UserId:   *profileId,
 		Username: profile.Username,
 		Name:     profile.Name,
 		Surname:  profile.Surname,
 	}
+}
+
+func getProfileId(profile *pb.Profile) *primitive.ObjectID {
+	profileId, err := primitive.ObjectIDFromHex(profile.Id)
+	if err != nil {
+		panic(fmt.Errorf("Given profile id is invalid."))
+	}
+	return &profileId
 }

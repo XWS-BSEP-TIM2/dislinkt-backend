@@ -281,6 +281,19 @@ func (store *PostMongoDBStore) GetReactions(postId primitive.ObjectID, userId pr
 	}
 }
 
+func (store *PostMongoDBStore) GetAllPostsFromIds(ids []*primitive.ObjectID) []*domain.Post {
+	var posts []*domain.Post
+	for _, id := range ids {
+		userPosts, err := store.GetPostsFromUser(*id)
+		if err != nil {
+			fmt.Printf("Error geting posts from user with id %s", id)
+		}
+		posts = append(posts, userPosts...)
+	}
+
+	return posts
+}
+
 func (store *PostMongoDBStore) DeleteAll() {
 	store.posts.DeleteMany(context.TODO(), bson.D{{}})
 }

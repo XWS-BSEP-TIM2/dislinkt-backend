@@ -9,4 +9,5 @@ import (
 type IProfileServiceAdapter interface {
 	GetAllProfiles(ctx context.Context) []*domain.Owner
 	GetSingleProfile(ctx context.Context, profileId primitive.ObjectID) *domain.Owner
+	GetAllPublicProfilesIds(ctx context.Context) []*primitive.ObjectID
 }
