@@ -19,3 +19,4 @@ p, USER, getConnectionDetails,read
 p, USER, changePassword, update
 p, ADMIN,getProfilesByAdmin,read
 p, API, test,create
+p,USER,updateJobOffer,update

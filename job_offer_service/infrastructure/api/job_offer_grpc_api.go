@@ -34,6 +34,20 @@ func (handler *JobOfferHandler) GetJobOffer(ctx context.Context, request *pb.Get
 	}, nil
 }
 
+func (handler *JobOfferHandler) DeleteJobOffer(ctx context.Context, request *pb.GetJobOfferRequest) (*pb.EmptyResponse, error) {
+
+	id := request.Id
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	_, err = handler.service.Delete(ctx, objectId)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.EmptyResponse{}, err
+}
+
 func (handler *JobOfferHandler) GetAllJobOffers(ctx context.Context, request *pb.EmptyJobOfferRequest) (*pb.GetAllJobOffersResponse, error) {
 	jobOffers, err := handler.service.GetAll(ctx)
 	if err != nil {
@@ -73,9 +87,32 @@ func (handler *JobOfferHandler) SearchJobOffer(ctx context.Context, request *pb.
 	response := &pb.GetAllJobOffersResponse{
 		JobOffers: []*pb.JobOffer{},
 	}
-	for _, profile := range jobOffers {
-		current := mapJobOffer(profile)
+	for _, jobOffer := range jobOffers {
+		current := mapJobOffer(jobOffer)
 		response.JobOffers = append(response.JobOffers, current)
 	}
 	return response, nil
+}
+
+func (handler *JobOfferHandler) GetUserJobOffers(ctx context.Context, request *pb.GetJobOfferRequest) (*pb.GetAllJobOffersResponse, error) {
+
+	id := request.Id
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	jobOffers, err := handler.service.GetUserJobOffers(ctx, objectId)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &pb.GetAllJobOffersResponse{
+		JobOffers: []*pb.JobOffer{},
+	}
+	for _, jobOffer := range jobOffers {
+		current := mapJobOffer(jobOffer)
+		response.JobOffers = append(response.JobOffers, current)
+	}
+	return response, nil
+
 }

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/job_offer/dto"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	pbJobOffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	"github.com/gin-gonic/gin"
@@ -12,8 +13,17 @@ type JobOfferHandler struct {
 	grpcClient *rest.ServiceClientGrpc
 }
 
-func (handler *JobOfferHandler) Update(context *gin.Context) {
+func (handler *JobOfferHandler) Update(ctx *gin.Context) {
+	jobOfferService := handler.grpcClient.JobOfferClient
+	jobOfferDto := dto.JobOfferDto{}
+	if err := ctx.BindJSON(&jobOfferDto); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
+	jobOfferPb := pbJobOffer.JobOffer{Id: jobOfferDto.Id, UserId: jobOfferDto.UserId, CompanyName: jobOfferDto.CompanyName, Technologies: jobOfferDto.Technologies, Description: jobOfferDto.Description, Seniority: jobOfferDto.Seniority, Position: jobOfferDto.Position}
+	res, _ := jobOfferService.UpdateJobOffer(ctx, &pbJobOffer.CreateJobOfferRequest{JobOffer: &jobOfferPb})
+	ctx.JSON(http.StatusCreated, &res)
 }
 
 func (handler *JobOfferHandler) Get(ctx *gin.Context) {
@@ -49,6 +59,37 @@ func (handler *JobOfferHandler) Search(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadGateway, err)
 	}
 	ctx.JSON(http.StatusCreated, &res)
+}
+
+func (handler *JobOfferHandler) Create(ctx *gin.Context) {
+	jobOfferService := handler.grpcClient.JobOfferClient
+	jobOffer := pbJobOffer.JobOffer{}
+	if err := ctx.BindJSON(&jobOffer); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	res, _ := jobOfferService.CreateJobOffer(ctx, &pbJobOffer.CreateJobOfferRequest{JobOffer: &jobOffer})
+	ctx.JSON(http.StatusCreated, &res)
+}
+
+func (handler *JobOfferHandler) GetUserJobOffers(ctx *gin.Context) {
+	id := ctx.Param("id")
+	jobOfferService := handler.grpcClient.JobOfferClient
+	res, err := jobOfferService.GetUserJobOffers(ctx, &pbJobOffer.GetJobOfferRequest{Id: id})
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+	}
+	ctx.JSON(http.StatusOK, &res)
+}
+
+func (handler *JobOfferHandler) DeleteOffer(ctx *gin.Context) {
+	id := ctx.Param("id")
+	jobOfferService := handler.grpcClient.JobOfferClient
+	res, err := jobOfferService.DeleteJobOffer(ctx, &pbJobOffer.GetJobOfferRequest{Id: id})
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+	}
+	ctx.JSON(http.StatusOK, &res)
 }
 
 func InitJobOfferHandler() *JobOfferHandler {

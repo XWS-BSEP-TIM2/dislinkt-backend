@@ -27,6 +27,8 @@ type JobOfferServiceClient interface {
 	CreateJobOffer(ctx context.Context, in *CreateJobOfferRequest, opts ...grpc.CallOption) (*CreateJobOfferResponse, error)
 	UpdateJobOffer(ctx context.Context, in *CreateJobOfferRequest, opts ...grpc.CallOption) (*CreateJobOfferResponse, error)
 	SearchJobOffer(ctx context.Context, in *SearchJobOfferRequest, opts ...grpc.CallOption) (*GetAllJobOffersResponse, error)
+	GetUserJobOffers(ctx context.Context, in *GetJobOfferRequest, opts ...grpc.CallOption) (*GetAllJobOffersResponse, error)
+	DeleteJobOffer(ctx context.Context, in *GetJobOfferRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 }
 
 type jobOfferServiceClient struct {
@@ -82,6 +84,24 @@ func (c *jobOfferServiceClient) SearchJobOffer(ctx context.Context, in *SearchJo
 	return out, nil
 }
 
+func (c *jobOfferServiceClient) GetUserJobOffers(ctx context.Context, in *GetJobOfferRequest, opts ...grpc.CallOption) (*GetAllJobOffersResponse, error) {
+	out := new(GetAllJobOffersResponse)
+	err := c.cc.Invoke(ctx, "/profile_service.JobOfferService/GetUserJobOffers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobOfferServiceClient) DeleteJobOffer(ctx context.Context, in *GetJobOfferRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, "/profile_service.JobOfferService/DeleteJobOffer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JobOfferServiceServer is the server API for JobOfferService service.
 // All implementations must embed UnimplementedJobOfferServiceServer
 // for forward compatibility
@@ -91,6 +111,8 @@ type JobOfferServiceServer interface {
 	CreateJobOffer(context.Context, *CreateJobOfferRequest) (*CreateJobOfferResponse, error)
 	UpdateJobOffer(context.Context, *CreateJobOfferRequest) (*CreateJobOfferResponse, error)
 	SearchJobOffer(context.Context, *SearchJobOfferRequest) (*GetAllJobOffersResponse, error)
+	GetUserJobOffers(context.Context, *GetJobOfferRequest) (*GetAllJobOffersResponse, error)
+	DeleteJobOffer(context.Context, *GetJobOfferRequest) (*EmptyResponse, error)
 	mustEmbedUnimplementedJobOfferServiceServer()
 }
 
@@ -112,6 +134,12 @@ func (UnimplementedJobOfferServiceServer) UpdateJobOffer(context.Context, *Creat
 }
 func (UnimplementedJobOfferServiceServer) SearchJobOffer(context.Context, *SearchJobOfferRequest) (*GetAllJobOffersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchJobOffer not implemented")
+}
+func (UnimplementedJobOfferServiceServer) GetUserJobOffers(context.Context, *GetJobOfferRequest) (*GetAllJobOffersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserJobOffers not implemented")
+}
+func (UnimplementedJobOfferServiceServer) DeleteJobOffer(context.Context, *GetJobOfferRequest) (*EmptyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteJobOffer not implemented")
 }
 func (UnimplementedJobOfferServiceServer) mustEmbedUnimplementedJobOfferServiceServer() {}
 
@@ -216,6 +244,42 @@ func _JobOfferService_SearchJobOffer_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JobOfferService_GetUserJobOffers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJobOfferRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobOfferServiceServer).GetUserJobOffers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile_service.JobOfferService/GetUserJobOffers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobOfferServiceServer).GetUserJobOffers(ctx, req.(*GetJobOfferRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobOfferService_DeleteJobOffer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJobOfferRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobOfferServiceServer).DeleteJobOffer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile_service.JobOfferService/DeleteJobOffer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobOfferServiceServer).DeleteJobOffer(ctx, req.(*GetJobOfferRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JobOfferService_ServiceDesc is the grpc.ServiceDesc for JobOfferService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -242,6 +306,14 @@ var JobOfferService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchJobOffer",
 			Handler:    _JobOfferService_SearchJobOffer_Handler,
+		},
+		{
+			MethodName: "GetUserJobOffers",
+			Handler:    _JobOfferService_GetUserJobOffers_Handler,
+		},
+		{
+			MethodName: "DeleteJobOffer",
+			Handler:    _JobOfferService_DeleteJobOffer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -15,10 +15,13 @@ func RegisterRoutes(r *gin.Engine) {
 
 	authorizedRoutes := r.Group("/job-offer")
 	authorizedRoutes.Use(a.AuthRequired)
-	authorizedRoutes.PUT("", a.Authorize("updateProfile", "update", false), jobOfferHandler.Update)
+
+	authorizedRoutes.PUT("", a.Authorize("updateJobOffer", "update", false), jobOfferHandler.Update)
 	unauthorizedRoutes := r.Group("/job-offer")
 	unauthorizedRoutes.GET("", jobOfferHandler.Get)
 	unauthorizedRoutes.GET("/:id", jobOfferHandler.GetById)
 	unauthorizedRoutes.POST("/search", jobOfferHandler.Search)
-
+	unauthorizedRoutes.POST("", jobOfferHandler.Create)
+	unauthorizedRoutes.GET("/user-offers/:id", jobOfferHandler.GetUserJobOffers)
+	unauthorizedRoutes.DELETE("/:id", jobOfferHandler.DeleteOffer)
 }

@@ -16,12 +16,19 @@ service JobOfferService{
 
   rpc UpdateJobOffer(CreateJobOfferRequest) returns(CreateJobOfferResponse){}
 
-  rpc SearchJobOffer(SearchJobOfferRequest) returns(GetAllJobOffersResponse){
-  }
+  rpc SearchJobOffer(SearchJobOfferRequest) returns(GetAllJobOffersResponse){}
+
+  rpc GetUserJobOffers(GetJobOfferRequest) returns(GetAllJobOffersResponse){}
+
+  rpc DeleteJobOffer(GetJobOfferRequest) returns(EmptyResponse) {}
 }
 
 message SearchJobOfferRequest{
   string param = 1;
+}
+
+message EmptyResponse{
+
 }
 
 

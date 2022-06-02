@@ -14,7 +14,25 @@ const (
 )
 
 type JobOfferMongoDbStore struct {
-	profiles *mongo.Collection
+	jobOffers *mongo.Collection
+}
+
+func (store *JobOfferMongoDbStore) Delete(ctx context.Context, id primitive.ObjectID) (int64, error) {
+	result, err := store.jobOffers.DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		return 0, err
+	}
+	return result.DeletedCount, nil
+}
+
+func (store *JobOfferMongoDbStore) GetUserJobOffers(ctx context.Context, id primitive.ObjectID) ([]*domain.JobOffer, error) {
+	filter := bson.M{"user_id": id}
+	result, err := store.filter(filter)
+	if err != nil {
+		return nil, err
+	} else {
+		return result, nil
+	}
 }
 
 func (store *JobOfferMongoDbStore) Update(ctx context.Context, jobOffer *domain.JobOffer) error {
@@ -29,7 +47,7 @@ func (store *JobOfferMongoDbStore) Update(ctx context.Context, jobOffer *domain.
 		"technologies": jobOffer.Technologies,
 	}}
 
-	_, err := store.profiles.UpdateOne(ctx, profileToUpdate, updatedProfile)
+	_, err := store.jobOffers.UpdateOne(ctx, profileToUpdate, updatedProfile)
 
 	if err != nil {
 		return err
@@ -49,7 +67,7 @@ func (store *JobOfferMongoDbStore) GetAll(ctx context.Context) ([]*domain.JobOff
 }
 
 func (store *JobOfferMongoDbStore) Insert(ctx context.Context, jobOffer *domain.JobOffer) error {
-	_, err := store.profiles.InsertOne(context.TODO(), jobOffer)
+	_, err := store.jobOffers.InsertOne(context.TODO(), jobOffer)
 	if err != nil {
 		return err
 	}
@@ -59,18 +77,18 @@ func (store *JobOfferMongoDbStore) Insert(ctx context.Context, jobOffer *domain.
 func NewJobOfferMongoDbStore(client *mongo.Client) JobOfferStore {
 	profiles := client.Database(DATABASE).Collection(COLLECTION)
 	return &JobOfferMongoDbStore{
-		profiles: profiles,
+		jobOffers: profiles,
 	}
 }
 
 func (store *JobOfferMongoDbStore) filterOne(filter interface{}) (profile *domain.JobOffer, err error) {
-	result := store.profiles.FindOne(context.TODO(), filter)
+	result := store.jobOffers.FindOne(context.TODO(), filter)
 	err = result.Decode(&profile)
 	return
 }
 
 func (store *JobOfferMongoDbStore) filter(filter interface{}) ([]*domain.JobOffer, error) {
-	cursor, err := store.profiles.Find(context.TODO(), filter)
+	cursor, err := store.jobOffers.Find(context.TODO(), filter)
 	defer cursor.Close(context.TODO())
 
 	if err != nil {
@@ -105,7 +123,7 @@ func (store *JobOfferMongoDbStore) Search(ctx context.Context, search string) ([
 }
 
 func filter(store *JobOfferMongoDbStore, searchPart string, paramName string, jobOffers *[]*domain.JobOffer) error {
-	filteredOffers, err := store.profiles.Find(context.TODO(), bson.M{paramName: primitive.Regex{Pattern: searchPart, Options: "i"}})
+	filteredOffers, err := store.jobOffers.Find(context.TODO(), bson.M{paramName: primitive.Regex{Pattern: searchPart, Options: "i"}})
 	if err != nil {
 		return err
 	}
@@ -130,5 +148,5 @@ func appendJobOffer(destination *[]*domain.JobOffer, source *domain.JobOffer) {
 }
 
 func (store *JobOfferMongoDbStore) DeleteAll(ctx context.Context) {
-	store.profiles.DeleteMany(context.TODO(), bson.D{{}})
+	store.jobOffers.DeleteMany(context.TODO(), bson.D{{}})
 }

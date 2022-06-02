@@ -13,4 +13,6 @@ type JobOfferStore interface {
 	Update(ctx context.Context, profile *domain.JobOffer) error
 	Search(ctx context.Context, search string) ([]*domain.JobOffer, error)
 	DeleteAll(ctx context.Context)
+	GetUserJobOffers(ctx context.Context, id primitive.ObjectID) ([]*domain.JobOffer, error)
+	Delete(ctx context.Context, id primitive.ObjectID) (int64, error)
 }

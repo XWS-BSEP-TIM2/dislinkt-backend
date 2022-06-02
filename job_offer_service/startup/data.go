@@ -6,65 +6,65 @@ import (
 )
 
 var jobOffers = []*domain.JobOffer{
-	{
-		Id:           getIdFromHex("62752bf27407f54ce1839cb2"),
-		Position:     "Marko",
-		Seniority:    "Markovic",
-		Description:  "marko99",
-		Technologies: nil,
-	},
-	{
-		Id:          getIdFromHex("62752bf27407f54ce1839cb3"),
-		Position:    "Srdjan",
-		Seniority:   "Srdjanovic",
-		Description: "srdjan",
-
-		Technologies: nil,
-	},
-	{
-		Id:          getIdFromHex("62752bf27407f54ce1839cb4"),
-		Position:    "Nikola",
-		Seniority:   "Luburic",
-		Description: "nikola93",
-
-		Technologies: nil,
-	},
-	{
-		Id:          getIdFromHex("62752bf27407f54ce1839cb5"),
-		Position:    "Sveto",
-		Seniority:   "Svetozar",
-		Description: "svetozar",
-
-		Technologies: nil,
-	},
-	{
-		Id:           getIdFromHex("62752bf27407f54ce1839cb6"),
-		Position:     "Zarko",
-		Seniority:    "Blagojevic",
-		Description:  "zarkoo",
-		Technologies: nil,
-	},
-	{
-		Id:           getIdFromHex("62752bf27407f54ce1839cb7"),
-		Position:     "Tara",
-		Seniority:    "Pogancev",
-		Description:  "Jelovceva",
-		Technologies: nil,
-	},
-	{
-		Id:           getIdFromHex("62752bf27407f54ce1839cb8"),
-		Position:     "Djordje",
-		Seniority:    "Krsmanovic",
-		Description:  "djordje",
-		Technologies: nil,
-	},
-	{
-		Id:           getIdFromHex("62752bf27407f54ce1839cb9"),
-		Position:     "Rastislav",
-		Seniority:    "Kukucka",
-		Description:  "rasti",
-		Technologies: nil,
-	},
+	//{
+	//	Id:           getIdFromHex("62752bf27407f54ce1839cb2"),
+	//	Position:     "Marko",
+	//	Seniority:    "Markovic",
+	//	Description:  "marko99",
+	//	Technologies: nil,
+	//},
+	//{
+	//	Id:          getIdFromHex("62752bf27407f54ce1839cb3"),
+	//	Position:    "Srdjan",
+	//	Seniority:   "Srdjanovic",
+	//	Description: "srdjan",
+	//
+	//	Technologies: nil,
+	//},
+	//{
+	//	Id:          getIdFromHex("62752bf27407f54ce1839cb4"),
+	//	Position:    "Nikola",
+	//	Seniority:   "Luburic",
+	//	Description: "nikola93",
+	//
+	//	Technologies: nil,
+	//},
+	//{
+	//	Id:          getIdFromHex("62752bf27407f54ce1839cb5"),
+	//	Position:    "Sveto",
+	//	Seniority:   "Svetozar",
+	//	Description: "svetozar",
+	//
+	//	Technologies: nil,
+	//},
+	//{
+	//	Id:           getIdFromHex("62752bf27407f54ce1839cb6"),
+	//	Position:     "Zarko",
+	//	Seniority:    "Blagojevic",
+	//	Description:  "zarkoo",
+	//	Technologies: nil,
+	//},
+	//{
+	//	Id:           getIdFromHex("62752bf27407f54ce1839cb7"),
+	//	Position:     "Tara",
+	//	Seniority:    "Pogancev",
+	//	Description:  "Jelovceva",
+	//	Technologies: nil,
+	//},
+	//{
+	//	Id:           getIdFromHex("62752bf27407f54ce1839cb8"),
+	//	Position:     "Djordje",
+	//	Seniority:    "Krsmanovic",
+	//	Description:  "djordje",
+	//	Technologies: nil,
+	//},
+	//{
+	//	Id:           getIdFromHex("62752bf27407f54ce1839cb9"),
+	//	Position:     "Rastislav",
+	//	Seniority:    "Kukucka",
+	//	Description:  "rasti",
+	//	Technologies: nil,
+	//},
 }
 
 func getObjectId(id string) primitive.ObjectID {
