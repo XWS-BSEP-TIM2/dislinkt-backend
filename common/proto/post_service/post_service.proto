@@ -101,7 +101,7 @@ message EmptyRequest {
 }
 
 message Post {
-//  Owner owner = 1;
+  Owner owner = 1;
   google.protobuf.Timestamp creation_time = 2;
   string content = 3;
   string image_base64 = 4;
@@ -150,7 +150,7 @@ message GetPostsFromUserRequest {
 }
 
 message Comment {
-//  Owner owner = 1;
+  Owner owner = 1;
   google.protobuf.Timestamp creation_time = 2;
   string content = 3;
   repeated Href hrefs = 4;
@@ -180,7 +180,7 @@ message GetSubresourceRequest {
 }
 
 message Reaction {
-  //  Owner owner = 1;
+  Owner owner = 1;
   google.protobuf.Timestamp creation_time = 2;
   string reaction_type = 3;
   repeated Href hrefs = 4;

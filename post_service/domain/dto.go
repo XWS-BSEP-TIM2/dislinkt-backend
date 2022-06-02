@@ -6,7 +6,7 @@ import (
 )
 
 type PostDetailsDTO struct {
-	//Owner       *Owner
+	Owner       *Owner
 	Post        *Post
 	ImageBase64 string
 	Stats       *Stats
@@ -25,26 +25,27 @@ type Reactions struct {
 }
 
 type CommentDetailsDTO struct {
-	//Owner       *Owner
+	Owner   *Owner
 	Comment *Comment
 	PostId  primitive.ObjectID
 }
 
 type ReactionDetailsDTO struct {
-	//Owner       *Owner
+	Owner        *Owner
 	ReactionId   primitive.ObjectID
-	OwnerId      primitive.ObjectID
 	CreationTime time.Time
 	ReactionType string
 	PostId       primitive.ObjectID
 }
 
 type LikeDetailsDTO struct {
+	Owner  *Owner
 	Like   *Like
 	PostId primitive.ObjectID
 }
 
 type DislikeDetailsDTO struct {
+	Owner   *Owner
 	Dislike *Dislike
 	PostId  primitive.ObjectID
 }

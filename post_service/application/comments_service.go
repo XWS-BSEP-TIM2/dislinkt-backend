@@ -5,6 +5,7 @@ import (
 	"fmt"
 	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
+	psa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/profile_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/util"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/thoas/go-funk"
@@ -15,8 +16,9 @@ type CommentService struct {
 	store                    domain.PostStore
 	authServiceAdapter       asa.IAuthServiceAdapter
 	connectionServiceAdapter csa.IConnectionServiceAdapter
-	profileServiceAddress    string
+	profileServiceAdapter    psa.IProfileServiceAdapter
 	postAccessValidator      *util.PostAccessValidator
+	ownerFinder              *util.OwnerFinder
 }
 
 func NewCommentService(postService *PostService) *CommentService {
@@ -24,8 +26,9 @@ func NewCommentService(postService *PostService) *CommentService {
 		store:                    postService.store,
 		authServiceAdapter:       postService.authServiceAdapter,
 		connectionServiceAdapter: postService.connectionServiceAdapter,
-		profileServiceAddress:    postService.profileServiceAddress,
+		profileServiceAdapter:    postService.profileServiceAdapter,
 		postAccessValidator:      postService.postAccessValidator,
+		ownerFinder:              postService.ownerFinder,
 	}
 }
 
@@ -36,7 +39,7 @@ func (service *CommentService) CreateComment(ctx context.Context, postId primiti
 	if err != nil {
 		panic(fmt.Errorf("Invalid comment"))
 	}
-	return service.getCommentDetails(postId, comment)
+	return service.getCommentDetailsMapper(ctx, postId)(comment)
 }
 
 func (service *CommentService) GetComment(ctx context.Context, postId primitive.ObjectID, commentId primitive.ObjectID) *domain.CommentDetailsDTO {
@@ -45,7 +48,7 @@ func (service *CommentService) GetComment(ctx context.Context, postId primitive.
 	if err != nil {
 		panic(fmt.Errorf("Invalid comment"))
 	}
-	return service.getCommentDetails(postId, comment)
+	return service.getCommentDetailsMapper(ctx, postId)(comment)
 }
 
 func (service *CommentService) GetCommentsForPost(ctx context.Context, postId primitive.ObjectID) []*domain.CommentDetailsDTO {
@@ -54,12 +57,7 @@ func (service *CommentService) GetCommentsForPost(ctx context.Context, postId pr
 	if err != nil {
 		panic(fmt.Errorf("comments for post unavailable"))
 	}
-	commentsDetails, ok := funk.Map(comments, func(comment *domain.Comment) *domain.CommentDetailsDTO {
-		return &domain.CommentDetailsDTO{
-			Comment: comment,
-			PostId:  postId,
-		}
-	}).([]*domain.CommentDetailsDTO)
+	commentsDetails, ok := funk.Map(comments, service.getCommentDetailsMapper(ctx, postId)).([]*domain.CommentDetailsDTO)
 	if !ok {
 		log("Error in conversion of comments to commentDetails")
 		panic(fmt.Errorf("comments unavailable"))
@@ -67,10 +65,13 @@ func (service *CommentService) GetCommentsForPost(ctx context.Context, postId pr
 	return commentsDetails
 }
 
-func (service *CommentService) getCommentDetails(postId primitive.ObjectID, comment *domain.Comment) *domain.CommentDetailsDTO {
-	return &domain.CommentDetailsDTO{
-		//Owner:       mapProfileToOwner(service.getPostOwnerProfile(ctx, comment.OwnerId)),
-		Comment: comment,
-		PostId:  postId,
+func (service *CommentService) getCommentDetailsMapper(ctx context.Context, postId primitive.ObjectID) func(like *domain.Comment) *domain.CommentDetailsDTO {
+	getOwner := service.ownerFinder.GetOwnerFinderFunction(ctx)
+	return func(comment *domain.Comment) *domain.CommentDetailsDTO {
+		return &domain.CommentDetailsDTO{
+			Owner:   getOwner(comment.OwnerId),
+			Comment: comment,
+			PostId:  postId,
+		}
 	}
 }

@@ -11,11 +11,11 @@ import (
 
 type PostAccessValidator struct {
 	store              domain.PostStore
-	authServiceAdapter *asa.AuthServiceAdapter
-	connServiceAddress *csa.ConnectionServiceAdapter
+	authServiceAdapter asa.IAuthServiceAdapter
+	connServiceAddress csa.IConnectionServiceAdapter
 }
 
-func NewPostAccessValidator(store domain.PostStore, authAdapter *asa.AuthServiceAdapter, connAdapter *csa.ConnectionServiceAdapter) *PostAccessValidator {
+func NewPostAccessValidator(store domain.PostStore, authAdapter asa.IAuthServiceAdapter, connAdapter csa.IConnectionServiceAdapter) *PostAccessValidator {
 	return &PostAccessValidator{
 		store:              store,
 		authServiceAdapter: authAdapter,

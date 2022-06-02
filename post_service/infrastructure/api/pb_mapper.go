@@ -10,11 +10,11 @@ import (
 func mapPost(postDTO *domain.PostDetailsDTO) *pb.Post {
 	postId := postDTO.Post.Id.Hex()
 	postPb := &pb.Post{
-		//Owner: &pb.Owner{
-		//	Username: postDTO.Owner.Username,
-		//	Name:     postDTO.Owner.Name,
-		//	Surname:  postDTO.Owner.Surname,
-		//},
+		Owner: &pb.Owner{
+			Username: postDTO.Owner.Username,
+			Name:     postDTO.Owner.Name,
+			Surname:  postDTO.Owner.Surname,
+		},
 		CreationTime: timestamppb.New(postDTO.Post.CreationTime),
 		Content:      postDTO.Post.Content,
 		ImageBase64:  postDTO.ImageBase64,
@@ -57,6 +57,11 @@ func mapPost(postDTO *domain.PostDetailsDTO) *pb.Post {
 
 func mapComment(commentDTO *domain.CommentDetailsDTO) *pb.Comment {
 	commentPb := &pb.Comment{
+		Owner: &pb.Owner{
+			Username: commentDTO.Owner.Username,
+			Name:     commentDTO.Owner.Name,
+			Surname:  commentDTO.Owner.Surname,
+		},
 		CreationTime: timestamppb.New(commentDTO.Comment.CreationTime),
 		Content:      commentDTO.Comment.Content,
 		Hrefs: []*pb.Href{
@@ -83,6 +88,11 @@ func mapDislike(dislikeDTO *domain.DislikeDetailsDTO) *pb.Reaction {
 
 func mapReactionDetails(dto *domain.ReactionDetailsDTO) *pb.Reaction {
 	return &pb.Reaction{
+		Owner: &pb.Owner{
+			Username: dto.Owner.Username,
+			Name:     dto.Owner.Name,
+			Surname:  dto.Owner.Surname,
+		},
 		CreationTime: timestamppb.New(dto.CreationTime),
 		ReactionType: dto.ReactionType,
 		Hrefs: []*pb.Href{
@@ -92,7 +102,7 @@ func mapReactionDetails(dto *domain.ReactionDetailsDTO) *pb.Reaction {
 			},
 			{
 				Rel: "owner",
-				Url: fmt.Sprintf("profile/%s", dto.OwnerId.Hex()),
+				Url: fmt.Sprintf("profile/%s", dto.Owner.UserId.Hex()),
 			},
 		},
 	}
@@ -101,7 +111,7 @@ func mapReactionDetails(dto *domain.ReactionDetailsDTO) *pb.Reaction {
 func mapLikeToReactionDetails(likeDTO *domain.LikeDetailsDTO) *domain.ReactionDetailsDTO {
 	return &domain.ReactionDetailsDTO{
 		ReactionId:   likeDTO.Like.Id,
-		OwnerId:      likeDTO.Like.OwnerId,
+		Owner:        likeDTO.Owner,
 		CreationTime: likeDTO.Like.CreationTime,
 		ReactionType: "like",
 		PostId:       likeDTO.PostId,
@@ -111,7 +121,7 @@ func mapLikeToReactionDetails(likeDTO *domain.LikeDetailsDTO) *domain.ReactionDe
 func mapDislikeToReactionDetails(dislikeDTO *domain.DislikeDetailsDTO) *domain.ReactionDetailsDTO {
 	return &domain.ReactionDetailsDTO{
 		ReactionId:   dislikeDTO.Dislike.Id,
-		OwnerId:      dislikeDTO.Dislike.OwnerId,
+		Owner:        dislikeDTO.Owner,
 		CreationTime: dislikeDTO.Dislike.CreationTime,
 		ReactionType: "dislike",
 		PostId:       dislikeDTO.PostId,

@@ -56,10 +56,10 @@ func (d *Dislike) GetOwnerId() primitive.ObjectID {
 	return d.OwnerId
 }
 
-// Owner not serializing
+// Owner used for complete info return
 type Owner struct {
-	UserId string
-	//Username string
-	//Name     string
-	//Surname  string
+	UserId   primitive.ObjectID
+	Username string
+	Name     string
+	Surname  string
 }

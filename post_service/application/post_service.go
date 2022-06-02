@@ -5,6 +5,7 @@ import (
 	"fmt"
 	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
+	psa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/profile_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/util"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/ecoding"
@@ -18,8 +19,9 @@ type PostService struct {
 	store                    domain.PostStore
 	authServiceAdapter       asa.IAuthServiceAdapter
 	connectionServiceAdapter csa.IConnectionServiceAdapter
-	profileServiceAddress    string
+	profileServiceAdapter    psa.IProfileServiceAdapter
 	postAccessValidator      *util.PostAccessValidator
+	ownerFinder              *util.OwnerFinder
 }
 
 func NewPostService(
@@ -30,13 +32,16 @@ func NewPostService(
 
 	authServiceAdapter := asa.NewAuthServiceAdapter(authServiceAddress)
 	connectionServiceAdapter := csa.NewConnectionServiceAdapter(connectionServiceAddress)
+	profileServiceAdapter := psa.NewProfileServiceAdapter(profileServiceAddress)
 	postAccessValidator := util.NewPostAccessValidator(store, authServiceAdapter, connectionServiceAdapter)
+	ownerFinder := util.NewOwnerFinder(profileServiceAdapter)
 	return &PostService{
 		store:                    store,
 		authServiceAdapter:       authServiceAdapter,
 		connectionServiceAdapter: connectionServiceAdapter,
-		profileServiceAddress:    profileServiceAddress,
+		profileServiceAdapter:    profileServiceAdapter,
 		postAccessValidator:      postAccessValidator,
+		ownerFinder:              ownerFinder,
 	}
 }
 
@@ -71,11 +76,6 @@ func (service *PostService) GetPosts(ctx context.Context) []*domain.PostDetailsD
 }
 
 func (service *PostService) getMultiplePostsDetails(ctx context.Context, posts []*domain.Post) []*domain.PostDetailsDTO {
-	//profiles, err := serviceClients.NewProfileClient(service.profileServiceAddress).GetAll(ctx, &profileService.EmptyRequest{})
-	//if err != nil {
-	//	log(fmt.Sprintf("Error loading profiles: %v", err))
-	//	panic(fmt.Errorf("posts unavailable"))
-	//}
 	postsDetails, ok := funk.Map(posts, service.getPostDetailsMapper(ctx)).([]*domain.PostDetailsDTO)
 	if !ok {
 		log("Error in conversion of posts to postDetails")
@@ -86,7 +86,7 @@ func (service *PostService) getMultiplePostsDetails(ctx context.Context, posts [
 
 func (service *PostService) getPostDetailsMapper(ctx context.Context) func(post *domain.Post) *domain.PostDetailsDTO {
 	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
-
+	getOwner := service.ownerFinder.GetOwnerFinderFunction(ctx)
 	return func(post *domain.Post) *domain.PostDetailsDTO {
 		var reactions *domain.Reactions
 		if currentUserId == primitive.NilObjectID {
@@ -98,7 +98,7 @@ func (service *PostService) getPostDetailsMapper(ctx context.Context) func(post 
 			reactions = service.store.GetReactions(post.Id, currentUserId)
 		}
 		return &domain.PostDetailsDTO{
-			//Owner:       mapProfileToOwner(service.getPostOwnerProfile(ctx, post.OwnerId)),
+			Owner:       getOwner(post.OwnerId),
 			Post:        post,
 			ImageBase64: ecoding.NewBase64Coder().Encode(post.Image),
 			Stats: &domain.Stats{
@@ -127,26 +127,6 @@ func (service *PostService) GetPostsFromUser(ctx context.Context, userId primiti
 
 	return service.getMultiplePostsDetails(ctx, posts)
 }
-
-//func mapProfileToOwner(ownerProfile *profileService.Profile) *domain.Owner {
-//	return &domain.Owner{
-//		UserId:   ownerProfile.Id,
-//		Username: ownerProfile.Username,
-//		Name:     ownerProfile.Name,
-//		Surname:  ownerProfile.Surname,
-//	}
-//}
-
-//func (service *PostService) getPostOwnerProfile(ctx context.Context, ownerId primitive.ObjectID) *profileService.Profile {
-//	profileClient := serviceClients.NewProfileClient(service.profileServiceAddress)
-//	hexId := ownerId.Hex()
-//	profileResponse, err := profileClient.Get(ctx, &profileService.GetRequest{Id: hexId})
-//	if err != nil {
-//		log(fmt.Sprintf("Error getting post owner with id: %s", hexId))
-//		panic(fmt.Errorf("error getting post owner"))
-//	}
-//	return profileResponse.Profile
-//}
 
 func log(message string) {
 	fmt.Printf("[%v] [Post Service]: %s\n", time.Now(), message)
