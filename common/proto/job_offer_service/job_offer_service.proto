@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+option go_package = "common/proto/profile_service";
+
+package profile_service;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service JobOfferService{
+  rpc GetJobOffer(GetJobOfferRequest) returns (GetJobOfferResponse){}
+
+  rpc GetAllJobOffers(EmptyJobOfferRequest) returns (GetAllJobOffersResponse){}
+  
+  rpc CreateJobOffer(CreateJobOfferRequest) returns(CreateJobOfferResponse){}
+
+  rpc UpdateJobOffer(CreateJobOfferRequest) returns(CreateJobOfferResponse){}
+
+  rpc SearchJobOffer(SearchJobOfferRequest) returns(GetAllJobOffersResponse){
+  }
+}
+
+message SearchJobOfferRequest{
+  string param = 1;
+}
+
+
+
+message GetAllJobOffersResponse{
+  repeated JobOffer jobOffers = 1;
+}
+
+message EmptyJobOfferRequest{
+
+}
+
+message GetJobOfferRequest{
+  string id = 1;
+}
+
+message GetJobOfferResponse{
+  JobOffer jobOffer = 1;
+}
+
+message JobOffer{
+  string id = 1;
+  string userId=2;
+  string position=3;
+  string seniority=4;
+  string description=5;
+  repeated string technologies=6;
+  string companyName=7;
+  string jobOfferUniqueCode=8;
+}
+
+
+
+message CreateJobOfferRequest{
+  JobOffer jobOffer = 1;
+}
+
+message CreateJobOfferResponse{
+  JobOffer jobOffer = 1;
+}

@@ -181,7 +181,7 @@ func (service *AuthService) ChangePassword(ctx context.Context, req *authService
 	if !match {
 		return &authService.ChangePasswordResponse{
 			Status: http.StatusNotFound,
-			Msg:    "Username or password is incorrect",
+			Msg:    "Description or password is incorrect",
 		}, nil
 	}
 

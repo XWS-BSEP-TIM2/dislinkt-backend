@@ -5,6 +5,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	connectionService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	jobOfferService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	postService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"google.golang.org/grpc"
@@ -17,6 +18,7 @@ type ServiceClientGrpc struct {
 	ProfileClient    profileService.ProfileServiceClient
 	PostClient       postService.PostServiceClient
 	ConnectionClient connectionService.ConnectionServiceClient
+	JobOfferClient   jobOfferService.JobOfferServiceClient
 }
 
 func InitServiceClient(c *config.Config) *ServiceClientGrpc {
@@ -25,6 +27,7 @@ func InitServiceClient(c *config.Config) *ServiceClientGrpc {
 		ProfileClient:    NewProfileClient(fmt.Sprintf("%s:%s", c.ProfileHost, c.ProfilePort)),
 		ConnectionClient: NewConnectionClient(fmt.Sprintf("%s:%s", c.ConnectionHost, c.ConnectionPort)),
 		PostClient:       NewPostClient(fmt.Sprintf("%s:%s", c.PostHost, c.PostPort)),
+		JobOfferClient:   NewJobOfferClient(fmt.Sprintf("%s:%s", c.JobOfferHost, c.JobOfferPort)),
 	}
 
 	return client
@@ -63,6 +66,15 @@ func NewConnectionClient(address string) connectionService.ConnectionServiceClie
 		log.Fatalf("Failed to start gRPC connection to Catalogue service: %v", err)
 	}
 	return connectionService.NewConnectionServiceClient(conn)
+}
+
+func NewJobOfferClient(address string) jobOfferService.JobOfferServiceClient {
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("Gateway faild to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Catalogue service: %v", err)
+	}
+	return jobOfferService.NewJobOfferServiceClient(conn)
 }
 
 func getConnection(address string) (*grpc.ClientConn, error) {

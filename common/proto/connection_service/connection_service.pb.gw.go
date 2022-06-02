@@ -549,7 +549,7 @@ func local_request_ConnectionService_GetConnectionDetail_0(ctx context.Context, 
 
 }
 
-// RegisterConnectionServiceHandlerServer registers the http handlers for service ConnectionService to "mux".
+// RegisterConnectionServiceHandlerServer registers the http handler for service ConnectionService to "mux".
 // UnaryRPC     :call ConnectionServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterConnectionServiceHandlerFromEndpoint instead.
@@ -871,14 +871,14 @@ func RegisterConnectionServiceHandlerFromEndpoint(ctx context.Context, mux *runt
 	return RegisterConnectionServiceHandler(ctx, mux, conn)
 }
 
-// RegisterConnectionServiceHandler registers the http handlers for service ConnectionService to "mux".
-// The handlers forward requests to the grpc endpoint over "conn".
+// RegisterConnectionServiceHandler registers the http handler for service ConnectionService to "mux".
+// The handler forward requests to the grpc endpoint over "conn".
 func RegisterConnectionServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
 	return RegisterConnectionServiceHandlerClient(ctx, mux, NewConnectionServiceClient(conn))
 }
 
-// RegisterConnectionServiceHandlerClient registers the http handlers for service ConnectionService
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "ConnectionServiceClient".
+// RegisterConnectionServiceHandlerClient registers the http handler for service ConnectionService
+// to "mux". The handler forward requests to the grpc endpoint over the given implementation of "ConnectionServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "ConnectionServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "ConnectionServiceClient" to call the correct interceptors.

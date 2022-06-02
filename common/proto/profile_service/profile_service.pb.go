@@ -777,14 +777,14 @@ var file_profile_service_proto_depIdxs = []int32{
 	5,  // 8: profile_service.CreateProfileResponse.profile:type_name -> profile_service.Profile
 	3,  // 9: profile_service.ProfileService.Get:input_type -> profile_service.GetRequest
 	2,  // 10: profile_service.ProfileService.GetAll:input_type -> profile_service.EmptyRequest
-	8,  // 11: profile_service.ProfileService.CreateProfile:input_type -> profile_service.CreateProfileRequest
-	8,  // 12: profile_service.ProfileService.UpdateProfile:input_type -> profile_service.CreateProfileRequest
-	0,  // 13: profile_service.ProfileService.SearchProfile:input_type -> profile_service.SearchProfileRequest
+	8,  // 11: profile_service.ProfileService.CreateJobOffer:input_type -> profile_service.CreateProfileRequest
+	8,  // 12: profile_service.ProfileService.UpdateJobOffer:input_type -> profile_service.CreateProfileRequest
+	0,  // 13: profile_service.ProfileService.SearchJobOffer:input_type -> profile_service.SearchProfileRequest
 	4,  // 14: profile_service.ProfileService.Get:output_type -> profile_service.GetResponse
 	1,  // 15: profile_service.ProfileService.GetAll:output_type -> profile_service.GetAllResponse
-	9,  // 16: profile_service.ProfileService.CreateProfile:output_type -> profile_service.CreateProfileResponse
-	9,  // 17: profile_service.ProfileService.UpdateProfile:output_type -> profile_service.CreateProfileResponse
-	1,  // 18: profile_service.ProfileService.SearchProfile:output_type -> profile_service.GetAllResponse
+	9,  // 16: profile_service.ProfileService.CreateJobOffer:output_type -> profile_service.CreateProfileResponse
+	9,  // 17: profile_service.ProfileService.UpdateJobOffer:output_type -> profile_service.CreateProfileResponse
+	1,  // 18: profile_service.ProfileService.SearchJobOffer:output_type -> profile_service.GetAllResponse
 	14, // [14:19] is the sub-list for method output_type
 	9,  // [9:14] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name

@@ -127,6 +127,30 @@ func (service *PostService) getPostDetailsMapper(ctx context.Context) func(post 
 	}
 }
 
+func (service *PostService) GetAllPosts() ([]*domain.Post, error) {
+	return service.store.GetAll()
+}
+
+//func mapProfileToOwner(ownerProfile *profileService.JobOffer) *domain.Owner {
+//	return &domain.Owner{
+//		UserId:   ownerProfile.Id,
+//		Description: ownerProfile.Description,
+//		Position:     ownerProfile.Position,
+//		Seniority:  ownerProfile.Seniority,
+//	}
+//}
+
+func (service *PostService) getPostOwnerProfile(ctx context.Context, ownerId primitive.ObjectID) *profileService.Profile {
+	profileClient := serviceClients.NewProfileClient(service.profileServiceAddress)
+	hexId := ownerId.Hex()
+	profileResponse, err := profileClient.Get(ctx, &profileService.GetRequest{Id: hexId})
+	if err != nil {
+		log(fmt.Sprintf("Error getting post owner with id: %s", hexId))
+		panic(fmt.Errorf("error getting post owner"))
+	}
+	return profileResponse.Profile
+}
+
 func log(message string) {
 	fmt.Printf("[%v] [Post Service]: %s\n", time.Now(), message)
 }

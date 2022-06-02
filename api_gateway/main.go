@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/auth"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/connection"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/job_offer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/post"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/profile"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/security"
@@ -24,7 +25,8 @@ func main() {
 	profile.RegisterRoutes(r)
 	post.RegisterRoutes(r)
 	connection.RegisterRoutes(r)
-	//
+	job_offer.RegisterRoutes(r)
+
 	//r.Run(":" + c.Port)
 
 	err := r.RunTLS(":"+c.Port, "./certificates/dislinkt_gateway.crt", "./certificates/dislinkt_gateway.key")

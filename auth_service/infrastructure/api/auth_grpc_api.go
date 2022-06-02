@@ -36,7 +36,7 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 	if user1 != nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusUnprocessableEntity,
-			Error:  "Username is not unique",
+			Error:  "Description is not unique",
 			UserID: "",
 		}, nil
 	}
@@ -105,7 +105,7 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	if err != nil {
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
-			Error:  "Username or password is incorrect",
+			Error:  "Description or password is incorrect",
 		}, nil
 	}
 
@@ -151,7 +151,7 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		handler.userService.Update(ctx, user)
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
-			Error:  "Username or password is incorrect",
+			Error:  "Description or password is incorrect",
 		}, nil
 	}
 
@@ -235,7 +235,7 @@ func (handler *AuthHandler) PasswordlessLogin(ctx context.Context, request *pb.P
 	if err != nil {
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
-			Error:  "Username or password is incorrect",
+			Error:  "Description or password is incorrect",
 		}, nil
 	}
 

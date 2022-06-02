@@ -907,7 +907,7 @@ func local_request_PostService_UndoDislike_0(ctx context.Context, marshaler runt
 
 }
 
-// RegisterPostServiceHandlerServer registers the http handlers for service PostService to "mux".
+// RegisterPostServiceHandlerServer registers the http handler for service PostService to "mux".
 // UnaryRPC     :call PostServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterPostServiceHandlerFromEndpoint instead.
@@ -1301,14 +1301,14 @@ func RegisterPostServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.Se
 	return RegisterPostServiceHandler(ctx, mux, conn)
 }
 
-// RegisterPostServiceHandler registers the http handlers for service PostService to "mux".
-// The handlers forward requests to the grpc endpoint over "conn".
+// RegisterPostServiceHandler registers the http handler for service PostService to "mux".
+// The handler forward requests to the grpc endpoint over "conn".
 func RegisterPostServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
 	return RegisterPostServiceHandlerClient(ctx, mux, NewPostServiceClient(conn))
 }
 
-// RegisterPostServiceHandlerClient registers the http handlers for service PostService
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "PostServiceClient".
+// RegisterPostServiceHandlerClient registers the http handler for service PostService
+// to "mux". The handler forward requests to the grpc endpoint over the given implementation of "PostServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "PostServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "PostServiceClient" to call the correct interceptors.

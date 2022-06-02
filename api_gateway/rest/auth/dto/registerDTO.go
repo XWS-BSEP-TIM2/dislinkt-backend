@@ -39,7 +39,7 @@ func (r *RegisterDTO) ToProto(userID string) *pbProfile.Profile {
 		BirthDate:   timestamppb.New(t),
 		IsPrivate:   r.IsPrivate,
 		//Skills      []*Skill
-		//Experiences []*Experience
+		//Technologies []*Experience
 		//Biography
 	}
 }

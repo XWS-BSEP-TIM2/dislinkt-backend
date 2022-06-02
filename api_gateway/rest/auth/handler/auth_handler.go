@@ -38,7 +38,7 @@ func (authHandler *AuthHandler) Login(ctx *gin.Context) {
 	errV := v.Struct(loginDto)
 	if errV != nil {
 		ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
-			Message: "Username is not valid",
+			Message: "Description is not valid",
 		})
 		return
 	}
@@ -140,17 +140,17 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 	validators.NumberValidator(ctx, v)
 	errV := v.Struct(registerDto)
 	if errV != nil {
-		if strings.Contains(errV.Error(), "Name") {
+		if strings.Contains(errV.Error(), "Position") {
 			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
-				Message: "Name is not valid",
+				Message: "Position is not valid",
 			})
-		} else if strings.Contains(errV.Error(), "Surname") {
+		} else if strings.Contains(errV.Error(), "Seniority") {
 			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
-				Message: "Surname is not valid",
+				Message: "Seniority is not valid",
 			})
-		} else if strings.Contains(errV.Error(), "Username") {
+		} else if strings.Contains(errV.Error(), "Description") {
 			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
-				Message: "Username is not valid",
+				Message: "Description is not valid",
 			})
 		} else if strings.Contains(errV.Error(), "Email") {
 			ctx.JSON(http.StatusUnprocessableEntity, dto.Error{

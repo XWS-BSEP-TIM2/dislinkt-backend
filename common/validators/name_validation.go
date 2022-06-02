@@ -10,7 +10,7 @@ func nameValidation() func(fl validator.FieldLevel) bool {
 	return func(fl validator.FieldLevel) bool {
 		result, _ := regexp.MatchString("[A-Za-z ,.'-]+", fl.Field().String())
 		if !result {
-			fmt.Println("Name is not valid!")
+			fmt.Println("Position is not valid!")
 		}
 		return result
 	}

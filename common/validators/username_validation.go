@@ -14,7 +14,7 @@ func usernameValidation() func(fl validator.FieldLevel) bool {
 		}
 		result, _ := regexp.MatchString("(.*[\"'!@#$%^&*(){}\\[:;\\]<>,\\.?~_+\\-\\\\=|/].*)", fl.Field().String())
 		if result {
-			fmt.Println("Username contains special characters that are not allowed!")
+			fmt.Println("Description contains special characters that are not allowed!")
 		}
 		return !result
 	}

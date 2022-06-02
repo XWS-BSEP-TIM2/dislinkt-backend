@@ -65,16 +65,7 @@ func (server *Server) startGrpcServer(connectionHandler *api.ConnectionHandler) 
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	grpcServer := grpc.NewServer(
-		/*
-			grpc.UnaryInterceptor(
-				grpc_middleware.ChainUnaryServer(
-				interceptors.TokenAuthInterceptor,
-				),
-			),
-		*/
-
-	)
+	grpcServer := grpc.NewServer()
 	connection.RegisterConnectionServiceServer(grpcServer, connectionHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)

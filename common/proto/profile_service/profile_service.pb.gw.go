@@ -117,7 +117,7 @@ func local_request_ProfileService_CreateProfile_0(ctx context.Context, marshaler
 
 }
 
-// RegisterProfileServiceHandlerServer registers the http handlers for service ProfileService to "mux".
+// RegisterProfileServiceHandlerServer registers the http handler for service ProfileService to "mux".
 // UnaryRPC     :call ProfileServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterProfileServiceHandlerFromEndpoint instead.
@@ -154,7 +154,7 @@ func RegisterProfileServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/profile_service.ProfileService/CreateProfile", runtime.WithHTTPPathPattern("/profile"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/profile_service.ProfileService/CreateJobOffer", runtime.WithHTTPPathPattern("/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -199,14 +199,14 @@ func RegisterProfileServiceHandlerFromEndpoint(ctx context.Context, mux *runtime
 	return RegisterProfileServiceHandler(ctx, mux, conn)
 }
 
-// RegisterProfileServiceHandler registers the http handlers for service ProfileService to "mux".
-// The handlers forward requests to the grpc endpoint over "conn".
+// RegisterProfileServiceHandler registers the http handler for service ProfileService to "mux".
+// The handler forward requests to the grpc endpoint over "conn".
 func RegisterProfileServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
 	return RegisterProfileServiceHandlerClient(ctx, mux, NewProfileServiceClient(conn))
 }
 
-// RegisterProfileServiceHandlerClient registers the http handlers for service ProfileService
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "ProfileServiceClient".
+// RegisterProfileServiceHandlerClient registers the http handler for service ProfileService
+// to "mux". The handler forward requests to the grpc endpoint over the given implementation of "ProfileServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "ProfileServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "ProfileServiceClient" to call the correct interceptors.
@@ -238,7 +238,7 @@ func RegisterProfileServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/profile_service.ProfileService/CreateProfile", runtime.WithHTTPPathPattern("/profile"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/profile_service.ProfileService/CreateJobOffer", runtime.WithHTTPPathPattern("/profile"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
