@@ -43,7 +43,6 @@ func (store *JobOfferMongoDbStore) Update(ctx context.Context, jobOffer *domain.
 		"seniority":    jobOffer.Seniority,
 		"description":  jobOffer.Description,
 		"company_name": jobOffer.CompanyName,
-		"user_id":      jobOffer.UserId,
 		"technologies": jobOffer.Technologies,
 	}}
 
