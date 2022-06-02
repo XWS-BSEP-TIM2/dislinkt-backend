@@ -11,4 +11,5 @@ type ApiTokenStore interface {
 	DeleteById(ctx context.Context, id primitive.ObjectID) (int64, error)
 	GetByTokenCode(ctx context.Context, tokenCode string) (*ApiToken, error)
 	DeleteAllUserTokens(ctx context.Context, id primitive.ObjectID) error
+	DeleteAllTokens(ctx context.Context) error
 }

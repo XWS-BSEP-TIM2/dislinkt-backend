@@ -58,6 +58,14 @@ func (store ApiTokenMongoDBStore) DeleteAllUserTokens(ctx context.Context, id pr
 	return nil
 }
 
+func (store ApiTokenMongoDBStore) DeleteAllTokens(ctx context.Context) error {
+	_, err := store.apiTokens.DeleteMany(ctx, bson.M{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (store *ApiTokenMongoDBStore) filter(filter interface{}) ([]*domain.ApiToken, error) {
 	cursor, err := store.apiTokens.Find(context.TODO(), filter)
 	defer cursor.Close(context.TODO())

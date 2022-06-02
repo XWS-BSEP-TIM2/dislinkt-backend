@@ -19,4 +19,13 @@ p, USER, getConnectionDetails,read
 p, USER, changePassword, update
 p, ADMIN,getProfilesByAdmin,read
 p, API, test,create
-p,USER,updateJobOffer,update
+p, USER, updateJobOffer, update
+p, USER, getJobOffers, read
+p, USER, getJobOffer, read
+p, USER, searchJobOffers, read
+p, USER, createJobOffer, create
+p, USER, getUserJobOffers, read
+p, USER, deleteJobOffer, delete
+p, API, createJobOffer, create
+p, API, deleteJobOffer,delete
+p, API, updateJobOffer,update

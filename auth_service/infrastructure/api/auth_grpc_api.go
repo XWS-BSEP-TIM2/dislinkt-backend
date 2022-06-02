@@ -334,3 +334,12 @@ func (handler *AuthHandler) ValidateApiToken(ctx context.Context, request *pb.Va
 	}
 	return &pb.ValidateApiTokenResponse{Error: nil}, nil
 }
+
+func (handler *AuthHandler) GetApiToken(ctx context.Context, request *pb.GetApiTokenRequest) (*pb.GetApiTokenResponse, error) {
+	token, err := handler.apiTokenService.GetByTokenCode(ctx, request.TokenCode)
+	if err != nil {
+		return nil, err
+	}
+	tokenProto := pb.ApiToken{TokenCode: token.ApiCode, UserId: token.UserId.Hex()}
+	return &pb.GetApiTokenResponse{Token: &tokenProto}, nil
+}

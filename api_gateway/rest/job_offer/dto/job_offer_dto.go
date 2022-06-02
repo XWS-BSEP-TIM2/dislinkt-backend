@@ -8,4 +8,5 @@ type JobOfferDto struct {
 	Seniority    string   `json:"seniority"`
 	Description  string   `json:"description"`
 	Technologies []string `json:"technologies"`
+	ApiToken     string   `json:"apiToken"`
 }

@@ -30,6 +30,7 @@ type AuthServiceClient interface {
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
 	GenerateApiToken(ctx context.Context, in *ApiTokenRequest, opts ...grpc.CallOption) (*ApiTokenResponse, error)
 	ValidateApiToken(ctx context.Context, in *ValidateApiTokenRequest, opts ...grpc.CallOption) (*ValidateApiTokenResponse, error)
+	GetApiToken(ctx context.Context, in *GetApiTokenRequest, opts ...grpc.CallOption) (*GetApiTokenResponse, error)
 }
 
 type authServiceClient struct {
@@ -157,6 +158,15 @@ func (c *authServiceClient) ValidateApiToken(ctx context.Context, in *ValidateAp
 	return out, nil
 }
 
+func (c *authServiceClient) GetApiToken(ctx context.Context, in *GetApiTokenRequest, opts ...grpc.CallOption) (*GetApiTokenResponse, error) {
+	out := new(GetApiTokenResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/GetApiToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -174,6 +184,7 @@ type AuthServiceServer interface {
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
 	GenerateApiToken(context.Context, *ApiTokenRequest) (*ApiTokenResponse, error)
 	ValidateApiToken(context.Context, *ValidateApiTokenRequest) (*ValidateApiTokenResponse, error)
+	GetApiToken(context.Context, *GetApiTokenRequest) (*GetApiTokenResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -219,6 +230,9 @@ func (*UnimplementedAuthServiceServer) GenerateApiToken(context.Context, *ApiTok
 }
 func (*UnimplementedAuthServiceServer) ValidateApiToken(context.Context, *ValidateApiTokenRequest) (*ValidateApiTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateApiToken not implemented")
+}
+func (*UnimplementedAuthServiceServer) GetApiToken(context.Context, *GetApiTokenRequest) (*GetApiTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetApiToken not implemented")
 }
 func (*UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -460,6 +474,24 @@ func _AuthService_ValidateApiToken_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetApiToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetApiTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetApiToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/GetApiToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetApiToken(ctx, req.(*GetApiTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AuthService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "auth.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
@@ -515,6 +547,10 @@ var _AuthService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ValidateApiToken",
 			Handler:    _AuthService_ValidateApiToken_Handler,
+		},
+		{
+			MethodName: "GetApiToken",
+			Handler:    _AuthService_GetApiToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

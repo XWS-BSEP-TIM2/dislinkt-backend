@@ -96,7 +96,15 @@ func (server *Server) initPasswordlessLoginService(store persistence.Passwordles
 }
 
 func (server *Server) initApiTokenStore(client *mongo.Client) persistence.ApiTokenMongoDBStore {
-	return persistence.NewApiTokenMongoDBStore(client)
+	store := persistence.NewApiTokenMongoDBStore(client)
+	store.DeleteAllTokens(context.TODO())
+	for _, apiToken := range apiTokens {
+		err, _ := store.Insert(context.TODO(), apiToken)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return store
 
 }
 

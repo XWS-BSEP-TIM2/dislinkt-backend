@@ -81,12 +81,18 @@ var users = []*domain.User{
 	},
 }
 
-var tokens = []*domain.PasswordlessToken{
+var apiTokens = []*domain.ApiToken{
 	{
-		Id:           getIdFromHex("62752bf27407f54ce1839cb9"),
-		UserId:       getIdFromHex("62752bf27407f54ce1839cb9"),
+		Id:           getIdFromHex("62752bf27407f51ce1839cb0"),
+		UserId:       getIdFromHex("62752bf27407f54ce1839cb8"),
 		CreationDate: time.Now(),
-		TokenCode:    "adadqbek123krmtgk123e1rfd",
+		ApiCode:      "adadqbek123krmtgk123e1rfd",
+	},
+	{
+		Id:           getIdFromHex("62752bf27407f51ce1839cb1"),
+		UserId:       getIdFromHex("62752bf27407f54ce1839cb7"),
+		CreationDate: time.Now(),
+		ApiCode:      "adadqbek123krmtgk123e1rff",
 	},
 }
 

@@ -17,11 +17,15 @@ func RegisterRoutes(r *gin.Engine) {
 	authorizedRoutes.Use(a.AuthRequired)
 
 	authorizedRoutes.PUT("", a.Authorize("updateJobOffer", "update", false), jobOfferHandler.Update)
-	unauthorizedRoutes := r.Group("/job-offer")
-	unauthorizedRoutes.GET("", jobOfferHandler.Get)
-	unauthorizedRoutes.GET("/:id", jobOfferHandler.GetById)
-	unauthorizedRoutes.POST("/search", jobOfferHandler.Search)
-	unauthorizedRoutes.POST("", jobOfferHandler.Create)
-	unauthorizedRoutes.GET("/user-offers/:id", jobOfferHandler.GetUserJobOffers)
-	unauthorizedRoutes.DELETE("/:id", jobOfferHandler.DeleteOffer)
+	authorizedRoutes.GET("", a.Authorize("getJobOffers", "read", false), jobOfferHandler.Get)
+	authorizedRoutes.GET("/:id", a.Authorize("getJobOffer", "read", false), jobOfferHandler.GetById)
+	authorizedRoutes.POST("/search", a.Authorize("searchJobOffers", "read", false), jobOfferHandler.Search)
+	authorizedRoutes.POST("", a.Authorize("createJobOffer", "create", false), jobOfferHandler.Create)
+	authorizedRoutes.GET("/user-offers/:id", a.Authorize("getUserJobOffers", "read", false), jobOfferHandler.GetUserJobOffers)
+	authorizedRoutes.DELETE("/:id", a.Authorize("deleteJobOffer", "delete", false), jobOfferHandler.DeleteOffer)
+
+	apiRoutes := r.Group("api/job-offer")
+	apiRoutes.PUT("", a.Authorize("updateJobOffer", "update", true), jobOfferHandler.Update)
+	apiRoutes.POST("", a.Authorize("createJobOffer", "create", true), jobOfferHandler.CreateFromExternalApp)
+	apiRoutes.DELETE("/:id", a.Authorize("deleteJobOffer", "delete", true), jobOfferHandler.DeleteOffer)
 }

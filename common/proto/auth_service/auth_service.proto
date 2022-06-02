@@ -21,6 +21,7 @@ service AuthService {
   rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse){}
   rpc GenerateApiToken(ApiTokenRequest) returns(ApiTokenResponse){}
   rpc ValidateApiToken(ValidateApiTokenRequest) returns(ValidateApiTokenResponse) {}
+  rpc GetApiToken(GetApiTokenRequest) returns (GetApiTokenResponse) {}
 }
 
 message ChangePasswordRequest{
@@ -137,6 +138,11 @@ message ApiTokenRequest{
   string userId=1;
 }
 
+message ApiToken{
+  string tokenCode=1;
+  string userId=2;
+}
+
 message ApiTokenResponse{
   string tokenCode=1;
   ErrorResponse error=2;
@@ -153,4 +159,12 @@ message ValidateApiTokenRequest{
 
 message ValidateApiTokenResponse{
   ErrorResponse error=1;
+}
+
+message GetApiTokenRequest{
+  string tokenCode=1;
+}
+
+message GetApiTokenResponse{
+  ApiToken token=1;
 }
