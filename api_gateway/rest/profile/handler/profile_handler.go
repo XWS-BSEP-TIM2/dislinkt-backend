@@ -4,6 +4,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	pbAuth "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	pbConnection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	pbProfile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/validators"
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,7 @@ func (handler *ProfileHandler) GetById(ctx *gin.Context) {
 
 func (handler *ProfileHandler) Update(ctx *gin.Context) {
 	profileService := handler.grpcClient.ProfileClient
+	connectionService := handler.grpcClient.ConnectionClient
 
 	profile := pbProfile.Profile{}
 
@@ -48,10 +50,16 @@ func (handler *ProfileHandler) Update(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	res, err := profileService.UpdateProfile(ctx, &pbProfile.CreateProfileRequest{Profile: &profile})
-	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+	res, err1 := profileService.UpdateProfile(ctx, &pbProfile.CreateProfileRequest{Profile: &profile})
+	if err1 != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err1)
 	}
+	cpb := &pbConnection.ChangePrivacyBody{UserID: profile.Id, IsPrivate: profile.IsPrivate}
+	_, err2 := connectionService.ChangePrivacy(ctx, &pbConnection.ChangePrivacyRequest{ChangePrivacyBody: cpb})
+	if err2 != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err2)
+	}
+
 	ctx.JSON(http.StatusCreated, &res)
 }
 

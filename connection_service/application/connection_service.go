@@ -82,3 +82,7 @@ func (service *ConnectionService) UnsendFriendRequest(userIDa, userIDb string) (
 func (service *ConnectionService) GetConnectionDetail(userIDa, userIDb string) (*pb.ConnectionDetail, error) {
 	return service.store.GetConnectionDetail(userIDa, userIDb)
 }
+
+func (service *ConnectionService) ChangePrivacy(userID string, private bool) (*pb.ActionResult, error) {
+	return service.store.ChangePrivacy(userID, private)
+}

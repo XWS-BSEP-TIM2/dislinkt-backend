@@ -693,3 +693,53 @@ func (store *ConnectionDBStore) GetConnectionDetail(userIDa, userIDb string) (*p
 		return result.(*pb.ConnectionDetail), err
 	}
 }
+
+func (store *ConnectionDBStore) ChangePrivacy(userID string, private bool) (*pb.ActionResult, error) {
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+
+		actionResult := &pb.ActionResult{Msg: "msg", Status: 0}
+
+		if checkIfUserExist(userID, transaction) {
+			isPrivate, err := isUserPrivate(userID, transaction)
+			if err != nil {
+				actionResult.Msg = err.Error()
+				return actionResult, err
+			}
+
+			if isPrivate != private {
+				ok, err := setUserPrivate(userID, private, transaction)
+				if err != nil {
+					actionResult.Msg = err.Error()
+					actionResult.Status = 400
+					return nil, err
+				}
+				if !ok {
+					actionResult.Msg = "error updating privacy"
+					return actionResult, nil
+				} else {
+					actionResult.Msg = "successfully changed privacy"
+					actionResult.Status = 200
+					return actionResult, nil
+				}
+			} else {
+				actionResult.Msg = "same privacy"
+				return actionResult, nil
+			}
+
+		} else {
+			actionResult.Msg = "user does not exist"
+			actionResult.Status = 400 //bad request
+			return actionResult, nil
+		}
+	})
+
+	if result == nil {
+		return &pb.ActionResult{Msg: "error", Status: 500}, err
+	} else {
+		return result.(*pb.ActionResult), err
+	}
+}

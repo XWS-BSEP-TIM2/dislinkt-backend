@@ -87,8 +87,23 @@ service ConnectionService{
     };
   }
 
+  rpc ChangePrivacy(ChangePrivacyRequest) returns (ActionResult) {
+    option (google.api.http) = {
+      post: "/connection/privacy"
+      body:"ChangePrivacyBody"
+    };
+  }
 
 
+}
+
+message ChangePrivacyRequest{
+    ChangePrivacyBody ChangePrivacyBody = 1;
+}
+
+message ChangePrivacyBody{
+  string userID = 1;
+  bool isPrivate = 2;
 }
 
 message RegisterRequest{

@@ -33,6 +33,19 @@ func isUserPrivate(userID string, transaction neo4j.Transaction) (bool, error) {
 	return true, err
 }
 
+func setUserPrivate(userID string, private bool, transaction neo4j.Transaction) (bool, error) {
+	result, err := transaction.Run(
+		"MATCH (u:USER) WHERE u.userID=$uID SET u.isPrivate=$private RETURN u.isPrivate ",
+		map[string]interface{}{"uID": userID, "private": private})
+	if err != nil {
+		return false, err
+	}
+	if result != nil && result.Next() {
+		return true, nil
+	}
+	return false, nil
+}
+
 func checkIfFriendExist(userIDa, userIDb string, transaction neo4j.Transaction) bool {
 	result, _ := transaction.Run(
 		"MATCH (u1:USER) WHERE u1.userID=$uIDa "+

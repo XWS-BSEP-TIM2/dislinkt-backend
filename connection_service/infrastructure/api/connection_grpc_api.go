@@ -134,3 +134,9 @@ func (handler *ConnectionHandler) GetConnectionDetail(ctx context.Context, reque
 	userIDb := request.UserIDb
 	return handler.service.GetConnectionDetail(userIDa, userIDb)
 }
+
+func (handler *ConnectionHandler) ChangePrivacy(ctx context.Context, request *pb.ChangePrivacyRequest) (*pb.ActionResult, error) {
+	userID := request.ChangePrivacyBody.UserID
+	isPrivate := request.ChangePrivacyBody.IsPrivate
+	return handler.service.ChangePrivacy(userID, isPrivate)
+}
