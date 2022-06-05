@@ -5,7 +5,7 @@ API Gateway: 9000
 
 Auth Service: 8081
 Connection Service: 8001
-Post Service: 8080
+Post Service: 8084
 Profile Service: 8082
 
 MongoDB: 27017
