@@ -29,16 +29,31 @@ func NewFeedCreator(
 func (creator *FeedCreator) CreateFeedForUser(ctx context.Context, userId primitive.ObjectID) []*domain.Post {
 	var posts []*domain.Post
 
+	var connections []*primitive.ObjectID
 	if userId != primitive.NilObjectID {
-		connections := creator.connectionAdapter.GetAllUserConnections(ctx, userId)
+		connections = creator.connectionAdapter.GetAllUserConnections(ctx, userId)
 		if len(connections) > 0 {
 			posts = append(posts, creator.store.GetAllPostsFromIds(connections)...)
 		}
 	}
 
 	publicProfilesIds := creator.profileAdapter.GetAllPublicProfilesIds(ctx)
-	if len(publicProfilesIds) > 0 {
-		posts = append(posts, creator.store.GetAllPostsFromIds(publicProfilesIds)...)
+	var filtered []*primitive.ObjectID
+	for _, ppId := range publicProfilesIds {
+		shouldAppend := true
+		for _, cnnId := range connections {
+			if ppId.Hex() == cnnId.Hex() {
+				shouldAppend = false
+				break
+			}
+		}
+		if shouldAppend {
+			filtered = append(filtered, ppId)
+		}
+	}
+
+	if len(filtered) > 0 {
+		posts = append(posts, creator.store.GetAllPostsFromIds(filtered)...)
 	}
 
 	sort.Slice(posts, func(i, j int) bool {

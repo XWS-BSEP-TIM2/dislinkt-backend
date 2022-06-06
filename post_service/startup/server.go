@@ -8,6 +8,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/startup/config"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/startup/data"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"log"
@@ -41,7 +42,9 @@ func (server *Server) initMongoClient() *mongo.Client {
 }
 
 func (server *Server) initPostStore(client *mongo.Client) domain.PostStore {
-	return persistence.NewPostMongoDBStore(client)
+	store := persistence.NewPostMongoDBStore(client)
+	data.InitializePostStore(store)
+	return store
 }
 
 func (server *Server) initPostService(store domain.PostStore) *application.PostService {
