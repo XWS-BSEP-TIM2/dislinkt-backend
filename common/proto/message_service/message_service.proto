@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+option go_package = "common/proto/message_service";
+
+package message_service;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service MessageService{
+
+  rpc GetMyContacts(GetMyContactsRequest) returns(MyContactsResponse){}
+
+  /*
+  rpc Get(GetRequest) returns (GetResponse){}
+
+  rpc GetAll(EmptyRequest) returns (GetAllResponse){}
+  
+  rpc CreateProfile(CreateProfileRequest) returns(CreateProfileResponse){}
+
+  rpc UpdateProfile(CreateProfileRequest) returns(CreateProfileResponse){}
+
+  rpc SearchProfile(SearchProfileRequest) returns(GetAllResponse){
+
+  }
+
+   */
+}
+
+message GetMyContactsRequest{
+  string userID = 1;
+}
+
+message Message{
+  string authorUserID = 1;
+  string text = 2;
+  google.protobuf.Timestamp date = 3;
+}
+
+message Chat{
+  string msgID = 1;
+
+  string userIDa = 2;
+  string fullNameUserA = 3;
+  google.protobuf.Timestamp userASeenDate = 4;
+
+  string userIDb = 5;
+  string fullNameUserB = 6;
+  google.protobuf.Timestamp userBSeenDate = 7;
+  repeated Message messages = 8;
+
+}
+
+message ChatPreview{
+  string msgID = 1;
+  string userID = 2;
+  string fullNameUser = 3;
+  Message lastMessage = 4;
+  int32 numOfNewMessages = 5;
+}
+
+message MyContactsResponse{
+  repeated ChatPreview chats = 1;
+}
+
+
+
+
+/*
+message SearchProfileRequest{
+  string param = 1;
+}
+
+
+
+message GetAllResponse{
+  repeated Profile profiles = 1;
+}
+
+message EmptyRequest{
+
+}
+
+message GetRequest{
+  string id = 1;
+}
+
+message GetResponse{
+  Profile profile = 1;
+}
+
+message Profile{
+  string id = 1;
+  string name = 2;
+  string surname = 3;
+  string username = 4;
+  string email = 5;
+  string biography = 6;
+  string gender = 7;
+  string phoneNumber = 8;
+  google.protobuf.Timestamp birthDate = 9;
+  bool isPrivate = 10;
+  repeated Skill skills = 11;
+  repeated Experience experiences = 12;
+}
+
+message Skill{
+  string id = 1;
+  string name = 2;
+  string skillType = 3;
+}
+
+
+message Experience{
+  string id = 1;
+  string name = 2;
+  string experienceType = 3;
+  string description = 4;
+  google.protobuf.Timestamp startDate = 5;
+  google.protobuf.Timestamp endDate = 6;
+
+}
+
+message CreateProfileRequest{
+  Profile profile = 1;
+}
+
+message CreateProfileResponse{
+  Profile profile = 1;
+}
+ */
