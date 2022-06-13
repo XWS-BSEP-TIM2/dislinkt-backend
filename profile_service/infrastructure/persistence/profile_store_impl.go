@@ -33,6 +33,7 @@ func (store *ProfileMongoDbStore) Update(ctx context.Context, profile *domain.Pr
 		"isPrivate":   profile.IsPrivate,
 		"skills":      profile.Skills,
 		"experiences": profile.Experiences,
+		"isTwoFactor": profile.IsTwoFactor,
 	}}
 
 	_, err := store.profiles.UpdateOne(context.TODO(), profileToUpdate, updatedProfile)

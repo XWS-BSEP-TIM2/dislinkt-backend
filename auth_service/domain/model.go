@@ -28,6 +28,8 @@ type User struct {
 	LastErrTryLoginTime      time.Time          `bson:"lastErrTryLoginTime"`
 	RecoveryPasswordCode     string             `bson:"recoveryPasswordCode"`
 	RecoveryPasswordCodeTime time.Time          `bson:"recoveryPasswordCodeTime"`
+	TFASecret                string             `bson:"TFASecret"`
+	IsTFAEnabled             bool               `bson:"isTFAEnabled"W`
 }
 
 func ConvertRoleToString(role Role) string {

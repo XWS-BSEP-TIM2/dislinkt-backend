@@ -43,6 +43,7 @@ func (handler *ProfileHandler) GetById(ctx *gin.Context) {
 func (handler *ProfileHandler) Update(ctx *gin.Context) {
 	profileService := handler.grpcClient.ProfileClient
 	connectionService := handler.grpcClient.ConnectionClient
+	authService := handler.grpcClient.AuthClient
 
 	profile := pbProfile.Profile{}
 
@@ -50,6 +51,8 @@ func (handler *ProfileHandler) Update(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+
+	authService.EditData(ctx, &pbAuth.EditDataRequest{Email: profile.Email, Username: profile.Username, UserId: profile.Id, IsTwoFactor: profile.IsTwoFactor})
 	res, err1 := profileService.UpdateProfile(ctx, &pbProfile.CreateProfileRequest{Profile: &profile})
 	if err1 != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err1)

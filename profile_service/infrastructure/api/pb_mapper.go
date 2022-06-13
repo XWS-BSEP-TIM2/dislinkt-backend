@@ -20,6 +20,7 @@ func mapProfile(profile *domain.Profile) *pb.Profile {
 		PhoneNumber: profile.PhoneNumber,
 		BirthDate:   timestamppb.New(profile.BirthDate),
 		IsPrivate:   profile.IsPrivate,
+		IsTwoFactor: profile.IsTwoFactor,
 	}
 
 	for _, skill := range profile.Skills {
@@ -58,6 +59,7 @@ func MapProfile(profile *pb.Profile) domain.Profile {
 		IsPrivate:   profile.IsPrivate,
 		Skills:      []domain.Skill{},
 		Experiences: []domain.Experience{},
+		IsTwoFactor: profile.IsTwoFactor,
 	}
 
 	for _, skill := range profile.Skills {

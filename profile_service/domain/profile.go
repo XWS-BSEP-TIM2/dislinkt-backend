@@ -20,6 +20,7 @@ type Profile struct {
 	IsPrivate   bool               `bson:"isPrivate"`
 	Skills      []Skill            `bson:"skills"`
 	Experiences []Experience       `bson:"experiences"`
+	IsTwoFactor bool               `bson:"isTwoFactor"`
 }
 
 func NewProfile(id string, name string, surname string, username string, email string, biography string, gender enums.Gender, phoneNumber string, birthDate time.Time, isPrivate bool) Profile {

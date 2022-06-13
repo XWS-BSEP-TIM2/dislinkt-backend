@@ -2,12 +2,18 @@ package application
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base32"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/utils"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	dgoogauth "github.com/dgryski/dgoogauth"
+	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"net/url"
+	qr "rsc.io/qr"
 	"time"
 )
 
@@ -192,5 +198,67 @@ func (service *AuthService) ChangePassword(ctx context.Context, req *authService
 		Status: http.StatusOK,
 		Msg:    "you have successfully change your password",
 	}, nil
+}
+
+func (service *AuthService) GenerateQR2FA(ctx context.Context, userId primitive.ObjectID) ([]byte, error) {
+	user, err := service.store.Get(ctx, userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	secret := make([]byte, 10)
+	_, err = rand.Read(secret)
+	if err != nil {
+		panic(err)
+	}
+
+	user.TFASecret = base32.StdEncoding.EncodeToString(secret)
+	service.store.Update(ctx, user)
+
+	URL, err := url.Parse("otpauth://totp")
+	if err != nil {
+		panic(err)
+	}
+
+	URL.Path += "/" + url.PathEscape("Dislinkt") + ":" + url.PathEscape(user.Username)
+
+	params := url.Values{}
+	params.Add("secret", user.TFASecret)
+	params.Add("issuer", "Dislinkt")
+
+	URL.RawQuery = params.Encode()
+	fmt.Printf("URL is %s\n", URL.String())
+
+	code, err := qr.Encode(URL.String(), qr.Q)
+
+	if err != nil {
+		return nil, err
+	}
+	return code.PNG(), nil
+}
+
+func (service *AuthService) Verify2fa(ctx context.Context, userId primitive.ObjectID, code string) error {
+	user, err := service.store.Get(ctx, userId)
+
+	if err != nil {
+		return err
+	}
+
+	otpc := &dgoogauth.OTPConfig{
+		Secret:      user.TFASecret,
+		WindowSize:  3,
+		HotpCounter: 0,
+		// UTC:         true,
+	}
+	val, err := otpc.Authenticate(code)
+	if err != nil {
+		return err
+	}
+	if !val {
+		return errors.New("Not recognize code")
+	}
+
+	return nil
 
 }

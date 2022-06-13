@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/converter"
 	"net/http"
 	"time"
 
@@ -155,17 +156,28 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		}, nil
 	}
 
+	if user.IsTFAEnabled {
+		return &pb.LoginResponse{
+			Status:    http.StatusOK,
+			Role:      domain.ConvertRoleToString(user.Role),
+			Username:  user.Username,
+			UserID:    user.Id.Hex(),
+			TwoFactor: true,
+		}, nil
+	}
+
 	token, _ := handler.Jwt.GenerateToken(user)
 
 	user.NumOfErrTryLogin = 0
 	handler.userService.Update(ctx, user)
 
 	return &pb.LoginResponse{
-		Status:   http.StatusOK,
-		Token:    token,
-		Role:     domain.ConvertRoleToString(user.Role),
-		Username: user.Username,
-		UserID:   user.Id.Hex(),
+		Status:    http.StatusOK,
+		Token:     token,
+		Role:      domain.ConvertRoleToString(user.Role),
+		Username:  user.Username,
+		UserID:    user.Id.Hex(),
+		TwoFactor: false,
 	}, nil
 }
 
@@ -342,4 +354,50 @@ func (handler *AuthHandler) GetApiToken(ctx context.Context, request *pb.GetApiT
 	}
 	tokenProto := pb.ApiToken{TokenCode: token.ApiCode, UserId: token.UserId.Hex()}
 	return &pb.GetApiTokenResponse{Token: &tokenProto}, nil
+}
+
+func (handler *AuthHandler) GenerateQr2TF(ctx context.Context, request *pb.UserIdRequest) (*pb.TFAResponse, error) {
+	qrCode, err := handler.userService.GenerateQR2FA(ctx, converter.GetObjectId(request.UserId))
+	if err != nil {
+		error := pb.ErrorResponse{ErrorCode: 500, Message: "Unable to generate qr code"}
+		return &pb.TFAResponse{Error: &error}, nil
+	}
+	return &pb.TFAResponse{QrCode: qrCode}, nil
+}
+
+func (handler *AuthHandler) Verify2FactorCode(ctx context.Context, request *pb.TFARequest) (*pb.LoginResponse, error) {
+	err := handler.userService.Verify2fa(ctx, converter.GetObjectId(request.UserId), request.Code)
+	if err != nil {
+		return &pb.LoginResponse{Status: 401, Error: "Wrong code"}, nil
+	}
+
+	user, err := handler.userService.Get(ctx, converter.GetObjectId(request.UserId))
+	if err != nil {
+		return &pb.LoginResponse{Status: 401, Error: "Wrong code"}, nil
+	}
+
+	token, _ := handler.Jwt.GenerateToken(user)
+
+	user.NumOfErrTryLogin = 0
+	handler.userService.Update(ctx, user)
+
+	return &pb.LoginResponse{
+		Status:    http.StatusOK,
+		Token:     token,
+		Role:      domain.ConvertRoleToString(user.Role),
+		Username:  user.Username,
+		UserID:    user.Id.Hex(),
+		TwoFactor: false,
+	}, nil
+
+}
+
+func (handler *AuthHandler) EditData(ctx context.Context, request *pb.EditDataRequest) (*pb.EditDataResponse, error) {
+	userCredentials, _ := handler.userService.Get(ctx, converter.GetObjectId(request.UserId))
+	userCredentials.Username = request.Username
+	userCredentials.IsTFAEnabled = request.IsTwoFactor
+	userCredentials.Email = request.Email
+
+	handler.userService.Update(ctx, userCredentials)
+	return &pb.EditDataResponse{}, nil
 }

@@ -69,6 +69,8 @@ func (store *CreadentialsMongoDBStore) Update(ctx context.Context, user *domain.
 		"lastErrTryLoginTime":      user.LastErrTryLoginTime,
 		"recoveryPasswordCode":     user.RecoveryPasswordCode,
 		"recoveryPasswordCodeTime": user.RecoveryPasswordCodeTime,
+		"isTFAEnabled":             user.IsTFAEnabled,
+		"TFASecret":                user.TFASecret,
 	}}
 
 	_, err := store.users.UpdateOne(context.TODO(), userToUpdate, updatedUser)

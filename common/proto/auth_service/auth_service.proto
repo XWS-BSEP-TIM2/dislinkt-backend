@@ -22,6 +22,9 @@ service AuthService {
   rpc GenerateApiToken(ApiTokenRequest) returns(ApiTokenResponse){}
   rpc ValidateApiToken(ValidateApiTokenRequest) returns(ValidateApiTokenResponse) {}
   rpc GetApiToken(GetApiTokenRequest) returns (GetApiTokenResponse) {}
+  rpc GenerateQr2TF(UserIdRequest) returns(TFAResponse){}
+  rpc Verify2FactorCode(TFARequest) returns(LoginResponse){}
+  rpc EditData(EditDataRequest) returns(EditDataResponse){}
 }
 
 message ChangePasswordRequest{
@@ -44,10 +47,26 @@ message RegisterRequest {
   string email = 3;
 }
 
+message EditDataRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+  bool isTwoFactor=4;
+  string userId=5;
+}
+
+message  EditDataResponse{
+  ErrorResponse error=1;
+}
+
 message RegisterResponse {
   int64 status = 1;
   string error = 2;
   string userID = 3;
+}
+
+message UserIdRequest{
+  string userId=1;
 }
 
 // Login
@@ -104,6 +123,7 @@ message LoginResponse {
   string username=4;
   string role=5;
   string userID = 6;
+  bool twoFactor=7;
 }
 
 // Validate
@@ -167,4 +187,14 @@ message GetApiTokenRequest{
 
 message GetApiTokenResponse{
   ApiToken token=1;
+}
+
+message TFAResponse{
+  bytes qrCode=1;
+  ErrorResponse error=2;
+}
+
+message TFARequest{
+  string userId=1;
+  string code=2;
 }

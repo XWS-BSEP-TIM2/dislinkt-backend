@@ -56,6 +56,7 @@ message Profile{
   bool isPrivate = 10;
   repeated Skill skills = 11;
   repeated Experience experiences = 12;
+  bool isTwoFactor=13;
 }
 
 message Skill{

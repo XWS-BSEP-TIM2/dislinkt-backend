@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -277,4 +278,35 @@ func (authHandler *AuthHandler) GenerateApiToken(ctx *gin.Context) {
 
 func (authHandler *AuthHandler) Test(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "Everything is OK")
+}
+
+func (authHandler *AuthHandler) GenerateQrCode(ctx *gin.Context) {
+	userId := ctx.Param("id")
+	authService := authHandler.grpcClient.AuthClient
+	res, err := authService.GenerateQr2TF(ctx, &pbAuth.UserIdRequest{UserId: userId})
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, &res)
+		return
+	}
+	if res.Error != nil {
+		ctx.JSON(int(res.Error.ErrorCode), &res.Error)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, &res)
+}
+
+func (authHandler *AuthHandler) Verify2Factor(ctx *gin.Context) {
+	dto := dto.Verify2FactorDto{}
+	if err := ctx.BindJSON(&dto); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	authService := authHandler.grpcClient.AuthClient
+	res, err := authService.Verify2FactorCode(ctx, &pbAuth.TFARequest{Code: strconv.Itoa(dto.Code), UserId: dto.UserId})
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, &res)
+		return
+	}
+	ctx.JSON(int(res.Status), &res)
 }

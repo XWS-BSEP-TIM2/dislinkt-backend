@@ -23,4 +23,6 @@ func RegisterRoutes(r *gin.Engine) {
 	routes.POST("magic-link-login", authHandler.MagicLinkLogin)
 	routes.GET("/api-token/:userId", authHandler.GenerateApiToken)
 	routes.GET("/test", a.Authorize("test", "create", true), authHandler.Test)
+	routes.GET("/two-factor/:id", authHandler.GenerateQrCode)
+	routes.POST("/two-factor", authHandler.Verify2Factor)
 }

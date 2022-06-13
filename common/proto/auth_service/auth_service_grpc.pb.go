@@ -31,6 +31,9 @@ type AuthServiceClient interface {
 	GenerateApiToken(ctx context.Context, in *ApiTokenRequest, opts ...grpc.CallOption) (*ApiTokenResponse, error)
 	ValidateApiToken(ctx context.Context, in *ValidateApiTokenRequest, opts ...grpc.CallOption) (*ValidateApiTokenResponse, error)
 	GetApiToken(ctx context.Context, in *GetApiTokenRequest, opts ...grpc.CallOption) (*GetApiTokenResponse, error)
+	GenerateQr2TF(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*TFAResponse, error)
+	Verify2FactorCode(ctx context.Context, in *TFARequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	EditData(ctx context.Context, in *EditDataRequest, opts ...grpc.CallOption) (*EditDataResponse, error)
 }
 
 type authServiceClient struct {
@@ -167,6 +170,33 @@ func (c *authServiceClient) GetApiToken(ctx context.Context, in *GetApiTokenRequ
 	return out, nil
 }
 
+func (c *authServiceClient) GenerateQr2TF(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*TFAResponse, error) {
+	out := new(TFAResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/GenerateQr2TF", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) Verify2FactorCode(ctx context.Context, in *TFARequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/Verify2FactorCode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) EditData(ctx context.Context, in *EditDataRequest, opts ...grpc.CallOption) (*EditDataResponse, error) {
+	out := new(EditDataResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/EditData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -185,6 +215,9 @@ type AuthServiceServer interface {
 	GenerateApiToken(context.Context, *ApiTokenRequest) (*ApiTokenResponse, error)
 	ValidateApiToken(context.Context, *ValidateApiTokenRequest) (*ValidateApiTokenResponse, error)
 	GetApiToken(context.Context, *GetApiTokenRequest) (*GetApiTokenResponse, error)
+	GenerateQr2TF(context.Context, *UserIdRequest) (*TFAResponse, error)
+	Verify2FactorCode(context.Context, *TFARequest) (*LoginResponse, error)
+	EditData(context.Context, *EditDataRequest) (*EditDataResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -233,6 +266,15 @@ func (*UnimplementedAuthServiceServer) ValidateApiToken(context.Context, *Valida
 }
 func (*UnimplementedAuthServiceServer) GetApiToken(context.Context, *GetApiTokenRequest) (*GetApiTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetApiToken not implemented")
+}
+func (*UnimplementedAuthServiceServer) GenerateQr2TF(context.Context, *UserIdRequest) (*TFAResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateQr2TF not implemented")
+}
+func (*UnimplementedAuthServiceServer) Verify2FactorCode(context.Context, *TFARequest) (*LoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Verify2FactorCode not implemented")
+}
+func (*UnimplementedAuthServiceServer) EditData(context.Context, *EditDataRequest) (*EditDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EditData not implemented")
 }
 func (*UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -492,6 +534,60 @@ func _AuthService_GetApiToken_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GenerateQr2TF_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GenerateQr2TF(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/GenerateQr2TF",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GenerateQr2TF(ctx, req.(*UserIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_Verify2FactorCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TFARequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).Verify2FactorCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/Verify2FactorCode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).Verify2FactorCode(ctx, req.(*TFARequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_EditData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EditDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).EditData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthService/EditData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).EditData(ctx, req.(*EditDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AuthService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "auth.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
@@ -551,6 +647,18 @@ var _AuthService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetApiToken",
 			Handler:    _AuthService_GetApiToken_Handler,
+		},
+		{
+			MethodName: "GenerateQr2TF",
+			Handler:    _AuthService_GenerateQr2TF_Handler,
+		},
+		{
+			MethodName: "Verify2FactorCode",
+			Handler:    _AuthService_Verify2FactorCode_Handler,
+		},
+		{
+			MethodName: "EditData",
+			Handler:    _AuthService_EditData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

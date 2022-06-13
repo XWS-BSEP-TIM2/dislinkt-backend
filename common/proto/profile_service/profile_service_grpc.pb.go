@@ -57,7 +57,7 @@ func (c *profileServiceClient) GetAll(ctx context.Context, in *EmptyRequest, opt
 
 func (c *profileServiceClient) CreateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error) {
 	out := new(CreateProfileResponse)
-	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/CreateJobOffer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/CreateProfile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *profileServiceClient) CreateProfile(ctx context.Context, in *CreateProf
 
 func (c *profileServiceClient) UpdateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error) {
 	out := new(CreateProfileResponse)
-	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/UpdateJobOffer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/UpdateProfile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (c *profileServiceClient) UpdateProfile(ctx context.Context, in *CreateProf
 
 func (c *profileServiceClient) SearchProfile(ctx context.Context, in *SearchProfileRequest, opts ...grpc.CallOption) (*GetAllResponse, error) {
 	out := new(GetAllResponse)
-	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/SearchJobOffer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/SearchProfile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +105,13 @@ func (UnimplementedProfileServiceServer) GetAll(context.Context, *EmptyRequest) 
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedProfileServiceServer) CreateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateJobOffer not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProfile not implemented")
 }
 func (UnimplementedProfileServiceServer) UpdateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateJobOffer not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProfile not implemented")
 }
 func (UnimplementedProfileServiceServer) SearchProfile(context.Context, *SearchProfileRequest) (*GetAllResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchJobOffer not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method SearchProfile not implemented")
 }
 func (UnimplementedProfileServiceServer) mustEmbedUnimplementedProfileServiceServer() {}
 
@@ -172,7 +172,7 @@ func _ProfileService_CreateProfile_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/profile_service.ProfileService/CreateJobOffer",
+		FullMethod: "/profile_service.ProfileService/CreateProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).CreateProfile(ctx, req.(*CreateProfileRequest))
@@ -190,7 +190,7 @@ func _ProfileService_UpdateProfile_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/profile_service.ProfileService/UpdateJobOffer",
+		FullMethod: "/profile_service.ProfileService/UpdateProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).UpdateProfile(ctx, req.(*CreateProfileRequest))
@@ -208,7 +208,7 @@ func _ProfileService_SearchProfile_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/profile_service.ProfileService/SearchJobOffer",
+		FullMethod: "/profile_service.ProfileService/SearchProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).SearchProfile(ctx, req.(*SearchProfileRequest))
@@ -232,15 +232,15 @@ var ProfileService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProfileService_GetAll_Handler,
 		},
 		{
-			MethodName: "CreateJobOffer",
+			MethodName: "CreateProfile",
 			Handler:    _ProfileService_CreateProfile_Handler,
 		},
 		{
-			MethodName: "UpdateJobOffer",
+			MethodName: "UpdateProfile",
 			Handler:    _ProfileService_UpdateProfile_Handler,
 		},
 		{
-			MethodName: "SearchJobOffer",
+			MethodName: "SearchProfile",
 			Handler:    _ProfileService_SearchProfile_Handler,
 		},
 	},

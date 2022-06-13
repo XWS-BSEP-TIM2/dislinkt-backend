@@ -61,6 +61,7 @@ func (handler *ProfileHandler) CreateProfile(ctx context.Context, request *pb.Cr
 func (handler *ProfileHandler) UpdateProfile(ctx context.Context, request *pb.CreateProfileRequest) (*pb.CreateProfileResponse, error) {
 	profile := MapProfile(request.GetProfile())
 	handler.service.Update(ctx, &profile)
+
 	return &pb.CreateProfileResponse{Profile: mapProfile(&profile)}, nil
 }
 
