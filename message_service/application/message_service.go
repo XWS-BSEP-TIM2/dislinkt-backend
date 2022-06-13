@@ -90,6 +90,25 @@ func (service *MessageService) GetMyContacts(ctx context.Context, request *pb.Ge
 }
 
 func (service *MessageService) GetChat(ctx context.Context, request *pb.GetChatRequest) (*pb.ChatResponse, error) {
+	chat, err := service.store.GetChat(ctx, request.MsgID)
+	if err != nil {
+		fmt.Println("Error: ", err.Error())
+	}
+	return &pb.ChatResponse{Chat: mapChat(chat)}, nil
+}
 
-	return &pb.ChatResponse{Chat: nil}, nil
+func mapChat(chat *domain.Chat) *pb.Chat {
+	pbChat := &pb.Chat{
+		MsgID:         chat.Id.Hex(),
+		UserIDa:       chat.UserIDa,
+		UserIDb:       chat.UserIDb,
+		UserASeenDate: &timestamppb.Timestamp{Seconds: chat.UserASeenDate.Unix()},
+		UserBSeenDate: &timestamppb.Timestamp{Seconds: chat.UserBSeenDate.Unix()},
+	}
+
+	for _, msg := range chat.Messages {
+		pbChat.Messages = append(pbChat.Messages, &pb.Message{AuthorUserID: msg.AuthorUserID, Text: msg.Text, Date: &timestamppb.Timestamp{Seconds: msg.Date.Unix()}})
+	}
+
+	return pbChat
 }

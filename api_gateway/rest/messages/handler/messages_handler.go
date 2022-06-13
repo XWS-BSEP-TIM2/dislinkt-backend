@@ -30,7 +30,16 @@ func (handler *MessageHandler) GetMyContacts(ctx *gin.Context) {
 }
 
 func (handler *MessageHandler) GetChat(ctx *gin.Context) {
-
+	messageService := handler.grpcClient.MessageClient
+	dataFromToken, _ := security.ExtractTokenDataFromContext(ctx)
+	msgID := ctx.Param("chatId")
+	getChatReq := pbMessages.GetChatRequest{UserID: dataFromToken.Id, MsgID: msgID}
+	res, err := messageService.GetChat(ctx, &getChatReq)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, &res)
 }
 
 func (handler *MessageHandler) SendMessage(ctx *gin.Context) {

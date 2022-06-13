@@ -30,6 +30,6 @@ p, API, createJobOffer, create
 p, API, deleteJobOffer,delete
 p, API, updateJobOffer,update
 p, USER, getContacts, read
-p, USER, getChat, reed
+p, USER, getChat, read
 p, USER, sendMessage, update
 p, USER, setSeen, update
