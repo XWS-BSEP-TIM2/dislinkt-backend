@@ -94,16 +94,57 @@ func (service *MessageService) GetChat(ctx context.Context, request *pb.GetChatR
 	if err != nil {
 		fmt.Println("Error: ", err.Error())
 	}
-	return &pb.ChatResponse{Chat: mapChat(chat)}, nil
+
+	if !chat.HaveUserID(request.UserID) {
+		fmt.Println("Error: the user has no access")
+		return nil, nil
+	}
+
+	pbChat := mapChat(chat, request.UserID)
+
+	profileResponseA, errGetProfileA := service.ProfileClient.Get(ctx, &profileService.GetRequest{Id: pbChat.UserIDa})
+	if errGetProfileA != nil {
+		fmt.Println("Error", errGetProfileA.Error())
+	} else {
+		pbChat.FullNameUserA = profileResponseA.Profile.Name + " " + profileResponseA.Profile.Surname
+	}
+
+	profileResponseB, errGetProfileB := service.ProfileClient.Get(ctx, &profileService.GetRequest{Id: pbChat.UserIDb})
+	if errGetProfileB != nil {
+		fmt.Println("Error", errGetProfileB.Error())
+	} else {
+		pbChat.FullNameUserB = profileResponseB.Profile.Name + " " + profileResponseB.Profile.Surname
+	}
+
+	return &pb.ChatResponse{Chat: pbChat}, nil
 }
 
-func mapChat(chat *domain.Chat) *pb.Chat {
-	pbChat := &pb.Chat{
-		MsgID:         chat.Id.Hex(),
-		UserIDa:       chat.UserIDa,
-		UserIDb:       chat.UserIDb,
-		UserASeenDate: &timestamppb.Timestamp{Seconds: chat.UserASeenDate.Unix()},
-		UserBSeenDate: &timestamppb.Timestamp{Seconds: chat.UserBSeenDate.Unix()},
+func mapChat(chat *domain.Chat, myUserID string) *pb.Chat {
+
+	var pbChat *pb.Chat
+
+	if chat.UserIDa == myUserID {
+		pbChat = &pb.Chat{
+			MsgID:         chat.Id.Hex(),
+			UserIDa:       chat.UserIDa,
+			UserIDb:       chat.UserIDb,
+			FullNameUserA: "",
+			FullNameUserB: "",
+			UserASeenDate: &timestamppb.Timestamp{Seconds: chat.UserASeenDate.Unix()},
+			UserBSeenDate: &timestamppb.Timestamp{Seconds: chat.UserBSeenDate.Unix()},
+			Messages:      []*pb.Message{},
+		}
+	} else if chat.UserIDb == myUserID {
+		pbChat = &pb.Chat{
+			MsgID:         chat.Id.Hex(),
+			UserIDa:       chat.UserIDb,
+			UserIDb:       chat.UserIDa,
+			FullNameUserA: "",
+			FullNameUserB: "",
+			UserASeenDate: &timestamppb.Timestamp{Seconds: chat.UserBSeenDate.Unix()},
+			UserBSeenDate: &timestamppb.Timestamp{Seconds: chat.UserASeenDate.Unix()},
+			Messages:      []*pb.Message{},
+		}
 	}
 
 	for _, msg := range chat.Messages {

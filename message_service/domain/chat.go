@@ -24,6 +24,19 @@ func (c Chat) GetSeenDateByUserID(userID string) time.Time {
 	}
 }
 
+func (c Chat) HaveUserID(userID string) bool {
+	return c.UserIDa == userID || c.UserIDb == userID
+}
+
+func (c Chat) GetOtherUserID(myUserID string) string {
+	if c.UserIDa == myUserID {
+		return c.UserIDb
+	} else if c.UserIDb == myUserID {
+		return c.UserIDa
+	}
+	return c.UserIDa
+}
+
 func NewChat(id, userIDa, userIDb string) Chat {
 	return Chat{Id: converter.GetObjectId(id), UserIDa: userIDa, UserIDb: userIDb}
 

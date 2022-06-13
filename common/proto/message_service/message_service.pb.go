@@ -192,14 +192,14 @@ type Chat struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MsgID         string                 `protobuf:"bytes,1,opt,name=msgID,proto3" json:"msgID,omitempty"`
-	UserIDa       string                 `protobuf:"bytes,2,opt,name=userIDa,proto3" json:"userIDa,omitempty"`
-	FullNameUserA string                 `protobuf:"bytes,3,opt,name=fullNameUserA,proto3" json:"fullNameUserA,omitempty"`
-	UserASeenDate *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=userASeenDate,proto3" json:"userASeenDate,omitempty"`
-	UserIDb       string                 `protobuf:"bytes,5,opt,name=userIDb,proto3" json:"userIDb,omitempty"`
-	FullNameUserB string                 `protobuf:"bytes,6,opt,name=fullNameUserB,proto3" json:"fullNameUserB,omitempty"`
-	UserBSeenDate *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=userBSeenDate,proto3" json:"userBSeenDate,omitempty"`
-	Messages      []*Message             `protobuf:"bytes,8,rep,name=messages,proto3" json:"messages,omitempty"`
+	MsgID         string                 `protobuf:"bytes,1,opt,name=msgID,proto3" json:"msgID"`
+	UserIDa       string                 `protobuf:"bytes,2,opt,name=userIDa,proto3" json:"userIDa"`
+	FullNameUserA string                 `protobuf:"bytes,3,opt,name=fullNameUserA,proto3" json:"fullNameUserA"`
+	UserASeenDate *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=userASeenDate,proto3" json:"userASeenDate"`
+	UserIDb       string                 `protobuf:"bytes,5,opt,name=userIDb,proto3" json:"userIDb"`
+	FullNameUserB string                 `protobuf:"bytes,6,opt,name=fullNameUserB,proto3" json:"fullNameUserB"`
+	UserBSeenDate *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=userBSeenDate,proto3" json:"userBSeenDate"`
+	Messages      []*Message             `protobuf:"bytes,8,rep,name=messages,proto3" json:"messages"`
 }
 
 func (x *Chat) Reset() {
@@ -297,7 +297,7 @@ type ChatPreview struct {
 
 	MsgID            string   `protobuf:"bytes,1,opt,name=msgID,proto3" json:"msgID,omitempty"`
 	UserID           string   `protobuf:"bytes,2,opt,name=userID,proto3" json:"userID,omitempty"`
-	FullNameUser     string   `protobuf:"bytes,3,opt,name=fullNameUser,proto3" json:"fullNameUser,omitempty"`
+	FullNameUser     string   `protobuf:"bytes,3,opt,name=fullNameUser,proto3" json:"fullNameUser"`
 	LastMessage      *Message `protobuf:"bytes,4,opt,name=lastMessage,proto3" json:"lastMessage"`
 	NumOfNewMessages int32    `protobuf:"varint,5,opt,name=numOfNewMessages,proto3" json:"numOfNewMessages"`
 }
@@ -374,7 +374,7 @@ type MyContactsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Chats []*ChatPreview `protobuf:"bytes,1,rep,name=chats,proto3" json:"chats,omitempty"`
+	Chats []*ChatPreview `protobuf:"bytes,1,rep,name=chats,proto3" json:"chats"`
 }
 
 func (x *MyContactsResponse) Reset() {
@@ -421,7 +421,7 @@ type ChatResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Chat *Chat `protobuf:"bytes,1,opt,name=chat,proto3" json:"chat,omitempty"`
+	Chat *Chat `protobuf:"bytes,1,opt,name=chat,proto3" json:"chat"`
 }
 
 func (x *ChatResponse) Reset() {
