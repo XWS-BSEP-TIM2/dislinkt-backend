@@ -140,3 +140,7 @@ func (handler *ConnectionHandler) ChangePrivacy(ctx context.Context, request *pb
 	isPrivate := request.ChangePrivacyBody.IsPrivate
 	return handler.service.ChangePrivacy(userID, isPrivate)
 }
+
+func (handler *ConnectionHandler) GetMyContacts(ctx context.Context, request *pb.GetMyContactsRequest) (*pb.ContactsResponse, error) {
+	return handler.service.GetMyContacts(ctx, request)
+}

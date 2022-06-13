@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MessageServiceClient interface {
 	GetMyContacts(ctx context.Context, in *GetMyContactsRequest, opts ...grpc.CallOption) (*MyContactsResponse, error)
+	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*ChatResponse, error)
 }
 
 type messageServiceClient struct {
@@ -42,11 +43,21 @@ func (c *messageServiceClient) GetMyContacts(ctx context.Context, in *GetMyConta
 	return out, nil
 }
 
+func (c *messageServiceClient) GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*ChatResponse, error) {
+	out := new(ChatResponse)
+	err := c.cc.Invoke(ctx, "/message_service.MessageService/GetChat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MessageServiceServer is the server API for MessageService service.
 // All implementations must embed UnimplementedMessageServiceServer
 // for forward compatibility
 type MessageServiceServer interface {
 	GetMyContacts(context.Context, *GetMyContactsRequest) (*MyContactsResponse, error)
+	GetChat(context.Context, *GetChatRequest) (*ChatResponse, error)
 	mustEmbedUnimplementedMessageServiceServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedMessageServiceServer struct {
 
 func (UnimplementedMessageServiceServer) GetMyContacts(context.Context, *GetMyContactsRequest) (*MyContactsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMyContacts not implemented")
+}
+func (UnimplementedMessageServiceServer) GetChat(context.Context, *GetChatRequest) (*ChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChat not implemented")
 }
 func (UnimplementedMessageServiceServer) mustEmbedUnimplementedMessageServiceServer() {}
 
@@ -88,6 +102,24 @@ func _MessageService_GetMyContacts_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageService_GetChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).GetChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/message_service.MessageService/GetChat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).GetChat(ctx, req.(*GetChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MessageService_ServiceDesc is the grpc.ServiceDesc for MessageService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,10 @@ var MessageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMyContacts",
 			Handler:    _MessageService_GetMyContacts_Handler,
+		},
+		{
+			MethodName: "GetChat",
+			Handler:    _MessageService_GetChat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

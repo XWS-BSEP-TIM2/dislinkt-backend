@@ -25,7 +25,9 @@ func NewServer(config *config.Config) *Server {
 }
 
 func (server *Server) Start() {
+
 	mongoClient := server.initMongoClient()
+
 	profileStore := server.initMessageStore(mongoClient)
 
 	profileService := server.initMessageService(profileStore)
@@ -58,7 +60,7 @@ func (server *Server) initMessageStore(client *mongo.Client) persistence.Message
 }
 
 func (server *Server) initMessageService(store persistence.MessageStore) *application.MessageService {
-	return application.NewMessageService(store)
+	return application.NewMessageService(store, server.config)
 }
 
 func (server *Server) initMessageHandler(service *application.MessageService) *api.MessageHandler {

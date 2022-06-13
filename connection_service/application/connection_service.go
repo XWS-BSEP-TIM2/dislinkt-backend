@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
 )
@@ -85,4 +86,8 @@ func (service *ConnectionService) GetConnectionDetail(userIDa, userIDb string) (
 
 func (service *ConnectionService) ChangePrivacy(userID string, private bool) (*pb.ActionResult, error) {
 	return service.store.ChangePrivacy(userID, private)
+}
+
+func (service *ConnectionService) GetMyContacts(ctx context.Context, request *pb.GetMyContactsRequest) (*pb.ContactsResponse, error) {
+	return service.store.GetMyContacts(ctx, request)
 }

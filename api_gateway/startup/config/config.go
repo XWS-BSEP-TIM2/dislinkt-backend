@@ -24,6 +24,9 @@ type Config struct {
 	JobOfferHost string
 	JobOfferPort string
 
+	MessageHost string
+	MessagePort string
+
 	CertificatePath           string
 	CertificatePrivateKeyPath string
 }
@@ -46,6 +49,9 @@ func NewConfig() *Config {
 
 		JobOfferHost: goDotEnvVariable("JOB_OFFER_SERVICE_HOST"),
 		JobOfferPort: goDotEnvVariable("JOB_OFFER_SERVICE_PORT"),
+
+		MessageHost: goDotEnvVariable("MESSAGE_SERVICE_HOST"),
+		MessagePort: goDotEnvVariable("MESSAGE_SERVICE_PORT"),
 
 		CertificatePath:           goDotEnvVariable("CERTIFICATE_PATH"),
 		CertificatePrivateKeyPath: goDotEnvVariable("CERTIFICATE_PRIVATE_KEY_PATH"),

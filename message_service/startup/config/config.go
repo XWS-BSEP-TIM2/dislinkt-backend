@@ -9,6 +9,12 @@ type Config struct {
 	Port          string
 	MessageDBHost string
 	MessageDBPort string
+
+	ProfileHost string
+	ProfilePort string
+
+	ConnectionHost string
+	ConnectionPort string
 }
 
 func NewConfig() *Config {
@@ -16,6 +22,12 @@ func NewConfig() *Config {
 		Port:          goDotEnvVariable("MESSAGE_SERVICE_PORT"),
 		MessageDBHost: goDotEnvVariable("MONGO_DB_HOST"),
 		MessageDBPort: goDotEnvVariable("MONGO_DB_PORT"),
+
+		ProfileHost: goDotEnvVariable("PROFILE_SERVICE_HOST"),
+		ProfilePort: goDotEnvVariable("PROFILE_SERVICE_PORT"),
+
+		ConnectionHost: goDotEnvVariable("CONNECTION_SERVICE_HOST"),
+		ConnectionPort: goDotEnvVariable("CONNECTION_SERVICE_PORT"),
 	}
 }
 

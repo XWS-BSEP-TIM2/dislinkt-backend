@@ -94,7 +94,22 @@ service ConnectionService{
     };
   }
 
+  rpc GetMyContacts(GetMyContactsRequest) returns(ContactsResponse) {}
 
+
+}
+
+message GetMyContactsRequest{
+  string userID = 1;
+}
+
+message Contact{
+  string userID = 1;
+  string msgID = 2;
+}
+
+message ContactsResponse{
+  repeated Contact contacts = 1;
 }
 
 message ChangePrivacyRequest{

@@ -20,3 +20,7 @@ func NewMessageHandler(service *application.MessageService) *MessageHandler {
 func (handler *MessageHandler) GetMyContacts(ctx context.Context, request *pb.GetMyContactsRequest) (*pb.MyContactsResponse, error) {
 	return handler.service.GetMyContacts(ctx, request)
 }
+
+func (handler *MessageHandler) GetChat(ctx context.Context, request *pb.GetChatRequest) (*pb.ChatResponse, error) {
+	return handler.service.GetChat(ctx, request)
+}

@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"context"
 	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
@@ -742,4 +743,35 @@ func (store *ConnectionDBStore) ChangePrivacy(userID string, private bool) (*pb.
 	} else {
 		return result.(*pb.ActionResult), err
 	}
+}
+
+func (store *ConnectionDBStore) GetMyContacts(ctx context.Context, request *pb.GetMyContactsRequest) (*pb.ContactsResponse, error) {
+
+	userID := request.UserID
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	contacts, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			"MATCH (this_user:USER) -[r:FRIEND]-> (my_friend:USER) WHERE this_user.userID=$uID RETURN my_friend.userID, r.msgID ",
+			map[string]interface{}{"uID": userID})
+
+		if err != nil {
+			return nil, err
+		}
+
+		var contacts []*pb.Contact
+		for result.Next() {
+			contacts = append(contacts, &pb.Contact{UserID: result.Record().Values[0].(string), MsgID: result.Record().Values[1].(string)})
+		}
+		return contacts, nil
+
+	})
+	if err != nil {
+		return nil, err
+	}
+	contactResponse := &pb.ContactsResponse{Contacts: contacts.([]*pb.Contact)}
+	return contactResponse, nil
+
 }

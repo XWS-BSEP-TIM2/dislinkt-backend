@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 )
 
@@ -19,4 +20,5 @@ type ConnectionStore interface {
 	GetConnectionDetail(userIDa, userIDb string) (*pb.ConnectionDetail, error)
 	GetFriendRequests(userID string) ([]UserConn, error)
 	ChangePrivacy(userID string, private bool) (*pb.ActionResult, error)
+	GetMyContacts(ctx context.Context, request *pb.GetMyContactsRequest) (*pb.ContactsResponse, error)
 }

@@ -35,6 +35,7 @@ type ConnectionServiceClient interface {
 	GetRecommendation(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*Users, error)
 	GetConnectionDetail(ctx context.Context, in *GetConnectionDetailRequest, opts ...grpc.CallOption) (*ConnectionDetail, error)
 	ChangePrivacy(ctx context.Context, in *ChangePrivacyRequest, opts ...grpc.CallOption) (*ActionResult, error)
+	GetMyContacts(ctx context.Context, in *GetMyContactsRequest, opts ...grpc.CallOption) (*ContactsResponse, error)
 }
 
 type connectionServiceClient struct {
@@ -162,6 +163,15 @@ func (c *connectionServiceClient) ChangePrivacy(ctx context.Context, in *ChangeP
 	return out, nil
 }
 
+func (c *connectionServiceClient) GetMyContacts(ctx context.Context, in *GetMyContactsRequest, opts ...grpc.CallOption) (*ContactsResponse, error) {
+	out := new(ContactsResponse)
+	err := c.cc.Invoke(ctx, "/connection_service.ConnectionService/GetMyContacts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ConnectionServiceServer is the server API for ConnectionService service.
 // All implementations must embed UnimplementedConnectionServiceServer
 // for forward compatibility
@@ -179,6 +189,7 @@ type ConnectionServiceServer interface {
 	GetRecommendation(context.Context, *GetRequest) (*Users, error)
 	GetConnectionDetail(context.Context, *GetConnectionDetailRequest) (*ConnectionDetail, error)
 	ChangePrivacy(context.Context, *ChangePrivacyRequest) (*ActionResult, error)
+	GetMyContacts(context.Context, *GetMyContactsRequest) (*ContactsResponse, error)
 	mustEmbedUnimplementedConnectionServiceServer()
 }
 
@@ -224,6 +235,9 @@ func (UnimplementedConnectionServiceServer) GetConnectionDetail(context.Context,
 }
 func (UnimplementedConnectionServiceServer) ChangePrivacy(context.Context, *ChangePrivacyRequest) (*ActionResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePrivacy not implemented")
+}
+func (UnimplementedConnectionServiceServer) GetMyContacts(context.Context, *GetMyContactsRequest) (*ContactsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMyContacts not implemented")
 }
 func (UnimplementedConnectionServiceServer) mustEmbedUnimplementedConnectionServiceServer() {}
 
@@ -472,6 +486,24 @@ func _ConnectionService_ChangePrivacy_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ConnectionService_GetMyContacts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyContactsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConnectionServiceServer).GetMyContacts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/connection_service.ConnectionService/GetMyContacts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConnectionServiceServer).GetMyContacts(ctx, req.(*GetMyContactsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ConnectionService_ServiceDesc is the grpc.ServiceDesc for ConnectionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -530,6 +562,10 @@ var ConnectionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangePrivacy",
 			Handler:    _ConnectionService_ChangePrivacy_Handler,
+		},
+		{
+			MethodName: "GetMyContacts",
+			Handler:    _ConnectionService_GetMyContacts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
