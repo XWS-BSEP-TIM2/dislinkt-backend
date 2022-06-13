@@ -16,6 +16,14 @@ type Chat struct {
 	Messages      []Message          `bson:"messages"`
 }
 
+func (c Chat) GetSeenDateByUserID(userID string) time.Time {
+	if userID == c.UserIDa {
+		return c.UserASeenDate
+	} else {
+		return c.UserBSeenDate
+	}
+}
+
 func NewChat(id, userIDa, userIDb string) Chat {
 	return Chat{Id: converter.GetObjectId(id), UserIDa: userIDa, UserIDb: userIDb}
 

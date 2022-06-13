@@ -129,9 +129,9 @@ type Message struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	AuthorUserID string                 `protobuf:"bytes,1,opt,name=authorUserID,proto3" json:"authorUserID,omitempty"`
-	Text         string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
-	Date         *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=date,proto3" json:"date,omitempty"`
+	AuthorUserID string                 `protobuf:"bytes,1,opt,name=authorUserID,proto3" json:"authorUserID"`
+	Text         string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text"`
+	Date         *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=date,proto3" json:"date"`
 }
 
 func (x *Message) Reset() {
@@ -298,8 +298,8 @@ type ChatPreview struct {
 	MsgID            string   `protobuf:"bytes,1,opt,name=msgID,proto3" json:"msgID,omitempty"`
 	UserID           string   `protobuf:"bytes,2,opt,name=userID,proto3" json:"userID,omitempty"`
 	FullNameUser     string   `protobuf:"bytes,3,opt,name=fullNameUser,proto3" json:"fullNameUser,omitempty"`
-	LastMessage      *Message `protobuf:"bytes,4,opt,name=lastMessage,proto3" json:"lastMessage,omitempty"`
-	NumOfNewMessages int32    `protobuf:"varint,5,opt,name=numOfNewMessages,proto3" json:"numOfNewMessages,omitempty"`
+	LastMessage      *Message `protobuf:"bytes,4,opt,name=lastMessage,proto3" json:"lastMessage"`
+	NumOfNewMessages int32    `protobuf:"varint,5,opt,name=numOfNewMessages,proto3" json:"numOfNewMessages"`
 }
 
 func (x *ChatPreview) Reset() {

@@ -8,7 +8,7 @@ import (
 
 var chats = []*domain.Chat{
 	{
-		Id:            getObjectId("11aa"),
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23e2"), // rasti djordje
 		UserIDa:       "62752bf27407f54ce1839cb9",
 		UserIDb:       "62752bf27407f54ce1839cb8",
 		UserASeenDate: time.Date(2022, time.June, 11, 16, 52, 14, 0, time.UTC),
@@ -37,7 +37,7 @@ var chats = []*domain.Chat{
 		},
 	},
 	{
-		Id:            getObjectId("11ab"),
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23e3"), // rasti nikola luburic
 		UserIDa:       "62752bf27407f54ce1839cb9",
 		UserIDb:       "62752bf27407f54ce1839cb4",
 		UserASeenDate: time.Date(2022, time.June, 12, 10, 0, 0, 0, time.UTC),
@@ -64,6 +64,43 @@ var chats = []*domain.Chat{
 				Date:         time.Date(2022, time.June, 6, 10, 2, 12, 0, time.UTC),
 			},
 		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23e5"),
+		UserIDa:       "62752bf27407f54ce1839cb7", //tara
+		UserIDb:       "62752bf27407f54ce1839cb9", //rasti
+		UserASeenDate: time.Date(2022, time.June, 13, 19, 11, 20, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 13, 19, 10, 5, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb9",
+				Text:         "Kako ide diplomski? :)",
+				Date:         time.Date(2022, time.June, 13, 19, 10, 4, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb7",
+				Text:         "Odlicno uradila sam ga jos pre 3 meseca, sada ispravljam rad menjam iz latinice u cirilicu",
+				Date:         time.Date(2022, time.June, 13, 19, 11, 15, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb7",
+				Text:         "Neke reci se ne mogu tako lako prevesti na cirilicu, haha",
+				Date:         time.Date(2022, time.June, 13, 19, 11, 20, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb7",
+				Text:         "Jesi li ti poceo diplomski da radis?",
+				Date:         time.Date(2022, time.June, 13, 19, 11, 20, 0, time.UTC),
+			},
+		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23e4"),
+		UserIDa:       "62752bf27407f54ce1839cb9", //rasti
+		UserIDb:       "62752bf27407f54ce1839cb6", // zarko
+		UserASeenDate: time.Date(2022, time.June, 14, 12, 47, 0, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 14, 12, 47, 0, 0, time.UTC),
+		Messages:      []domain.Message{},
 	},
 }
 

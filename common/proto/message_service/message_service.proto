@@ -50,7 +50,7 @@ message ChatPreview{
   string userID = 2;
   string fullNameUser = 3;
   Message lastMessage = 4;
-  int32 numOfNewMessages = 5;
+  int32 numOfNewMessages = 5;     //del omitempty
 }
 
 message MyContactsResponse{
