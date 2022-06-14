@@ -37,6 +37,14 @@ func (c Chat) GetOtherUserID(myUserID string) string {
 	return c.UserIDa
 }
 
+func (c Chat) UpdateAuthorSeenDate(authorID string, time time.Time) {
+	if c.UserIDa == authorID {
+		c.UserASeenDate = time
+	} else if c.UserIDb == authorID {
+		c.UserBSeenDate = time
+	}
+}
+
 func NewChat(id, userIDa, userIDb string) Chat {
 	return Chat{Id: converter.GetObjectId(id), UserIDa: userIDa, UserIDb: userIDb}
 

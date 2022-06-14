@@ -153,3 +153,64 @@ func mapChat(chat *domain.Chat, myUserID string) *pb.Chat {
 
 	return pbChat
 }
+
+func (service *MessageService) SendMessage(ctx context.Context, request *pb.SendMessageRequest) (*pb.ActionResult, error) {
+	actionResult := &pb.ActionResult{Msg: "Error", Status: 404}
+	msgID := request.MsgID
+	chat, err := service.store.GetChat(ctx, msgID)
+	if err != nil {
+		fmt.Println("Error: ", err.Error())
+		return actionResult, err
+	}
+	authorUserID := request.AuthorUserID
+	if !chat.HaveUserID(authorUserID) {
+		actionResult.Msg = "Error: Not your chat"
+		return actionResult, err
+	}
+
+	text := request.Text
+	t := time.Now()
+	chat.Messages = append(chat.Messages, domain.Message{AuthorUserID: authorUserID, Text: text, Date: t})
+	if chat.UserIDa == authorUserID {
+		chat.UserASeenDate = time.Now()
+	} else if chat.UserIDb == authorUserID {
+		chat.UserBSeenDate = time.Now()
+	}
+	errUpdate := service.store.UpdateWithMessages(ctx, chat)
+	if errUpdate != nil {
+		actionResult.Msg = errUpdate.Error()
+		return actionResult, errUpdate
+	}
+
+	return actionResult, nil
+}
+
+func (service *MessageService) SetSeen(ctx context.Context, request *pb.SetSeenRequest) (*pb.ActionResult, error) {
+	actionResult := &pb.ActionResult{Msg: "Error", Status: 404}
+	msgID := request.MsgID
+	chat, err := service.store.GetChat(ctx, msgID)
+	if err != nil {
+		fmt.Println("Error: ", err.Error())
+		return actionResult, err
+	}
+	userID := request.UserID
+	if !chat.HaveUserID(userID) {
+		actionResult.Msg = "Error: Not your chat"
+		return actionResult, err
+	}
+
+	if chat.UserIDa == userID {
+		chat.UserASeenDate = time.Now()
+	} else if chat.UserIDb == userID {
+		chat.UserBSeenDate = time.Now()
+	}
+	errUpdate := service.store.Update(ctx, chat)
+	if errUpdate != nil {
+		actionResult.Msg = errUpdate.Error()
+		return actionResult, errUpdate
+	}
+
+	actionResult.Msg = "Set seen successfully"
+	actionResult.Status = 200
+	return actionResult, nil
+}

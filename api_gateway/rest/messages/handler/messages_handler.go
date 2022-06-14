@@ -43,9 +43,31 @@ func (handler *MessageHandler) GetChat(ctx *gin.Context) {
 }
 
 func (handler *MessageHandler) SendMessage(ctx *gin.Context) {
-
+	messageService := handler.grpcClient.MessageClient
+	sendMessageDto := pbMessages.SendMessageRequest{}
+	if err := ctx.BindJSON(&sendMessageDto); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	res, err := messageService.SendMessage(ctx, &sendMessageDto)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, &res)
 }
 
 func (handler *MessageHandler) SetSeen(ctx *gin.Context) {
-
+	messageService := handler.grpcClient.MessageClient
+	setSeenDto := pbMessages.SetSeenRequest{}
+	if err := ctx.BindJSON(&setSeenDto); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	res, err := messageService.SetSeen(ctx, &setSeenDto)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, &res)
 }

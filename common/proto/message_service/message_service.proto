@@ -12,9 +12,18 @@ service MessageService{
   rpc GetMyContacts(GetMyContactsRequest) returns(MyContactsResponse){}
 
   rpc GetChat(GetChatRequest) returns (ChatResponse){}
-  
+
+  rpc SendMessage(SendMessageRequest) returns(ActionResult){}
+
+  rpc SetSeen(SetSeenRequest) returns(ActionResult){}
 
 }
+
+message ActionResult{
+  int64 status = 1;
+  string msg = 2;
+}
+
 
 message GetMyContactsRequest{
   string userID = 1;
@@ -59,6 +68,20 @@ message MyContactsResponse{
 
 message ChatResponse{
   Chat chat = 1;
+}
+
+message SendMessageRequest{
+  string msgID = 1;
+  string authorUserID = 2;
+  string receiverUserID = 3;
+  string text = 4;
+  google.protobuf.Timestamp date = 5;
+}
+
+message SetSeenRequest{
+  string msgID = 1;
+  string userID = 2;
+  google.protobuf.Timestamp date = 3;
 }
 
 
