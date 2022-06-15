@@ -6,14 +6,16 @@ import (
 )
 
 type Config struct {
-	Host string
-	Port string
+	Host     string
+	Port     string
+	FilePath string
 }
 
 func NewConfig() *Config {
 	return &Config{
-		Host: goDotEnvVariable("LOGGING_SERVICE_HOST"),
-		Port: goDotEnvVariable("LOGGING_SERVICE_PORT"),
+		Host:     goDotEnvVariable("LOGGING_SERVICE_HOST"),
+		Port:     goDotEnvVariable("LOGGING_SERVICE_PORT"),
+		FilePath: goDotEnvVariable("LOGGING_FILE_PATH"),
 	}
 }
 

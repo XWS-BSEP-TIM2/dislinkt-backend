@@ -1,0 +1,3 @@
+5dca824d-ad9b-4181-a123-a2819f7b7e84 | 2022-06-15 13:33:53.2684391 +0000 UTC | LOG_SERVICE | Start | SUCCESS | rasti | localHost | Testiramo da li ovo radi
+1e3d7a90-c3f5-40cc-a966-06f70bae9cbe | 2022-06-15 13:34:14.8970585 +0000 UTC | LOG_SERVICE | Start | SUCCESS | rasti | localHost | Testiramo da li ovo radi
+98295ee7-58e1-4013-8915-1abebd6915b4 | 2022-06-15 13:34:34.0055216 +0000 UTC | LOG_SERVICE | Start | SUCCESS | rasti | localHost | Testiramo da li ovo radi

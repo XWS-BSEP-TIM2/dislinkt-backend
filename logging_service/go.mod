@@ -6,7 +6,9 @@ replace github.com/XWS-BSEP-TIM2/dislinkt-backend/common => ../common
 
 require (
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-00010101000000-000000000000
+	github.com/google/uuid v1.1.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
+	github.com/joho/godotenv v1.4.0
 	go.mongodb.org/mongo-driver v1.9.0
 	google.golang.org/grpc v1.45.0
 	google.golang.org/protobuf v1.27.1
@@ -17,7 +19,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0 // indirect
-	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
