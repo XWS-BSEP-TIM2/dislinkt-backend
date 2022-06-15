@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/converter"
+	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	"google.golang.org/grpc/peer"
 	"net/http"
 	"time"
 
@@ -20,13 +22,15 @@ type AuthHandler struct {
 	Jwt                 utils.JwtWrapper
 	passwordlessService *application.PasswordlessTokenService
 	apiTokenService     *application.ApiTokenService
+	LoggingService      pbLogg.LoggingServiceClient
 }
 
-func NewAuthHandler(service *application.AuthService, passwordlessServices *application.PasswordlessTokenService, apiTokenService *application.ApiTokenService) *AuthHandler {
+func NewAuthHandler(service *application.AuthService, passwordlessServices *application.PasswordlessTokenService, apiTokenService *application.ApiTokenService, loggingService pbLogg.LoggingServiceClient) *AuthHandler {
 	return &AuthHandler{
 		userService:         service,
 		passwordlessService: passwordlessServices,
 		apiTokenService:     apiTokenService,
+		LoggingService:      loggingService,
 	}
 }
 
@@ -35,9 +39,10 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 	var user domain.User
 	user1, _ := handler.userService.GetByUsername(ctx, request.Username)
 	if user1 != nil {
+		handler.logg(ctx, "ERROR", "Register", request.Username, "Username is not unique")
 		return &pb.RegisterResponse{
 			Status: http.StatusUnprocessableEntity,
-			Error:  "Description is not unique",
+			Error:  "Username is not unique",
 			UserID: "",
 		}, nil
 	}
@@ -66,6 +71,7 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 		fmt.Println("Error:", errSendVerification.Error())
 	}
 
+	handler.logg(ctx, "SUCCESS", "Register", request.Username, "Successfully register new user")
 	return &pb.RegisterResponse{
 		Status: http.StatusCreated,
 		UserID: userID,
@@ -74,7 +80,8 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 }
 
 func (handler *AuthHandler) Verify(ctx context.Context, req *pb.VerifyRequest) (*pb.VerifyResponse, error) {
-	return handler.userService.Verify(ctx, req.Username, req.Code)
+	ret, err := handler.userService.Verify(ctx, req.Username, req.Code)
+	return ret, err
 }
 
 func (handler *AuthHandler) ResendVerify(ctx context.Context, req *pb.ResendVerifyRequest) (*pb.ResendVerifyResponse, error) {
@@ -97,20 +104,28 @@ func (handler *AuthHandler) Recover(ctx context.Context, req *pb.RecoveryRequest
 }
 
 func (handler *AuthHandler) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.ChangePasswordResponse, error) {
-	return handler.userService.ChangePassword(ctx, req)
+	ret, err := handler.userService.ChangePassword(ctx, req)
+	if ret.Status == 200 {
+		handler.logg(ctx, "SUCCESS", "ChangePassword", req.Username, ret.Msg)
+	} else {
+		handler.logg(ctx, "ERROR", "ChangePassword", req.Username, ret.Msg)
+	}
+	return ret, err
 }
 
 func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 
 	user, err := handler.userService.GetByUsername(ctx, req.Username)
 	if err != nil {
+		handler.logg(ctx, "WARNING", "Login", "", "Username or password is incorrect")
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
-			Error:  "Description or password is incorrect",
+			Error:  "Username or password is incorrect",
 		}, nil
 	}
 
 	if user.Locked {
+		handler.logg(ctx, "WARNING", "Login", user.Id.Hex(), "Acc is locked")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  user.LockReason,
@@ -118,6 +133,7 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	}
 
 	if !user.Verified {
+		handler.logg(ctx, "WARNING", "Login", user.Id.Hex(), "Your Acc is not verified")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  "Your Acc is not verified",
@@ -125,16 +141,19 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	}
 
 	if user.NumOfErrTryLogin == 5 && !user.LastErrTryLoginTime.Add(1*time.Hour).Before(time.Now()) {
+		handler.logg(ctx, "WARNING", "Login", user.Id.Hex(), fmt.Sprint(user.NumOfErrTryLogin)+" failed login attempts")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  fmt.Sprint(user.NumOfErrTryLogin) + " failed login attempts, you will be able to login after " + fmt.Sprintf("%f", user.LastErrTryLoginTime.Add(1*time.Hour).Sub(time.Now()).Minutes()) + " minutes",
 		}, nil
 	} else if user.NumOfErrTryLogin == 4 && !user.LastErrTryLoginTime.Add(15*time.Minute).Before(time.Now()) {
+		handler.logg(ctx, "WARNING", "Login", user.Id.Hex(), fmt.Sprint(user.NumOfErrTryLogin)+" failed login attempts")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  fmt.Sprint(user.NumOfErrTryLogin) + " failed login attempts, you will be able to login after " + fmt.Sprintf("%f", user.LastErrTryLoginTime.Add(15*time.Minute).Sub(time.Now()).Minutes()) + " minutes",
 		}, nil
 	} else if user.NumOfErrTryLogin == 3 && !user.LastErrTryLoginTime.Add(3*time.Minute).Before(time.Now()) {
+		handler.logg(ctx, "WARNING", "Login", user.Id.Hex(), fmt.Sprint(user.NumOfErrTryLogin)+" failed login attempts")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  fmt.Sprint(user.NumOfErrTryLogin) + " failed login attempts, you will be able to login after " + fmt.Sprintf("%f", user.LastErrTryLoginTime.Add(3*time.Minute).Sub(time.Now()).Minutes()) + " minutes",
@@ -143,16 +162,18 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 
 	match := utils.CheckPasswordHash(req.Password, user.Password)
 	if !match {
+		handler.logg(ctx, "ERROR", "Login", user.Id.Hex(), "Username or password is incorrect")
 		user.NumOfErrTryLogin += 1
 		user.LastErrTryLoginTime = time.Now()
 		if user.NumOfErrTryLogin >= 6 {
 			user.Locked = true
 			user.LockReason = "your account is locked, due to many incorrect login attempts"
+			handler.logg(ctx, "INFO", "Login", user.Id.Hex(), "account is locked, due to many incorrect login attempts")
 		}
 		handler.userService.Update(ctx, user)
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
-			Error:  "Description or password is incorrect",
+			Error:  "Username or password is incorrect",
 		}, nil
 	}
 
@@ -171,6 +192,7 @@ func (handler *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	user.NumOfErrTryLogin = 0
 	handler.userService.Update(ctx, user)
 
+	handler.logg(ctx, "SUCCESS", "Login", user.Id.Hex(), "successfully login")
 	return &pb.LoginResponse{
 		Status:    http.StatusOK,
 		Token:     token,
@@ -185,6 +207,7 @@ func (handler *AuthHandler) Validate(ctx context.Context, req *pb.ValidateReques
 	claims, err := handler.Jwt.ValidateToken(req.Token)
 
 	if err != nil {
+		handler.logg(ctx, "ERROR", "Validate", "", "Invalid JWT")
 		return &pb.ValidateResponse{
 			Status: http.StatusBadRequest,
 			Error:  err.Error(),
@@ -229,12 +252,14 @@ func (handler *AuthHandler) ExtractDataFromToken(ctx context.Context, req *pb.Ex
 func (handler *AuthHandler) PasswordlessLogin(ctx context.Context, request *pb.PasswordlessLoginRequest) (*pb.LoginResponse, error) {
 	token, err := handler.passwordlessService.GetByTokenCode(ctx, request.TokenCode)
 	if err != nil {
+		handler.logg(ctx, "ERROR", "PasswordlessLogin", "", "Token does not exist")
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
 			Error:  "Token does not exist",
 		}, nil
 	}
 	if token.CreationDate.Add(15 * time.Minute).Before(time.Now()) {
+		handler.logg(ctx, "ERROR", "PasswordlessLogin", "", "Token is expired")
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
 			Error:  "Token is expired",
@@ -245,13 +270,15 @@ func (handler *AuthHandler) PasswordlessLogin(ctx context.Context, request *pb.P
 
 	user, err := handler.userService.Get(ctx, token.UserId)
 	if err != nil {
+		handler.logg(ctx, "ERROR", "PasswordlessLogin", user.Id.Hex(), "Username or password is incorrect")
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
-			Error:  "Description or password is incorrect",
+			Error:  "Username or password is incorrect",
 		}, nil
 	}
 
 	if user.Locked {
+		handler.logg(ctx, "ERROR", "PasswordlessLogin", user.Id.Hex(), "Acc is locked")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  user.LockReason,
@@ -259,6 +286,7 @@ func (handler *AuthHandler) PasswordlessLogin(ctx context.Context, request *pb.P
 	}
 
 	if !user.Verified {
+		handler.logg(ctx, "ERROR", "PasswordlessLogin", user.Id.Hex(), "Your Acc is not verified")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  "Your Acc is not verified",
@@ -266,16 +294,19 @@ func (handler *AuthHandler) PasswordlessLogin(ctx context.Context, request *pb.P
 	}
 
 	if user.NumOfErrTryLogin == 5 && !user.LastErrTryLoginTime.Add(1*time.Hour).Before(time.Now()) {
+		handler.logg(ctx, "ERROR", "PasswordlessLogin", user.Id.Hex(), fmt.Sprint(user.NumOfErrTryLogin)+" failed login attempts")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  fmt.Sprint(user.NumOfErrTryLogin) + " failed login attempts, you will be able to login after " + fmt.Sprintf("%f", user.LastErrTryLoginTime.Add(1*time.Hour).Sub(time.Now()).Minutes()) + " minutes",
 		}, nil
 	} else if user.NumOfErrTryLogin == 4 && !user.LastErrTryLoginTime.Add(15*time.Minute).Before(time.Now()) {
+		handler.logg(ctx, "ERROR", "PasswordlessLogin", user.Id.Hex(), fmt.Sprint(user.NumOfErrTryLogin)+" failed login attempts")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  fmt.Sprint(user.NumOfErrTryLogin) + " failed login attempts, you will be able to login after " + fmt.Sprintf("%f", user.LastErrTryLoginTime.Add(15*time.Minute).Sub(time.Now()).Minutes()) + " minutes",
 		}, nil
 	} else if user.NumOfErrTryLogin == 3 && !user.LastErrTryLoginTime.Add(3*time.Minute).Before(time.Now()) {
+		handler.logg(ctx, "ERROR", "PasswordlessLogin", user.Id.Hex(), fmt.Sprint(user.NumOfErrTryLogin)+" failed login attempts")
 		return &pb.LoginResponse{
 			Status: http.StatusForbidden,
 			Error:  fmt.Sprint(user.NumOfErrTryLogin) + " failed login attempts, you will be able to login after " + fmt.Sprintf("%f", user.LastErrTryLoginTime.Add(3*time.Minute).Sub(time.Now()).Minutes()) + " minutes",
@@ -284,6 +315,7 @@ func (handler *AuthHandler) PasswordlessLogin(ctx context.Context, request *pb.P
 
 	tokenJwt, _ := handler.Jwt.GenerateToken(user)
 
+	handler.logg(ctx, "SUCCESS", "PasswordlessLogin", user.Id.Hex(), "Successfully login")
 	return &pb.LoginResponse{
 		Status:   http.StatusOK,
 		Token:    tokenJwt,
@@ -308,6 +340,7 @@ func (handler *AuthHandler) SendEmailForPasswordlessLogin(ctx context.Context, r
 	}
 	handler.passwordlessService.Create(ctx, &token)
 	handler.passwordlessService.SendMagicLink(ctx, user, tokenCode)
+	handler.logg(ctx, "SUCCESS", "SendEmailForPasswordlessLogin", user.Id.Hex(), "Successfully send magic link")
 	return &pb.SendEmailForPasswordLoginResponse{
 		Error: "",
 	}, err
@@ -323,14 +356,18 @@ func getObjectId(id string) primitive.ObjectID {
 func (handler *AuthHandler) GenerateApiToken(ctx context.Context, request *pb.ApiTokenRequest) (*pb.ApiTokenResponse, error) {
 	user, _ := handler.userService.Get(ctx, getObjectId(request.UserId))
 	if user == nil {
+		handler.logg(ctx, "ERROR", "GenerateApiToken", user.Id.Hex(), "User ID does not exist")
 		error := pb.ErrorResponse{ErrorCode: 500, Message: "User ID does not exist"}
 		return &pb.ApiTokenResponse{Error: &error}, nil
 	}
 	tokenCode, err := handler.apiTokenService.Create(ctx, getObjectId(request.UserId))
 	if err != nil {
+		handler.logg(ctx, "ERROR", "GenerateApiToken", user.Id.Hex(), "Unable to create api token")
 		error := pb.ErrorResponse{ErrorCode: 500, Message: "Unable to create api token"}
 		return &pb.ApiTokenResponse{Error: &error}, nil
 	}
+
+	handler.logg(ctx, "SUCCESS", "GenerateApiToken", user.Id.Hex(), "Successfully generated api token")
 	return &pb.ApiTokenResponse{TokenCode: tokenCode, Error: nil}, nil
 }
 
@@ -359,20 +396,24 @@ func (handler *AuthHandler) GetApiToken(ctx context.Context, request *pb.GetApiT
 func (handler *AuthHandler) GenerateQr2TF(ctx context.Context, request *pb.UserIdRequest) (*pb.TFAResponse, error) {
 	qrCode, err := handler.userService.GenerateQR2FA(ctx, converter.GetObjectId(request.UserId))
 	if err != nil {
+		handler.logg(ctx, "ERROR", "GenerateQr2TF", request.UserId, "Unable to generate qr code")
 		error := pb.ErrorResponse{ErrorCode: 500, Message: "Unable to generate qr code"}
 		return &pb.TFAResponse{Error: &error}, nil
 	}
+	handler.logg(ctx, "SUCCESS", "GenerateQr2TF", request.UserId, "Successfully generated qr code")
 	return &pb.TFAResponse{QrCode: qrCode}, nil
 }
 
 func (handler *AuthHandler) Verify2FactorCode(ctx context.Context, request *pb.TFARequest) (*pb.LoginResponse, error) {
 	err := handler.userService.Verify2fa(ctx, converter.GetObjectId(request.UserId), request.Code)
 	if err != nil {
+		handler.logg(ctx, "ERROR", "Verify2FactorCode", request.UserId, "Wrong code")
 		return &pb.LoginResponse{Status: 401, Error: "Wrong code"}, nil
 	}
 
 	user, err := handler.userService.Get(ctx, converter.GetObjectId(request.UserId))
 	if err != nil {
+		handler.logg(ctx, "ERROR", "Verify2FactorCode", request.UserId, "Wrong code")
 		return &pb.LoginResponse{Status: 401, Error: "Wrong code"}, nil
 	}
 
@@ -381,6 +422,7 @@ func (handler *AuthHandler) Verify2FactorCode(ctx context.Context, request *pb.T
 	user.NumOfErrTryLogin = 0
 	handler.userService.Update(ctx, user)
 
+	handler.logg(ctx, "SUCCESS", "Verify2FactorCode", request.UserId, "Successfully verified two factor auth code")
 	return &pb.LoginResponse{
 		Status:    http.StatusOK,
 		Token:     token,
@@ -400,4 +442,21 @@ func (handler *AuthHandler) EditData(ctx context.Context, request *pb.EditDataRe
 
 	handler.userService.Update(ctx, userCredentials)
 	return &pb.EditDataResponse{}, nil
+}
+
+func (handler *AuthHandler) logg(ctx context.Context, logType, serviceFunctionName, userID, description string) {
+	ipAddress := ""
+	p, ok := peer.FromContext(ctx)
+	if ok {
+		ipAddress = p.Addr.String()
+	}
+	if logType == "ERROR" {
+		handler.LoggingService.LoggError(ctx, &pbLogg.LogRequest{ServiceName: "AUTH_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "SUCCESS" {
+		handler.LoggingService.LoggSuccess(ctx, &pbLogg.LogRequest{ServiceName: "AUTH_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "WARNING" {
+		handler.LoggingService.LoggWarning(ctx, &pbLogg.LogRequest{ServiceName: "AUTH_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "INFO" {
+		handler.LoggingService.LoggInfo(ctx, &pbLogg.LogRequest{ServiceName: "AUTH_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	}
 }

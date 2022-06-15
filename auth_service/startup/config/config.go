@@ -16,6 +16,8 @@ type Config struct {
 	ApiGatwayPort      string
 	Email              string
 	PasswordEmail      string
+	LoggingHost        string
+	LoggingPort        string
 }
 
 func NewConfig() *Config {
@@ -34,6 +36,9 @@ func NewConfig() *Config {
 
 		Email:         goDotEnvVariable("DISLINKT_EMAIL"),
 		PasswordEmail: goDotEnvVariable("EMAIL_PASSWORD"),
+
+		LoggingHost: goDotEnvVariable("LOGGING_SERVICE_HOST"),
+		LoggingPort: goDotEnvVariable("LOGGING_SERVICE_PORT"),
 	}
 }
 

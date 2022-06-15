@@ -3,7 +3,13 @@ package startup
 import (
 	"context"
 	"fmt"
+
+	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
+
+	"log"
+	"net"
 
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
@@ -13,8 +19,6 @@ import (
 	auth "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
-	"log"
-	"net"
 )
 
 type Server struct {
@@ -32,12 +36,15 @@ func (server *Server) Start() {
 	credentialStore := server.initCredentialStore(mongoClient)
 	passwordlessTokenStore := server.initPasswordlessTokenStore(mongoClient)
 	apiTokenStore := server.initApiTokenStore(mongoClient)
+
+	loggingService := server.initLoggingService()
+
 	emailService := server.initEmailService()
-	authService := server.initAuthService(credentialStore, emailService)
+	authService := server.initAuthService(credentialStore, emailService, loggingService)
 	apiTokenService := server.initApiTokenService(apiTokenStore)
 	passwordlessLoginService := server.initPasswordlessLoginService(passwordlessTokenStore, emailService)
 
-	authHandler := server.initAuthHandler(authService, passwordlessLoginService, apiTokenService)
+	authHandler := server.initAuthHandler(authService, passwordlessLoginService, apiTokenService, loggingService)
 
 	server.startGrpcServer(authHandler)
 }
@@ -67,13 +74,13 @@ func (server *Server) initPasswordlessTokenStore(client *mongo.Client) persisten
 	return store
 }
 
-func (server *Server) initAuthService(store domain.UserStore, emailService *application.EmailService) *application.AuthService {
+func (server *Server) initAuthService(store domain.UserStore, emailService *application.EmailService, loggingService pbLogg.LoggingServiceClient) *application.AuthService {
 	profileServiceEndpoint := fmt.Sprintf("%s:%s", server.config.ProfileServiceHost, server.config.ProfileServicePort)
-	return application.NewAuthService(store, profileServiceEndpoint, emailService)
+	return application.NewAuthService(store, profileServiceEndpoint, emailService, loggingService)
 }
 
-func (server *Server) initAuthHandler(service *application.AuthService, passwordlessService *application.PasswordlessTokenService, tokenService *application.ApiTokenService) *api.AuthHandler {
-	return api.NewAuthHandler(service, passwordlessService, tokenService)
+func (server *Server) initAuthHandler(service *application.AuthService, passwordlessService *application.PasswordlessTokenService, tokenService *application.ApiTokenService, loggingService pbLogg.LoggingServiceClient) *api.AuthHandler {
+	return api.NewAuthHandler(service, passwordlessService, tokenService, loggingService)
 }
 
 func (server *Server) startGrpcServer(authHandler *api.AuthHandler) {
@@ -115,4 +122,18 @@ func (server *Server) initApiTokenStore(client *mongo.Client) persistence.ApiTok
 
 func (server *Server) initApiTokenService(store persistence.ApiTokenMongoDBStore) *application.ApiTokenService {
 	return application.NewApiTokenService(&store)
+}
+
+func (server *Server) initLoggingService() pbLogg.LoggingServiceClient {
+	address := fmt.Sprintf("%s:%s", server.config.LoggingHost, server.config.LoggingPort)
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("Gateway faild to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
+	}
+	return pbLogg.NewLoggingServiceClient(conn)
+}
+
+func getConnection(address string) (*grpc.ClientConn, error) {
+	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 }

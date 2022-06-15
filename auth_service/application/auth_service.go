@@ -8,9 +8,11 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/utils"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	dgoogauth "github.com/dgryski/dgoogauth"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/grpc/peer"
 	"net/http"
 	"net/url"
 	qr "rsc.io/qr"
@@ -21,13 +23,15 @@ type AuthService struct {
 	store                 domain.UserStore
 	profileServiceAddress string
 	emailService          *EmailService
+	LoggingService        pbLogg.LoggingServiceClient
 }
 
-func NewAuthService(store domain.UserStore, profileServiceAddress string, emailService *EmailService) *AuthService {
+func NewAuthService(store domain.UserStore, profileServiceAddress string, emailService *EmailService, loggingService pbLogg.LoggingServiceClient) *AuthService {
 	return &AuthService{
 		store:                 store,
 		profileServiceAddress: profileServiceAddress,
 		emailService:          emailService,
+		LoggingService:        loggingService,
 	}
 }
 
@@ -56,7 +60,6 @@ func (service *AuthService) GetByEmail(ctx context.Context, email string) (*doma
 }
 
 func (service *AuthService) SendVerification(ctx context.Context, user *domain.User) error {
-	fmt.Println("DOSLI SMO U METODU AuthService:SendVerification", user.Email)
 	return service.emailService.SendVerificationEmail(user.Email, user.Username, user.VerificationCode)
 }
 
@@ -67,14 +70,17 @@ func (service *AuthService) Update(ctx context.Context, user *domain.User) error
 func (service *AuthService) Verify(ctx context.Context, username string, code string) (*authService.VerifyResponse, error) {
 	user, err := service.store.GetByUsername(ctx, username)
 	if err != nil {
+		service.logg(ctx, "ERROR", "Verify", "", "User not found")
 		return &authService.VerifyResponse{Verified: false, Msg: "User not found"}, err
 	}
 
 	if user.Verified {
+		service.logg(ctx, "ERROR", "Verify", user.Id.Hex(), "The user has already been verified")
 		return &authService.VerifyResponse{Verified: true, Msg: "The user has already been verified"}, nil
 	}
 
 	if user.VerificationCodeTime.Add(10 * time.Minute).Before(time.Now()) {
+		service.logg(ctx, "ERROR", "Verify", user.Id.Hex(), "The verification code is no longer valid")
 		return &authService.VerifyResponse{Verified: false, Msg: "The verification code is no longer valid"}, nil
 	}
 
@@ -84,18 +90,22 @@ func (service *AuthService) Verify(ctx context.Context, username string, code st
 		if errUpdate != nil {
 			return &authService.VerifyResponse{Verified: false, Msg: "error"}, errUpdate
 		}
+		service.logg(ctx, "SUCCESS", "Verify", user.Id.Hex(), "you have successfully verified your account")
 		return &authService.VerifyResponse{Verified: true, Msg: "you have successfully verified your account"}, nil
 	}
+	service.logg(ctx, "ERROR", "Verify", user.Id.Hex(), "verification code did not match")
 	return &authService.VerifyResponse{Verified: false, Msg: "error"}, nil
 }
 
 func (service *AuthService) Recovery(ctx context.Context, username string) (*authService.RecoveryResponse, error) {
 	user, err := service.store.GetByUsername(ctx, username)
 	if err != nil {
+		service.logg(ctx, "ERROR", "Recovery", "", "User not found")
 		return &authService.RecoveryResponse{Status: 1, Msg: "User not found"}, err
 	}
 
 	if !user.Verified {
+		service.logg(ctx, "ERROR", "Recovery", user.Id.Hex(), "Recovery error: Your Acc is not verified")
 		return &authService.RecoveryResponse{Status: 5, Msg: "Recovery error: Your Acc is not verified"}, nil
 	}
 
@@ -109,6 +119,7 @@ func (service *AuthService) Recovery(ctx context.Context, username string) (*aut
 
 	errSendEmail := service.emailService.SendRecoveryEmail(user.Email, user.Username, recoveryCode)
 	if errSendEmail != nil {
+		service.logg(ctx, "ERROR", "Recovery", user.Id.Hex(), "Error sending email")
 		return &authService.RecoveryResponse{Status: 2, Msg: "Error sending email"}, errSendEmail
 	}
 
@@ -117,6 +128,7 @@ func (service *AuthService) Recovery(ctx context.Context, username string) (*aut
 		return &authService.RecoveryResponse{Status: 3, Msg: "Error"}, errUpdate
 	}
 
+	service.logg(ctx, "SUCCESS", "Recovery", user.Id.Hex(), "Successfully sent recovery code")
 	return &authService.RecoveryResponse{Status: 4, Msg: "Check your email, we sent you recovery code"}, nil
 }
 
@@ -127,10 +139,12 @@ func (service *AuthService) Recover(ctx context.Context, req *authService.Recove
 
 	user, err := service.store.GetByUsername(ctx, req.Username)
 	if err != nil {
+		service.logg(ctx, "ERROR", "Recover", "", "User not found")
 		return &authService.LoginResponse{Status: http.StatusBadRequest, Error: "User not found"}, err
 	}
 
 	if user.RecoveryPasswordCodeTime.Add(5 * time.Minute).Before(time.Now()) {
+		service.logg(ctx, "ERROR", "Recover", user.Id.Hex(), "The recovery code is no longer valid")
 		return &authService.LoginResponse{Status: http.StatusNotAcceptable, Error: "The recovery code is no longer valid"}, nil
 	}
 
@@ -142,6 +156,7 @@ func (service *AuthService) Recover(ctx context.Context, req *authService.Recove
 		user.NumOfErrTryLogin = 0
 		user.Password = utils.HashPassword(req.NewPassword)
 		service.Update(ctx, user)
+		service.logg(ctx, "SUCCESS", "Recover", user.Id.Hex(), "Successfully recovered Acc")
 		return &authService.LoginResponse{Status: http.StatusOK, Error: ""}, nil
 	}
 	return &authService.LoginResponse{Error: "Error"}, nil
@@ -167,9 +182,11 @@ func (service *AuthService) ResendVerify(ctx context.Context, username string) (
 
 	errSendEmail := service.emailService.SendVerificationEmail(user.Email, user.Username, user.VerificationCode)
 	if errSendEmail != nil {
+		service.logg(ctx, "ERROR", "ResendVerify", user.Id.Hex(), "Error sending email")
 		return &authService.ResendVerifyResponse{Msg: "error sending email"}, errSendEmail
 	}
 
+	service.logg(ctx, "SUCCESS", "ResendVerify", user.Id.Hex(), "Successfully send new verify code")
 	return &authService.ResendVerifyResponse{Msg: "Check your email, we sent you verification link"}, err
 }
 
@@ -187,7 +204,7 @@ func (service *AuthService) ChangePassword(ctx context.Context, req *authService
 	if !match {
 		return &authService.ChangePasswordResponse{
 			Status: http.StatusNotFound,
-			Msg:    "Description or password is incorrect",
+			Msg:    "Username or password is incorrect",
 		}, nil
 	}
 
@@ -261,4 +278,21 @@ func (service *AuthService) Verify2fa(ctx context.Context, userId primitive.Obje
 
 	return nil
 
+}
+
+func (service *AuthService) logg(ctx context.Context, logType, serviceFunctionName, userID, description string) {
+	ipAddress := ""
+	p, ok := peer.FromContext(ctx)
+	if ok {
+		ipAddress = p.Addr.String()
+	}
+	if logType == "ERROR" {
+		service.LoggingService.LoggError(ctx, &pbLogg.LogRequest{ServiceName: "AUTH_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "SUCCESS" {
+		service.LoggingService.LoggSuccess(ctx, &pbLogg.LogRequest{ServiceName: "AUTH_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "WARNING" {
+		service.LoggingService.LoggWarning(ctx, &pbLogg.LogRequest{ServiceName: "AUTH_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "INFO" {
+		service.LoggingService.LoggInfo(ctx, &pbLogg.LogRequest{ServiceName: "AUTH_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	}
 }
