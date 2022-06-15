@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
+	"google.golang.org/grpc/peer"
 	"time"
 )
 
@@ -15,12 +17,14 @@ const (
 )
 
 type ConnectionDBStore struct {
-	connectionDB *neo4j.Driver
+	connectionDB   *neo4j.Driver
+	LoggingService pbLogg.LoggingServiceClient
 }
 
-func NewConnectionDBStore(client *neo4j.Driver) domain.ConnectionStore {
+func NewConnectionDBStore(client *neo4j.Driver, loggingService pbLogg.LoggingServiceClient) domain.ConnectionStore {
 	return &ConnectionDBStore{
-		connectionDB: client,
+		connectionDB:   client,
+		LoggingService: loggingService,
 	}
 }
 
@@ -39,9 +43,9 @@ func (store *ConnectionDBStore) Init() {
 	})
 
 	if err != nil {
-		fmt.Println("Connection Graph Database INIT FAILED!!! ", err.Error())
+		fmt.Println("Connection Graph Database INIT - Failed", err.Error())
 	} else {
-		fmt.Println("Connection Graph Database INIT")
+		fmt.Println("Connection Graph Database INIT - Successfully")
 	}
 
 }
@@ -71,6 +75,7 @@ func (store *ConnectionDBStore) GetFriends(userID string) ([]domain.UserConn, er
 		return nil, err
 	}
 
+	store.logg(context.TODO(), "INFO", "GetFriends", userID, "")
 	return friends.([]domain.UserConn), nil
 }
 
@@ -99,6 +104,7 @@ func (store *ConnectionDBStore) GetBlockeds(userID string) ([]domain.UserConn, e
 		return nil, err
 	}
 
+	store.logg(context.TODO(), "INFO", "GetBlockeds", userID, "")
 	return blockedUsers.([]domain.UserConn), nil
 
 }
@@ -127,6 +133,7 @@ func (store *ConnectionDBStore) GetFriendRequests(userID string) ([]domain.UserC
 		return nil, err
 	}
 
+	store.logg(context.TODO(), "INFO", "GetFriendRequests", userID, "")
 	return friendsRequest.([]domain.UserConn), nil
 }
 
@@ -147,7 +154,7 @@ func (store *ConnectionDBStore) Register(userID string, isPrivate bool) (*pb.Act
 
 		_, err := transaction.Run(
 			"CREATE (new_user:USER{userID:$userID, isPrivate:$isPrivate})",
-			map[string]interface{}{"userID": userID, "isPrivate": isPrivate}) //TODO: promeniti u proto da bude isPrivate a ne isPublic, u Neo4J je isPrivate
+			map[string]interface{}{"userID": userID, "isPrivate": isPrivate})
 
 		if err != nil {
 			actionResult.Msg = "error while creating new node with ID:" + userID
@@ -164,6 +171,7 @@ func (store *ConnectionDBStore) Register(userID string, isPrivate bool) (*pb.Act
 	if result == nil {
 		return &pb.ActionResult{Msg: "error", Status: 500}, err
 	} else {
+		store.logg(context.TODO(), "SUCCESS", "Register", userID, "successfully created new user")
 		return result.(*pb.ActionResult), err
 	}
 }
@@ -177,6 +185,7 @@ func (store *ConnectionDBStore) AddFriend(userIDa, userIDb string) (*pb.ActionRe
 	*/
 
 	if userIDa == userIDb {
+		store.logg(context.TODO(), "WARNING", "AddFriend", userIDa, "userIDa is same as userIDb")
 		return &pb.ActionResult{Msg: "userIDa is same as userIDb", Status: 400}, nil
 	}
 
@@ -261,7 +270,13 @@ func (store *ConnectionDBStore) AddFriend(userIDa, userIDb string) (*pb.ActionRe
 	if result == nil {
 		return &pb.ActionResult{Msg: "error", Status: 500}, err
 	} else {
-		return result.(*pb.ActionResult), err
+		res := result.(*pb.ActionResult)
+		if res.Status == 400 {
+			store.logg(context.TODO(), "ERROR", "AddFriend", userIDa, res.Msg)
+		} else if res.Status == 201 {
+			store.logg(context.TODO(), "SUCCESS", "AddFriend", userIDa, res.Msg)
+		}
+		return res, err
 	}
 }
 
@@ -320,7 +335,13 @@ func (store *ConnectionDBStore) AddBlockUser(userIDa, userIDb string) (*pb.Actio
 	if result == nil {
 		return &pb.ActionResult{Msg: "error", Status: 500}, err
 	} else {
-		return result.(*pb.ActionResult), err
+		res := result.(*pb.ActionResult)
+		if res.Status == 400 {
+			store.logg(context.TODO(), "ERROR", "AddBlockUser", userIDa, res.Msg)
+		} else if res.Status == 200 {
+			store.logg(context.TODO(), "SUCCESS", "AddBlockUser", userIDa, res.Msg)
+		}
+		return res, err
 	}
 }
 
@@ -368,7 +389,13 @@ func (store *ConnectionDBStore) RemoveFriend(userIDa, userIDb string) (*pb.Actio
 	if result == nil {
 		return &pb.ActionResult{Msg: "error", Status: 500}, err
 	} else {
-		return result.(*pb.ActionResult), err
+		res := result.(*pb.ActionResult)
+		if res.Status == 400 {
+			store.logg(context.TODO(), "ERROR", "RemoveFriend", userIDa, res.Msg)
+		} else if res.Status == 200 {
+			store.logg(context.TODO(), "SUCCESS", "RemoveFriend", userIDa, res.Msg)
+		}
+		return res, err
 	}
 }
 
@@ -418,7 +445,13 @@ func (store *ConnectionDBStore) UnblockUser(userIDa, userIDb string) (*pb.Action
 	if result == nil {
 		return &pb.ActionResult{Msg: "error", Status: 500}, err
 	} else {
-		return result.(*pb.ActionResult), err
+		res := result.(*pb.ActionResult)
+		if res.Status == 400 {
+			store.logg(context.TODO(), "ERROR", "RemoveFriend", userIDa, res.Msg)
+		} else if res.Status == 200 {
+			store.logg(context.TODO(), "SUCCESS", "RemoveFriend", userIDa, res.Msg)
+		}
+		return res, err
 	}
 }
 
@@ -478,6 +511,7 @@ func (store *ConnectionDBStore) GetRecommendation(userID string) ([]*domain.User
 		return nil, err
 	}
 
+	store.logg(context.TODO(), "INFO", "GetRecommendation", userID, "")
 	return recommendation.([]*domain.UserConn), nil
 }
 
@@ -559,7 +593,13 @@ func (store *ConnectionDBStore) SendFriendRequest(userIDa, userIDb string) (*pb.
 	if result == nil {
 		return &pb.ActionResult{Msg: "error", Status: 500}, err
 	} else {
-		return result.(*pb.ActionResult), err
+		res := result.(*pb.ActionResult)
+		if res.Status == 400 {
+			store.logg(context.TODO(), "ERROR", "SendFriendRequest", userIDa, res.Msg)
+		} else if res.Status == 201 {
+			store.logg(context.TODO(), "SUCCESS", "SendFriendRequest", userIDa, res.Msg)
+		}
+		return res, err
 	}
 }
 
@@ -588,7 +628,7 @@ func (store *ConnectionDBStore) UnsendFriendRequest(userIDa, userIDb string) (*p
 				if checkIfFriendRequestExist(userIDa, userIDb, transaction) {
 					removeFriendRequest(userIDa, userIDb, transaction)
 					actionResult.Msg = "Users UserIDa:" + userIDa + " unsend friend request to UserIDb:" + userIDb
-					actionResult.Status = 200 //bad request
+					actionResult.Status = 200
 					return actionResult, nil
 				} else {
 					actionResult.Msg = "friend request do not exist"
@@ -608,7 +648,13 @@ func (store *ConnectionDBStore) UnsendFriendRequest(userIDa, userIDb string) (*p
 	if result == nil {
 		return &pb.ActionResult{Msg: "error", Status: 500}, err
 	} else {
-		return result.(*pb.ActionResult), err
+		res := result.(*pb.ActionResult)
+		if res.Status == 400 {
+			store.logg(context.TODO(), "ERROR", "UnsendFriendRequest", userIDa, res.Msg)
+		} else if res.Status == 200 {
+			store.logg(context.TODO(), "SUCCESS", "UnsendFriendRequest", userIDa, res.Msg)
+		}
+		return res, err
 	}
 }
 
@@ -691,6 +737,7 @@ func (store *ConnectionDBStore) GetConnectionDetail(userIDa, userIDb string) (*p
 	if result == nil {
 		return &pb.ConnectionDetail{Error: "error"}, err
 	} else {
+		store.logg(context.TODO(), "INFO", "GetConnectionDetail", userIDa, "")
 		return result.(*pb.ConnectionDetail), err
 	}
 }
@@ -741,7 +788,13 @@ func (store *ConnectionDBStore) ChangePrivacy(userID string, private bool) (*pb.
 	if result == nil {
 		return &pb.ActionResult{Msg: "error", Status: 500}, err
 	} else {
-		return result.(*pb.ActionResult), err
+		res := result.(*pb.ActionResult)
+		if res.Status == 400 {
+			store.logg(context.TODO(), "ERROR", "ChangePrivacy", userID, res.Msg)
+		} else if res.Status == 200 {
+			store.logg(context.TODO(), "SUCCESS", "ChangePrivacy", userID, res.Msg)
+		}
+		return res, err
 	}
 }
 
@@ -771,7 +824,25 @@ func (store *ConnectionDBStore) GetMyContacts(ctx context.Context, request *pb.G
 	if err != nil {
 		return nil, err
 	}
+	store.logg(context.TODO(), "INFO", "GetMyContacts", userID, "")
 	contactResponse := &pb.ContactsResponse{Contacts: contacts.([]*pb.Contact)}
 	return contactResponse, nil
 
+}
+
+func (store *ConnectionDBStore) logg(ctx context.Context, logType, serviceFunctionName, userID, description string) {
+	ipAddress := ""
+	p, ok := peer.FromContext(ctx)
+	if ok {
+		ipAddress = p.Addr.String()
+	}
+	if logType == "ERROR" {
+		store.LoggingService.LoggError(ctx, &pbLogg.LogRequest{ServiceName: "CONNECTION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "SUCCESS" {
+		store.LoggingService.LoggSuccess(ctx, &pbLogg.LogRequest{ServiceName: "CONNECTION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "WARNING" {
+		store.LoggingService.LoggWarning(ctx, &pbLogg.LogRequest{ServiceName: "CONNECTION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "INFO" {
+		store.LoggingService.LoggInfo(ctx, &pbLogg.LogRequest{ServiceName: "CONNECTION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	}
 }

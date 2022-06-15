@@ -2,7 +2,11 @@ package startup
 
 import (
 	"fmt"
+	"log"
+	"net"
+
 	connection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/infrastructure/api"
@@ -11,8 +15,7 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"log"
-	"net"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Server struct {
@@ -29,7 +32,9 @@ func (server *Server) Start() {
 
 	neo4jClient := server.initNeo4J()
 
-	connectionStore := server.initConnectionStore(neo4jClient)
+	loggingService := server.initLoggingService()
+
+	connectionStore := server.initConnectionStore(neo4jClient, loggingService)
 
 	productService := server.initConnectionService(connectionStore)
 
@@ -47,8 +52,8 @@ func (server *Server) initNeo4J() *neo4j.Driver {
 	return client
 }
 
-func (server *Server) initConnectionStore(client *neo4j.Driver) domain.ConnectionStore {
-	store := persistence.NewConnectionDBStore(client)
+func (server *Server) initConnectionStore(client *neo4j.Driver, loggingService pbLogg.LoggingServiceClient) domain.ConnectionStore {
+	store := persistence.NewConnectionDBStore(client, loggingService)
 	store.Init()
 	return store
 }
@@ -75,4 +80,18 @@ func (server *Server) startGrpcServer(connectionHandler *api.ConnectionHandler) 
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
+}
+
+func (server *Server) initLoggingService() pbLogg.LoggingServiceClient {
+	address := fmt.Sprintf("%s:%s", server.config.LoggingHost, server.config.LoggingPort)
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("Gateway faild to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
+	}
+	return pbLogg.NewLoggingServiceClient(conn)
+}
+
+func getConnection(address string) (*grpc.ClientConn, error) {
+	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 }

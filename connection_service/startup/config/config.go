@@ -14,6 +14,9 @@ type Config struct {
 	Neo4jPort     string
 	Neo4jUsername string
 	Neo4jPassword string
+
+	LoggingHost string
+	LoggingPort string
 }
 
 func NewConfig() *Config {
@@ -26,6 +29,9 @@ func NewConfig() *Config {
 		Neo4jPort:     goDotEnvVariable("NEO4J_PORT"),
 		Neo4jUsername: goDotEnvVariable("NEO4J_USERNAME"),
 		Neo4jPassword: goDotEnvVariable("NEO4J_PASSWORD"),
+
+		LoggingHost: goDotEnvVariable("LOGGING_SERVICE_HOST"),
+		LoggingPort: goDotEnvVariable("LOGGING_SERVICE_PORT"),
 	}
 }
 
