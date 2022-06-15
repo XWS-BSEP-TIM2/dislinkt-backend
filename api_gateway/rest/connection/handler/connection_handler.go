@@ -8,6 +8,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/security"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	pbConnection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	pbProfile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -39,6 +40,7 @@ func (handler *ConnectionHandler) AddFriend(ctx *gin.Context) {
 	connectionService := handler.grpcClient.ConnectionClient
 	addFriendDto := pbConnection.UserAction{}
 	if err := ctx.BindJSON(&addFriendDto); err != nil {
+		handler.loggError(ctx, "AddFriend", "", ctx.ClientIP(), err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -56,6 +58,7 @@ func (handler *ConnectionHandler) RemoveFriend(ctx *gin.Context) {
 	connectionService := handler.grpcClient.ConnectionClient
 	removeFriendDto := pbConnection.UserAction{}
 	if err := ctx.BindJSON(&removeFriendDto); err != nil {
+		handler.loggError(ctx, "RemoveFriend", "", ctx.ClientIP(), err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -73,6 +76,7 @@ func (handler *ConnectionHandler) BlockUser(ctx *gin.Context) {
 	connectionService := handler.grpcClient.ConnectionClient
 	blockUser := pbConnection.UserAction{}
 	if err := ctx.BindJSON(&blockUser); err != nil {
+		handler.loggError(ctx, "BlockUser", "", ctx.ClientIP(), err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -90,6 +94,7 @@ func (handler *ConnectionHandler) UnblockUser(ctx *gin.Context) {
 	connectionService := handler.grpcClient.ConnectionClient
 	unblockUser := pbConnection.UserAction{}
 	if err := ctx.BindJSON(&unblockUser); err != nil {
+		handler.loggError(ctx, "UnblockUser", "", ctx.ClientIP(), err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -107,6 +112,7 @@ func (handler *ConnectionHandler) CreateFriendRequest(ctx *gin.Context) {
 	connectionService := handler.grpcClient.ConnectionClient
 	friendRequest := pbConnection.UserAction{}
 	if err := ctx.BindJSON(&friendRequest); err != nil {
+		handler.loggError(ctx, "CreateFriendRequest", "", ctx.ClientIP(), err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -124,6 +130,7 @@ func (handler *ConnectionHandler) DeleteFriendRequest(ctx *gin.Context) {
 	connectionService := handler.grpcClient.ConnectionClient
 	friendRequest := pbConnection.UserAction{}
 	if err := ctx.BindJSON(&friendRequest); err != nil {
+		handler.loggError(ctx, "DeleteFriendRequest", "", ctx.ClientIP(), err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -179,7 +186,6 @@ func (handler *ConnectionHandler) GetFriendRequests(ctx *gin.Context) {
 }
 
 func (handler *ConnectionHandler) GetRecommendation(ctx *gin.Context) {
-
 	dataFromToken, _ := security.ExtractTokenDataFromContext(ctx)
 	connectionService := handler.grpcClient.ConnectionClient
 	recommendations, err := connectionService.GetRecommendation(ctx, &pbConnection.GetRequest{UserID: dataFromToken.Id})
@@ -223,4 +229,14 @@ func (handler *ConnectionHandler) GenerateProfileDTO(ctx context.Context, connUs
 		usersDTO = append(usersDTO, DTO.MapConnectionDTO(profile.Profile))
 	}
 	return usersDTO
+}
+
+func (handler *ConnectionHandler) loggError(ctx context.Context, serviceFunctionName, userID, ipAddress, description string) {
+	handler.grpcClient.LoggingClient.LoggError(ctx, &loggingS.LogRequest{
+		ServiceName:         "API GATEWAY",
+		ServiceFunctionName: serviceFunctionName,
+		UserID:              userID,
+		IpAddress:           ipAddress,
+		Description:         description,
+	})
 }

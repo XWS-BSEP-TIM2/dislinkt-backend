@@ -1,3 +1,11 @@
-5dca824d-ad9b-4181-a123-a2819f7b7e84 | 2022-06-15 13:33:53.2684391 +0000 UTC | LOG_SERVICE | Start | SUCCESS | rasti | localHost | Testiramo da li ovo radi
-1e3d7a90-c3f5-40cc-a966-06f70bae9cbe | 2022-06-15 13:34:14.8970585 +0000 UTC | LOG_SERVICE | Start | SUCCESS | rasti | localHost | Testiramo da li ovo radi
-98295ee7-58e1-4013-8915-1abebd6915b4 | 2022-06-15 13:34:34.0055216 +0000 UTC | LOG_SERVICE | Start | SUCCESS | rasti | localHost | Testiramo da li ovo radi
+b496518b-5075-4917-83e0-3bb2a1e9d215 | 2022-06-15T14:48:51Z | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+3f5fe106-285d-46c2-bbb1-cf4448f7edae | 2022-06-15T14:49:24Z | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+dd10f94b-6cab-415e-ae1e-3703ee023140 | 2022-06-15T14:49:29Z | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+aa1368d2-56f8-4e87-9ae7-76979e2a4c5f | 2022-06-15T14:49:33Z | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+1517b336-e517-4c96-87cc-562a34ac309e | 2022-06-15T14:49:35Z | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+efd544c0-881a-4906-8500-dc3e83b079c7 | 2022-06-15T16:50:46+02:00 | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+31ffd883-507a-4925-955e-3ae692120e69 | 2022-06-15T16:51:54+02:00 | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+0aa23a98-565c-422d-bdc0-02db7c74afb2 | 2022-06-15T16:52:38+02:00 | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+d7864004-5f9a-4eed-baf4-12082965adfc | 2022-06-15T16:52:39+02:00 | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+49047544-56f8-4c25-bdd2-8a6b226e0ea9 | 2022-06-15T16:52:40+02:00 | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO
+d9ae2c58-d0fb-4981-b5a0-a365da369969 | 2022-06-15T16:52:41+02:00 | API GATEWAY | GetRecommendation | ERROR |  | ::1 | TESTIRAMO

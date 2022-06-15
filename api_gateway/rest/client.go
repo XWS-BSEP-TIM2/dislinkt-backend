@@ -6,6 +6,7 @@ import (
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	connectionService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	jobOfferService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
+	loggingService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	messageService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
 	postService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
@@ -21,6 +22,7 @@ type ServiceClientGrpc struct {
 	ConnectionClient connectionService.ConnectionServiceClient
 	JobOfferClient   jobOfferService.JobOfferServiceClient
 	MessageClient    messageService.MessageServiceClient
+	LoggingClient    loggingService.LoggingServiceClient
 }
 
 func InitServiceClient(c *config.Config) *ServiceClientGrpc {
@@ -31,6 +33,7 @@ func InitServiceClient(c *config.Config) *ServiceClientGrpc {
 		PostClient:       NewPostClient(fmt.Sprintf("%s:%s", c.PostHost, c.PostPort)),
 		JobOfferClient:   NewJobOfferClient(fmt.Sprintf("%s:%s", c.JobOfferHost, c.JobOfferPort)),
 		MessageClient:    NewMessageClient(fmt.Sprintf("%s:%s", c.MessageHost, c.MessagePort)),
+		LoggingClient:    NewLoggingClient(fmt.Sprintf("%s:%s", c.LoggingHost, c.LoggingPort)),
 	}
 
 	return client
@@ -88,7 +91,16 @@ func NewMessageClient(address string) messageService.MessageServiceClient {
 	conn, err := getConnection(address)
 	if err != nil {
 		fmt.Println("Gateway faild to start", "Failed to start")
-		log.Fatalf("Failed to start gRPC connection to Catalogue service: %v", err)
+		log.Fatalf("Failed to start gRPC connection to Message service: %v", err)
 	}
 	return messageService.NewMessageServiceClient(conn)
+}
+
+func NewLoggingClient(address string) loggingService.LoggingServiceClient {
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("Gateway faild to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
+	}
+	return loggingService.NewLoggingServiceClient(conn)
 }
