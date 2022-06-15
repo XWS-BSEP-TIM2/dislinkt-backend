@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option go_package = "common/proto/logging_service";
+
+package logging_service;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service LoggingService{
+
+  rpc LoggInfo(LogRequest) returns(LogResult){}
+
+  rpc LoggError(LogRequest) returns(LogResult){}
+
+  rpc LoggWarning(LogRequest) returns(LogResult){}
+
+  rpc LoggSuccess(LogRequest) returns(LogResult){}
+
+}
+
+message LogRequest{
+  string serviceName = 1;
+  string serviceFunctionName = 2;
+  string userID = 3;
+  string ipAddress = 4;
+  string description = 5;
+}
+
+message LogResult{
+  int64 status = 1;
+  string msg = 2;
+}
+
+
+
