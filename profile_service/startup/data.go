@@ -81,17 +81,17 @@ var users = []*domain.Profile{
 		Skills: []domain.Skill{
 			{
 				Id:   getObjectId("IDS00001"),
-				Name: "Python",
+				Name: "Tensorflow",
 				Type: 0,
 			},
 			{
 				Id:   getObjectId("IDS00002"),
-				Name: "AI",
+				Name: "Docker",
 				Type: 0,
 			},
 			{
 				Id:   getObjectId("IDS00003"),
-				Name: "JAVA",
+				Name: "CircleCI",
 				Type: 0,
 			},
 		},
@@ -120,7 +120,7 @@ var users = []*domain.Profile{
 		Skills: []domain.Skill{
 			{
 				Id:   getObjectId("IDS00004"),
-				Name: "Photoshop",
+				Name: "Java",
 				Type: 0,
 			},
 			{
@@ -130,12 +130,12 @@ var users = []*domain.Profile{
 			},
 			{
 				Id:   getObjectId("IDS00006"),
-				Name: "JAVA",
+				Name: "Bulma",
 				Type: 0,
 			},
 			{
 				Id:   getObjectId("IDS00007"),
-				Name: "C#",
+				Name: "TypeScript",
 				Type: 0,
 			},
 		},
@@ -164,17 +164,17 @@ var users = []*domain.Profile{
 		Skills: []domain.Skill{
 			{
 				Id:   getObjectId("IDS00008"),
-				Name: "JAVA",
+				Name: "Java",
 				Type: 0,
 			},
 			{
 				Id:   getObjectId("IDS00009"),
-				Name: "C/C++",
+				Name: "GO",
 				Type: 0,
 			},
 			{
 				Id:   getObjectId("IDS00010"),
-				Name: "C#",
+				Name: "Docker",
 				Type: 0,
 			},
 		},
@@ -204,17 +204,17 @@ var users = []*domain.Profile{
 		Skills: []domain.Skill{
 			{
 				Id:   getObjectId("IDS00011"),
-				Name: "Cinema4D",
+				Name: "Python",
 				Type: 0,
 			},
 			{
 				Id:   getObjectId("IDS00012"),
-				Name: "JAVA",
+				Name: "Java",
 				Type: 0,
 			},
 			{
 				Id:   getObjectId("IDS00013"),
-				Name: "C++",
+				Name: "Angular",
 				Type: 0,
 			},
 		},
