@@ -20,6 +20,7 @@ var users = []*domain.Profile{
 		IsPrivate:   false,
 		Skills:      []domain.Skill{},
 		Experiences: []domain.Experience{},
+		IsTwoFactor: false,
 	},
 	{
 		Id:          getIdFromHex("62752bf27407f54ce1839cb3"),
@@ -34,6 +35,7 @@ var users = []*domain.Profile{
 		IsPrivate:   true,
 		Skills:      []domain.Skill{},
 		Experiences: []domain.Experience{},
+		IsTwoFactor: false,
 	},
 	{
 		Id:          getIdFromHex("62752bf27407f54ce1839cb4"),
@@ -48,6 +50,7 @@ var users = []*domain.Profile{
 		IsPrivate:   false,
 		Skills:      []domain.Skill{},
 		Experiences: []domain.Experience{},
+		IsTwoFactor: false,
 	},
 	{
 		Id:          getIdFromHex("62752bf27407f54ce1839cb5"),
@@ -62,6 +65,7 @@ var users = []*domain.Profile{
 		IsPrivate:   true,
 		Skills:      []domain.Skill{},
 		Experiences: []domain.Experience{},
+		IsTwoFactor: false,
 	},
 	{
 		Id:          getIdFromHex("62752bf27407f54ce1839cb6"),
@@ -184,6 +188,7 @@ var users = []*domain.Profile{
 				EndDate:          time.Date(2022, time.June, 30, 10, 0, 0, 0, time.UTC),
 			},
 		},
+		IsTwoFactor: true,
 	},
 	{
 		Id:          getIdFromHex("62752bf27407f54ce1839cb9"),
@@ -223,6 +228,7 @@ var users = []*domain.Profile{
 				EndDate:          time.Date(2022, time.June, 30, 10, 0, 0, 0, time.UTC),
 			},
 		},
+		IsTwoFactor: true,
 	},
 }
 

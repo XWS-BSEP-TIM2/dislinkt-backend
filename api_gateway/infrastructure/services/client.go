@@ -1,12 +1,13 @@
 package services
 
 import (
+	"crypto/tls"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	connection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	post "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"log"
 )
 
@@ -19,7 +20,10 @@ func NewPostClient(address string) post.PostServiceClient {
 }
 
 func getConnection(address string) (*grpc.ClientConn, error) {
-	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 }
 
 func NewAuthClient(address string) authService.AuthServiceClient {

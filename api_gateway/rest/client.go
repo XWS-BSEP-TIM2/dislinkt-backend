@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"crypto/tls"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
@@ -11,7 +12,7 @@ import (
 	postService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"log"
 )
 
@@ -83,8 +84,14 @@ func NewJobOfferClient(address string) jobOfferService.JobOfferServiceClient {
 	return jobOfferService.NewJobOfferServiceClient(conn)
 }
 
+func getConnectionSecure(address string, cred credentials.TransportCredentials) (*grpc.ClientConn, error) {
+	return grpc.Dial(address, grpc.WithTransportCredentials(cred))
+}
 func getConnection(address string) (*grpc.ClientConn, error) {
-	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 }
 
 func NewMessageClient(address string) messageService.MessageServiceClient {

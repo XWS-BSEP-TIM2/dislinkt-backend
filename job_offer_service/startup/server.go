@@ -10,6 +10,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/startup/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
 )
@@ -66,11 +67,15 @@ func (server *Server) initJobOfferHandler(service *application.JobOfferService) 
 }
 
 func (server *Server) startGrpcServer(profileHandler *api.JobOfferHandler) {
+	creds, err := credentials.NewServerTLSFromFile("./certificates/job_offer_service.crt", "./certificates/job_offer_service.key")
+	if err != nil {
+		log.Fatalf("Failed to setup TLS: %v", err)
+	}
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", server.config.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.Creds(creds))
 	joboffer.RegisterJobOfferServiceServer(grpcServer, profileHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)

@@ -2,6 +2,7 @@ package startup
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	profile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/application"
@@ -10,6 +11,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/startup/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
 )
@@ -70,15 +72,33 @@ func (server *Server) startGrpcServer(profileHandler *api.ProfileHandler) {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+
+	tlsCredentials, err := loadTLSCredentials()
+	if err != nil {
+		log.Fatal("cannot load TLS credentials: ", err)
+	}
+
 	grpcServer := grpc.NewServer(
-	//grpc.UnaryInterceptor(
-	//	grpc_middleware.ChainUnaryServer(
-	//		interceptors.TokenAuthInterceptor,
-	//	),
-	//)
+		grpc.Creds(tlsCredentials),
 	)
 	profile.RegisterProfileServiceServer(grpcServer, profileHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
+}
+
+func loadTLSCredentials() (credentials.TransportCredentials, error) {
+	// Load server's certificate and private key
+	serverCert, err := tls.LoadX509KeyPair("./certificates/profile_service.crt", "./certificates/profile_service.key")
+	if err != nil {
+		return nil, err
+	}
+
+	// Create the credentials and return it
+	config := &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+		ClientAuth:   tls.NoClientCert,
+	}
+
+	return credentials.NewTLS(config), nil
 }

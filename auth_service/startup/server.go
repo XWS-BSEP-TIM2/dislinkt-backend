@@ -3,6 +3,7 @@ package startup
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/credentials"
 
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
@@ -76,11 +77,15 @@ func (server *Server) initAuthHandler(service *application.AuthService, password
 }
 
 func (server *Server) startGrpcServer(authHandler *api.AuthHandler) {
+	creds, err := credentials.NewServerTLSFromFile("./certificates/auth_service.crt", "./certificates/auth_service.key")
+	if err != nil {
+		log.Fatalf("Failed to setup TLS: %v", err)
+	}
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", server.config.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.Creds(creds))
 	auth.RegisterAuthServiceServer(grpcServer, authHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)

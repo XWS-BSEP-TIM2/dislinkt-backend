@@ -10,6 +10,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/startup/config"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
 )
@@ -61,11 +62,15 @@ func (server *Server) initConnectionHandler(service *application.ConnectionServi
 }
 
 func (server *Server) startGrpcServer(connectionHandler *api.ConnectionHandler) {
+	creds, err := credentials.NewServerTLSFromFile("./certificates/connection_service.crt", "./certificates/connection_service.key")
+	if err != nil {
+		log.Fatalf("Failed to setup TLS: %v", err)
+	}
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", server.config.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.Creds(creds))
 	connection.RegisterConnectionServiceServer(grpcServer, connectionHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
