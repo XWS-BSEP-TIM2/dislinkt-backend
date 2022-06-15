@@ -15,6 +15,9 @@ type Config struct {
 
 	ConnectionHost string
 	ConnectionPort string
+
+	LoggingHost string
+	LoggingPort string
 }
 
 func NewConfig() *Config {
@@ -28,6 +31,9 @@ func NewConfig() *Config {
 
 		ConnectionHost: goDotEnvVariable("CONNECTION_SERVICE_HOST"),
 		ConnectionPort: goDotEnvVariable("CONNECTION_SERVICE_PORT"),
+
+		LoggingHost: goDotEnvVariable("LOGGING_SERVICE_HOST"),
+		LoggingPort: goDotEnvVariable("LOGGING_SERVICE_PORT"),
 	}
 }
 

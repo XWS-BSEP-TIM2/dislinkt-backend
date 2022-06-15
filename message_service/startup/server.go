@@ -3,6 +3,7 @@ package startup
 import (
 	"context"
 	"fmt"
+	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	messageS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/infrastructure/api"
@@ -10,6 +11,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/startup/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 )
@@ -28,9 +30,11 @@ func (server *Server) Start() {
 
 	mongoClient := server.initMongoClient()
 
+	loggingService := server.initLoggingService()
+
 	profileStore := server.initMessageStore(mongoClient)
 
-	profileService := server.initMessageService(profileStore)
+	profileService := server.initMessageService(profileStore, loggingService)
 
 	profileHandler := server.initMessageHandler(profileService)
 
@@ -59,8 +63,8 @@ func (server *Server) initMessageStore(client *mongo.Client) persistence.Message
 	return store
 }
 
-func (server *Server) initMessageService(store persistence.MessageStore) *application.MessageService {
-	return application.NewMessageService(store, server.config)
+func (server *Server) initMessageService(store persistence.MessageStore, loggingService loggingS.LoggingServiceClient) *application.MessageService {
+	return application.NewMessageService(store, server.config, loggingService)
 }
 
 func (server *Server) initMessageHandler(service *application.MessageService) *api.MessageHandler {
@@ -77,4 +81,18 @@ func (server *Server) startGrpcServer(profileHandler *api.MessageHandler) {
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
+}
+
+func (server *Server) initLoggingService() loggingS.LoggingServiceClient {
+	address := fmt.Sprintf("%s:%s", server.config.LoggingHost, server.config.LoggingPort)
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("Gateway faild to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
+	}
+	return loggingS.NewLoggingServiceClient(conn)
+}
+
+func getConnection(address string) (*grpc.ClientConn, error) {
+	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 }

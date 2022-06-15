@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	connectionService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/application/adapters"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/startup/config"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"sort"
 	"time"
@@ -19,13 +21,15 @@ type MessageService struct {
 	store            persistence.MessageStore
 	ConnectionClient connectionService.ConnectionServiceClient
 	ProfileClient    profileService.ProfileServiceClient
+	LoggingService   loggingS.LoggingServiceClient
 }
 
-func NewMessageService(store persistence.MessageStore, c *config.Config) *MessageService {
+func NewMessageService(store persistence.MessageStore, c *config.Config, loggingService loggingS.LoggingServiceClient) *MessageService {
 	return &MessageService{
 		store:            store,
 		ConnectionClient: adapters.NewConnectionClient(fmt.Sprintf("%s:%s", c.ConnectionHost, c.ConnectionPort)),
 		ProfileClient:    adapters.NewProfileClient(fmt.Sprintf("%s:%s", c.ProfileHost, c.ProfilePort)),
+		LoggingService:   loggingService,
 	}
 }
 
@@ -86,16 +90,19 @@ func (service *MessageService) GetMyContacts(ctx context.Context, request *pb.Ge
 		return chatsPreview[i].LastMessage.Date.Seconds > chatsPreview[j].LastMessage.Date.Seconds
 	})
 
+	service.logg(ctx, "SUCCESS", "GetMyContacts", userID, "")
 	return &pb.MyContactsResponse{Chats: chatsPreview}, nil
 }
 
 func (service *MessageService) GetChat(ctx context.Context, request *pb.GetChatRequest) (*pb.ChatResponse, error) {
 	chat, err := service.store.GetChat(ctx, request.MsgID)
 	if err != nil {
+		service.logg(ctx, "ERROR", "GetChat", request.UserID, err.Error())
 		fmt.Println("Error: ", err.Error())
 	}
 
 	if !chat.HaveUserID(request.UserID) {
+		service.logg(ctx, "WARNING", "GetChat", request.UserID, "Error: the user has no access to msgID:"+request.MsgID)
 		fmt.Println("Error: the user has no access")
 		return nil, nil
 	}
@@ -116,6 +123,7 @@ func (service *MessageService) GetChat(ctx context.Context, request *pb.GetChatR
 		pbChat.FullNameUserB = profileResponseB.Profile.Name + " " + profileResponseB.Profile.Surname
 	}
 
+	service.logg(ctx, "SUCCESS", "GetChat", request.UserID, "user get chat:"+request.MsgID)
 	return &pb.ChatResponse{Chat: pbChat}, nil
 }
 
@@ -182,6 +190,7 @@ func (service *MessageService) SendMessage(ctx context.Context, request *pb.Send
 		return actionResult, errUpdate
 	}
 
+	service.logg(ctx, "SUCCESS", "SendMessage", authorUserID, "User send message in chat:"+msgID)
 	return actionResult, nil
 }
 
@@ -195,6 +204,7 @@ func (service *MessageService) SetSeen(ctx context.Context, request *pb.SetSeenR
 	}
 	userID := request.UserID
 	if !chat.HaveUserID(userID) {
+		service.logg(ctx, "WARNING", "GetChat", userID, "Error: the user has no access to msgID:"+msgID)
 		actionResult.Msg = "Error: Not your chat"
 		return actionResult, err
 	}
@@ -210,7 +220,25 @@ func (service *MessageService) SetSeen(ctx context.Context, request *pb.SetSeenR
 		return actionResult, errUpdate
 	}
 
+	service.logg(ctx, "SUCCESS", "SetSeen", userID, "user seen chat:"+msgID)
 	actionResult.Msg = "Set seen successfully"
 	actionResult.Status = 200
 	return actionResult, nil
+}
+
+func (service *MessageService) logg(ctx context.Context, logType, serviceFunctionName, userID, description string) {
+	ipAddress := ""
+	p, ok := peer.FromContext(ctx)
+	if ok {
+		ipAddress = p.Addr.String()
+	}
+	if logType == "ERROR" {
+		service.LoggingService.LoggError(ctx, &loggingS.LogRequest{ServiceName: "MESSAGE_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "SUCCESS" {
+		service.LoggingService.LoggSuccess(ctx, &loggingS.LogRequest{ServiceName: "MESSAGE_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "WARNING" {
+		service.LoggingService.LoggWarning(ctx, &loggingS.LogRequest{ServiceName: "MESSAGE_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "INFO" {
+		service.LoggingService.LoggInfo(ctx, &loggingS.LogRequest{ServiceName: "MESSAGE_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	}
 }
