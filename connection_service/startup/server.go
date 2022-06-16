@@ -1,6 +1,7 @@
 package startup
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
@@ -15,7 +16,6 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Server struct {
@@ -93,5 +93,8 @@ func (server *Server) initLoggingService() pbLogg.LoggingServiceClient {
 }
 
 func getConnection(address string) (*grpc.ClientConn, error) {
-	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 }
