@@ -33,11 +33,12 @@ func (server *Server) Start() {
 
 	jobOfferHandler := server.initJobOfferHandler(jobOfferService)
 
+	fmt.Println("Job offer service started.")
 	server.startGrpcServer(jobOfferHandler)
 }
 
 func (server *Server) initMongoClient() *mongo.Client {
-	client, err := persistence.GetClient(server.config.ProfileDBHost, server.config.ProfileDBPort)
+	client, err := persistence.GetClient(server.config.JobOfferDBHost, server.config.JobOfferDBPort)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -23,30 +23,6 @@ services:
     networks:
       - network
 
-  connection_service:
-    image: connection_service
-    container_name: connection_service
-    build:
-      context: .
-      dockerfile: ./connection_service/Dockerfile
-    restart: on-failure
-    environment:
-      CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
-      CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
-      NEO4J_URI: ${NEO4J_URI}
-      NEO4J_HOST: ${NEO4J_HOST_DOCKER}
-      NEO4J_PORT: ${NEO4J_PORT}
-      NEO4J_USERNAME: ${NEO4J_USERNAME}
-      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
-    volumes:
-      - type: bind
-        source: ./connection_service/certificates/
-        target: /root/certificates
-    depends_on:
-      - neo4j_connections
-    networks:
-      - network
-
   post_service:
     image: post_service
     container_name: post_service
@@ -96,6 +72,26 @@ services:
     networks:
       - network
 
+  job_offer_service:
+    image: job_offer_service
+    container_name: job_offer_service
+    build:
+      context: .
+      dockerfile: ./job_offer_service/Dockerfile
+    restart: on-failure
+    environment:
+      JOB_OFFER_SERVICE_PORT: ${JOB_OFFER_SERVICE_PORT}
+      MONGO_DB_HOST: ${JOB_OFFER_DB_HOST_DOCKER}
+      MONGO_DB_PORT: ${MONGO_DB_PORT}
+    volumes:
+      - type: bind
+        source: ./job_offer_service/certificates/
+        target: /root/certificates
+    depends_on:
+      - job_offer_mongo_db
+    networks:
+      - network
+
   api_gateway:
     image: api_gateway
     container_name: api_gateway
@@ -115,6 +111,8 @@ services:
       PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
       CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
       CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
+      JOB_OFFER_SERVICE_HOST: ${JOB_OFFER_SERVICE_HOST_DOCKER}
+      JOB_OFFER_SERVICE_PORT: ${JOB_OFFER_SERVICE_PORT}
     volumes:
       - type: bind
         source: ./api_gateway/certificates/
@@ -122,6 +120,9 @@ services:
       - type: bind
         source: ./logging_service/logData/
         target: /root/logData
+      - type: bind
+        source: ./security/
+        target: /root/security
     networks:
       - network
 
@@ -155,16 +156,51 @@ services:
     logging:
       driver: none
 
-  neo4j_connections:
-    image: neo4j:4.1.3
-    container_name: neo4j_connections
-    hostname: neo4j_connections
+  job_offer_mongo_db:
+    image: mongo
+    container_name: job_offer_mongo_db
+    command: mongod --quiet --logpath /dev/null
+    restart: on-failure
+    networks:
+      - network
+    logging:
+      driver: none
+
+  neo4j:
+    image: neo4j:4.3.3
+    container_name: neo4j
+    hostname: neo4j
     restart: on-failure
     ports:
       - ${NEO4J_PORT}:${NEO4J_PORT}
       - ${NEO4J_PORT_2}:${NEO4J_PORT_2}
     environment:
-      - NEO4J_AUTH=none
+      NEO4J_AUTH: none
+      NEO4J_dbms_allow__upgrade: true
+    networks:
+      - network
+
+  connection_service:
+    image: connection_service
+    container_name: connection_service
+    build:
+      context: .
+      dockerfile: ./connection_service/Dockerfile
+    restart: on-failure
+    environment:
+      CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
+      CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
+      NEO4J_URI: ${NEO4J_URI}
+      NEO4J_HOST: ${NEO4J_HOST_DOCKER}
+      NEO4J_PORT: ${NEO4J_PORT}
+      NEO4J_USERNAME: ${NEO4J_USERNAME}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+    volumes:
+      - type: bind
+        source: ./connection_service/certificates/
+        target: /root/certificates
+    depends_on:
+      - neo4j
     networks:
       - network
 

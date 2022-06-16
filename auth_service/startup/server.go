@@ -45,6 +45,7 @@ func (server *Server) Start() {
 
 	authHandler := server.initAuthHandler(authService, passwordlessLoginService, apiTokenService, loggingService)
 
+	fmt.Println("Auth service started.")
 	server.startGrpcServer(authHandler)
 }
 

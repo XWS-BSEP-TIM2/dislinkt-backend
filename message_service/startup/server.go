@@ -39,6 +39,7 @@ func (server *Server) Start() {
 
 	profileHandler := server.initMessageHandler(profileService)
 
+	fmt.Println("Message service started.")
 	server.startGrpcServer(profileHandler)
 }
 

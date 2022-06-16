@@ -7,7 +7,7 @@ FROM golang:latest as builder
 WORKDIR /app
 
 # Copy go mod and sum files
-COPY ./profile_service/go.mod ./profile_service/go.sum ./
+COPY ./message_service/go.mod ./message_service/go.sum ./
 
 # Copy the local dependency
 COPY /common ../common
@@ -16,7 +16,7 @@ COPY /common ../common
 RUN go mod download
 
 # Copy everything from the current directory to the Working Directory inside the container
-COPY ./profile_service/ .
+COPY ./message_service/ .
 
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
@@ -32,7 +32,7 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 
 # Expose port 8082 to the outside world
-EXPOSE 8082
+EXPOSE 8085
 
 # Command to run the executable
 CMD ["./main"]

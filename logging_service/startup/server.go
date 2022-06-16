@@ -34,6 +34,7 @@ func (server *Server) Start() {
 	loggingHandler := server.initLoggingHandler(loggingService)
 	//loggingService.LoggSuccess(context.TODO(), &loggingS.LogRequest{ServiceName: "LOG_SERVICE", ServiceFunctionName: "Start", Description: "Testiramo da li ovo radi", IpAddress: "localHost", UserID: "rasti"})
 
+	fmt.Println("Logging service started.")
 	server.startGrpcServer(loggingHandler)
 }
 

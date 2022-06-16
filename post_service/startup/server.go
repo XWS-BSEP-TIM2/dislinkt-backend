@@ -31,6 +31,8 @@ func (server *Server) Start() {
 	postStore := server.initPostStore(mongoClient)
 	postService := server.initPostService(postStore)
 	postHandler := server.initPostHandler(postService)
+
+	fmt.Println("Post service started.")
 	server.startGrpcServer(postHandler)
 }
 

@@ -44,7 +44,9 @@ func (server *Server) Start() {
 }
 
 func (server *Server) initNeo4J() *neo4j.Driver {
+	fmt.Println(fmt.Sprintf("%s://%s:%s", server.config.Neo4jUri, server.config.Neo4jHost, server.config.Neo4jPort))
 	neo4jServer := fmt.Sprintf("%s://%s:%s", server.config.Neo4jUri, server.config.Neo4jHost, server.config.Neo4jPort)
+
 	client, err := persistence.GetClient(neo4jServer, server.config.Neo4jUsername, server.config.Neo4jPassword)
 	if err != nil {
 		log.Fatal(err)
