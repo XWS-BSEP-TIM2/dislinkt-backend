@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/DTO"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/security"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
@@ -215,10 +214,10 @@ func (handler *ConnectionHandler) GetFriends(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &friendsDTO)
 }
 
-func (handler *ConnectionHandler) GenerateProfileDTO(ctx context.Context, connUsers []*pbConnection.User) []*DTO.ConnectionDTO {
+func (handler *ConnectionHandler) GenerateProfileDTO(ctx context.Context, connUsers []*pbConnection.User) []*ConnectionDTO {
 	profileService := handler.grpcClient.ProfileClient
 
-	var usersDTO []*DTO.ConnectionDTO
+	var usersDTO []*ConnectionDTO
 
 	for _, v := range connUsers {
 		profile, err := profileService.Get(ctx, &pbProfile.GetRequest{Id: v.UserID})
@@ -226,7 +225,7 @@ func (handler *ConnectionHandler) GenerateProfileDTO(ctx context.Context, connUs
 			fmt.Println(err.Error())
 			continue
 		}
-		usersDTO = append(usersDTO, DTO.MapConnectionDTO(profile.Profile))
+		usersDTO = append(usersDTO, MapConnectionDTO(profile.Profile))
 	}
 	return usersDTO
 }

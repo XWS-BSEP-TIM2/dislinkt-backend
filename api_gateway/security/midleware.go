@@ -3,7 +3,7 @@ package security
 import (
 	"context"
 	"fmt"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/services"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	"github.com/casbin/casbin"
@@ -27,7 +27,7 @@ type AuthMiddleware struct {
 func NewAuthMiddleware(authClientAddress string) *AuthMiddleware {
 
 	return &AuthMiddleware{
-		authClient: services.NewAuthClient(authClientAddress),
+		authClient: rest.NewAuthClient(authClientAddress),
 	}
 }
 
@@ -104,7 +104,7 @@ func ExtractTokenDataFromContext(ctx *gin.Context) (*authService.ExtractDataFrom
 		return nil, nil
 	}
 	token := strings.Split(authorization, "Bearer ")
-	authS := services.NewAuthClient(fmt.Sprintf("%s:%s", config.NewConfig().AuthHost, config.NewConfig().AuthPort))
+	authS := rest.NewAuthClient(fmt.Sprintf("%s:%s", config.NewConfig().AuthHost, config.NewConfig().AuthPort))
 	metadata, err := authS.ExtractDataFromToken(ctx, &authService.ExtractDataFromTokenRequest{Token: token[1]})
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, "unauthorized")

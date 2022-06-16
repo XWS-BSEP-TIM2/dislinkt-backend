@@ -3,8 +3,8 @@ package profile_service_adapter
 import (
 	"context"
 	"fmt"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/services"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/thoas/go-funk"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,7 +19,7 @@ func NewProfileServiceAdapter(address string) *ProfileServiceAdapter {
 }
 
 func (p *ProfileServiceAdapter) GetAllProfiles(ctx context.Context) []*domain.Owner {
-	profileClient := services.NewProfileClient(p.address)
+	profileClient := adapters.NewProfileClient(p.address)
 	response, profileErr := profileClient.GetAll(ctx, &pb.EmptyRequest{})
 
 	if profileErr != nil {
@@ -33,7 +33,7 @@ func (p *ProfileServiceAdapter) GetAllProfiles(ctx context.Context) []*domain.Ow
 }
 
 func (p *ProfileServiceAdapter) GetSingleProfile(ctx context.Context, profileId primitive.ObjectID) *domain.Owner {
-	profileClient := services.NewProfileClient(p.address)
+	profileClient := adapters.NewProfileClient(p.address)
 	response, profileErr := profileClient.Get(ctx, &pb.GetRequest{Id: profileId.Hex()})
 
 	if profileErr != nil {
@@ -43,7 +43,7 @@ func (p *ProfileServiceAdapter) GetSingleProfile(ctx context.Context, profileId 
 }
 
 func (p *ProfileServiceAdapter) GetAllPublicProfilesIds(ctx context.Context) []*primitive.ObjectID {
-	profileClient := services.NewProfileClient(p.address)
+	profileClient := adapters.NewProfileClient(p.address)
 	response, profileErr := profileClient.GetAll(ctx, &pb.EmptyRequest{})
 
 	if profileErr != nil {

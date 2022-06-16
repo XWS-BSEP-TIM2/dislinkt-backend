@@ -1,4 +1,4 @@
-package DTO
+package handler
 
 import (
 	pbProfile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"

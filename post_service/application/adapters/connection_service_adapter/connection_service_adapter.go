@@ -3,8 +3,8 @@ package connection_service_adapter
 import (
 	"context"
 	"fmt"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/services"
 	cb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters"
 	"github.com/thoas/go-funk"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -18,7 +18,7 @@ func NewConnectionServiceAdapter(address string) *ConnectionServiceAdapter {
 }
 
 func (conn *ConnectionServiceAdapter) GetAllUserConnections(ctx context.Context, id primitive.ObjectID) []*primitive.ObjectID {
-	connClient := services.NewConnectionClient(conn.address)
+	connClient := adapters.NewConnectionClient(conn.address)
 	response, connErr := connClient.GetFriends(ctx, &cb.GetRequest{UserID: id.Hex()})
 	if connErr != nil {
 		panic(fmt.Errorf("Error during getting all connections: Connection Service"))
@@ -31,7 +31,7 @@ func (conn *ConnectionServiceAdapter) GetAllUserConnections(ctx context.Context,
 }
 
 func (conn *ConnectionServiceAdapter) CanUserAccessPostFromOwner(ctx context.Context, userId primitive.ObjectID, ownerId primitive.ObjectID) bool {
-	connClient := services.NewConnectionClient(conn.address)
+	connClient := adapters.NewConnectionClient(conn.address)
 	details, connErr := connClient.GetConnectionDetail(ctx, &cb.GetConnectionDetailRequest{
 		UserIDa: userId.Hex(),
 		UserIDb: ownerId.Hex(),

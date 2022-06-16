@@ -3,9 +3,9 @@ package auth_service_adapter
 import (
 	"context"
 	"fmt"
-	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/infrastructure/services"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/helper"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -19,7 +19,7 @@ func NewAuthServiceAdapter(address string) *AuthServiceAdapter {
 }
 
 func (auth *AuthServiceAdapter) GetRequesterId(ctx context.Context) primitive.ObjectID {
-	authClient := services.NewAuthClient(auth.address)
+	authClient := adapters.NewAuthClient(auth.address)
 	token := getRequesterToken(ctx)
 	if token == "" { // user is not logged in
 		return primitive.NilObjectID

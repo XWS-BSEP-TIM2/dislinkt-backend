@@ -5,7 +5,6 @@ go 1.18
 replace github.com/XWS-BSEP-TIM2/dislinkt-backend/common => ../common
 
 require (
-	github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway v0.0.0-20220606084438-9a75144ed410
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220508215318-6e64708e90e7
 	github.com/joho/godotenv v1.4.0
 	github.com/thoas/go-funk v0.9.2
