@@ -14,6 +14,10 @@ services:
       MONGO_DB_PORT: ${MONGO_DB_PORT}      
       PROFILE_SERVICE_HOST: ${PROFILE_SERVICE_HOST_DOCKER}
       PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
+    volumes:
+      - type: bind
+        source: ./auth_service/certificates/
+        target: /root/certificates
     depends_on:
       - auth_mongo_db
     networks:
@@ -34,8 +38,12 @@ services:
       NEO4J_PORT: ${NEO4J_PORT}
       NEO4J_USERNAME: ${NEO4J_USERNAME}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+    volumes:
+      - type: bind
+        source: ./connection_service/certificates/
+        target: /root/certificates
     depends_on:
-      - neo4j
+      - neo4j_connections
     networks:
       - network
 
@@ -56,6 +64,13 @@ services:
       PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
       CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
       CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
+    volumes:
+      - type: bind
+        source: ./post_service/certificates/
+        target: /root/certificates
+      - type: bind
+        source: ./post_service/startup/data/post_images
+        target: /root/startup/data/post_images
     depends_on:
       - post_mongo_db
     networks:
@@ -72,6 +87,10 @@ services:
       PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
       MONGO_DB_HOST: ${PROFILE_MONGO_DB_HOST_DOCKER}
       MONGO_DB_PORT: ${MONGO_DB_PORT}
+    volumes:
+      - type: bind
+        source: ./profile_service/certificates/
+        target: /root/certificates
     depends_on:
       - profile_mongo_db
     networks:
@@ -96,12 +115,20 @@ services:
       PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
       CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
       CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
+    volumes:
+      - type: bind
+        source: ./api_gateway/certificates/
+        target: /root/certificates
+      - type: bind
+        source: ./logging_service/logData/
+        target: /root/logData
     networks:
       - network
 
   auth_mongo_db:
     image: mongo
     container_name: auth_mongo_db
+    command: mongod --quiet --logpath /dev/null
     restart: on-failure
     networks:
       - network
@@ -111,6 +138,7 @@ services:
   profile_mongo_db:
     image: mongo
     container_name: profile_mongo_db
+    command: mongod --quiet --logpath /dev/null
     restart: on-failure
     networks:
       - network
@@ -120,21 +148,23 @@ services:
   post_mongo_db:
     image: mongo
     container_name: post_mongo_db
+    command: mongod --quiet --logpath /dev/null
     restart: on-failure
     networks:
       - network
     logging:
       driver: none
 
-  neo4j:
-    image: neo4j:4.3.3-community
-    container_name: neo4j
+  neo4j_connections:
+    image: neo4j:4.1.3
+    container_name: neo4j_connections
+    hostname: neo4j_connections
+    restart: on-failure
     ports:
       - ${NEO4J_PORT}:${NEO4J_PORT}
       - ${NEO4J_PORT_2}:${NEO4J_PORT_2}
     environment:
-      - NEO4J_AUTH=neo4j/connection
-      - NEO4J_dbms_memory_pagecache_size=512MB
+      - NEO4J_AUTH=none
     networks:
       - network
 
