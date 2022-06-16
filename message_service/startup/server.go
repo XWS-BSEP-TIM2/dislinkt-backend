@@ -2,6 +2,7 @@ package startup
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	messageS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
@@ -11,7 +12,6 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/startup/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
@@ -99,5 +99,8 @@ func (server *Server) initLoggingService() loggingS.LoggingServiceClient {
 }
 
 func getConnection(address string) (*grpc.ClientConn, error) {
-	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 }
