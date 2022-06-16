@@ -7,16 +7,19 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/startup/config"
 	"github.com/google/uuid"
+	myLogger "gopkg.in/natefinch/lumberjack.v2"
 	"os"
 )
 
 type LoggingDbStore struct {
-	Con *config.Config
+	Con  *config.Config
+	Logg *myLogger.Logger
 }
 
-func NewLoggingDbStore(c *config.Config) LoggingStore {
+func NewLoggingDbStore(c *config.Config, logg *myLogger.Logger) LoggingStore {
 	return &LoggingDbStore{
-		Con: c,
+		Con:  c,
+		Logg: logg,
 	}
 }
 
@@ -24,7 +27,7 @@ func (l *LoggingDbStore) SaveLog(ctx context.Context, log *domain.Log) (*logging
 	id := uuid.New()
 	log.Id = id.String()
 	fmt.Println(log.ToString())
-	return l.Save(ctx, log.ToString())
+	return l.SaveText(ctx, log.ToString())
 }
 
 func (l *LoggingDbStore) Save(ctx context.Context, log string) (*logging_service.LogResult, error) {
@@ -46,6 +49,17 @@ func (l *LoggingDbStore) Save(ctx context.Context, log string) (*logging_service
 		return result, err
 	}
 
+	result.Msg = "Successfully created new Log"
+	result.Status = 201
+	return result, nil
+}
+
+func (l *LoggingDbStore) SaveText(ctx context.Context, log string) (*logging_service.LogResult, error) {
+	result := &logging_service.LogResult{Msg: "Error", Status: 0}
+	_, err := l.Logg.Write([]byte(log + "\n"))
+	if err != nil {
+		fmt.Println("Error", err.Error())
+	}
 	result.Msg = "Successfully created new Log"
 	result.Status = 201
 	return result, nil

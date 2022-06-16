@@ -10,6 +10,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/startup/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	myLogger "gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"net"
 )
@@ -37,7 +38,14 @@ func (server *Server) Start() {
 }
 
 func (server *Server) initLoggingStore() persistence.LoggingStore {
-	return persistence.NewLoggingDbStore(server.config)
+	logg := &myLogger.Logger{
+		Filename:   server.config.FilePath,
+		MaxSize:    1, // megabytes
+		MaxBackups: 5,
+		MaxAge:     28,    // days
+		Compress:   false, // disabled by default
+	}
+	return persistence.NewLoggingDbStore(server.config, logg)
 }
 
 func (server *Server) initLoggingService(store persistence.LoggingStore) *application.LoggingService {
