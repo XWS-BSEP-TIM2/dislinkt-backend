@@ -6,7 +6,6 @@ require (
 	github.com/go-playground/validator/v10 v10.11.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0
 	github.com/joho/godotenv v1.4.0
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/nats-io/nats.go v1.14.0
 	go.mongodb.org/mongo-driver v1.9.0
 	google.golang.org/genproto v0.0.0-20220314164441-57ef72a4c106

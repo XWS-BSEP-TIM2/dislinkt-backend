@@ -5,13 +5,18 @@ go 1.18
 replace github.com/XWS-BSEP-TIM2/dislinkt-backend/common => ../common
 
 require (
-	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220508215318-6e64708e90e7
+	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220617075150-48a21e06c92f
 	github.com/casbin/casbin v1.9.1
-	github.com/gin-gonic/gin v1.7.7
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0
+	github.com/gin-gonic/gin v1.8.1
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3
 	github.com/joho/godotenv v1.4.0
-	google.golang.org/grpc v1.45.0
+	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
+)
+
+require (
+	github.com/goccy/go-json v0.9.7 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
 )
 
 require (
@@ -21,17 +26,16 @@ require (
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.0
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/json-iterator/go v1.1.9 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect; indirects
-	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
-	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
-	github.com/ugorji/go/codec v1.1.7 // indirect
-	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
-	golang.org/x/net v0.0.0-20220412020605-290c469a71a5 // indirect
-	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/ugorji/go/codec v1.2.7 // indirect
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
+	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
+	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
-	google.golang.org/genproto v0.0.0-20220414192740-2d67ff6cf2b4 // indirect
+	google.golang.org/genproto v0.0.0-20220617124728-180714bec0ad // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
