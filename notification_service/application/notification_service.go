@@ -8,9 +8,12 @@ import (
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/application/adapters"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/startup/config"
-	"log"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"time"
 )
 
 type NotificationService struct {
@@ -30,16 +33,46 @@ func NewNotificationService(store persistence.NotificationStore, c *config.Confi
 }
 
 func (service *NotificationService) GetAllNotifications(ctx context.Context, request *pb.GetAllNotificationsRequest) (*pb.GetAllNotificationsResponse, error) {
-	log.Fatal("ERROR: 1")
-	panic("unimplemented get all")
+	userId := request.UserID
+	var userNotifications []*pb.Notification
+	allNotifications, err := service.store.GetAll(ctx)
+
+	if err == nil {
+		for _, notification := range allNotifications {
+			if notification.OwnerId.Hex() == userId {
+				var newNotification = pb.Notification{
+					OwnerId:    notification.OwnerId.Hex(),
+					ForwardUrl: notification.ForwardUrl,
+					Text:       notification.Text,
+					Date:       &timestamppb.Timestamp{Seconds: notification.Date.Unix()},
+					Seen:       notification.Seen,
+				}
+				userNotifications = append(userNotifications, &newNotification)
+			}
+		}
+	}
+
+	return &pb.GetAllNotificationsResponse{
+		Notifications: userNotifications,
+	}, err
 }
 
 func (service *NotificationService) MarkAllAsSeen(ctx context.Context, request *pb.MarkAllAsSeenRequest) (*pb.MarkAllAsSeenResponse, error) {
-	log.Fatal("ERROR: 2")
 	panic("unimplemented mark all as seen")
 }
 
 func (service *NotificationService) InsertNotification(ctx context.Context, request *pb.InsertNotificationRequest) (*pb.InsertNotificationRequestResponse, error) {
-	log.Fatal("ERROR: 3")
-	panic("unimplemented insert notification")
+	ownerId, err := primitive.ObjectIDFromHex("62752bf27407f54ce1839cb7")
+
+	notification := &domain.Notification{
+		OwnerId:    ownerId,
+		ForwardUrl: "123",
+		Text:       "hiiihihi",
+		Date:       time.Now(),
+		Seen:       false,
+	}
+
+	service.store.Insert(ctx, notification)
+	var response *pb.InsertNotificationRequestResponse
+	return response, err
 }

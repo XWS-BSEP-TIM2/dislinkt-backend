@@ -6,7 +6,7 @@ import (
 )
 
 type NotificationStore interface {
-	GetAll(ctx context.Context) (*domain.Notification, error)
+	GetAll(ctx context.Context) ([]*domain.Notification, error)
 	Insert(ctx context.Context, notification *domain.Notification) error
 	DeleteAll(ctx context.Context)
 	MarkAllAsSeen(ctx context.Context)

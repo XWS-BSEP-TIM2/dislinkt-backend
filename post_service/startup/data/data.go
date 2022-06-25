@@ -94,7 +94,7 @@ var posts = []*domain.Post{
 	{
 		Id:           getPostId(),
 		OwnerId:      userIdMap[tara],
-		CreationTime: time.Date(2022, time.January, 5, 10, 0, 0, 10000000, time.UTC),
+		CreationTime: time.Date(2022, time.June, 5, 10, 0, 0, 10000000, time.UTC),
 
 		Content: "Go is an amazing language. Can't wait to learn more of it on https://go.dev/tour/welcome/1",
 		Image:   loadImageBytes("post1.jpg"),
