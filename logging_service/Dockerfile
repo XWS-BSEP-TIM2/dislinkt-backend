@@ -7,7 +7,7 @@ FROM golang:latest as builder
 WORKDIR /app
 
 # Copy go mod and sum files
-COPY ./profile_service/go.mod ./profile_service/go.sum ./
+COPY ./logging_service/go.mod ./logging_service/go.sum ./
 
 # Copy the local dependency
 COPY /common ../common
@@ -16,7 +16,7 @@ COPY /common ../common
 RUN go mod download
 
 # Copy everything from the current directory to the Working Directory inside the container
-COPY ./profile_service/ .
+COPY ./logging_service/ .
 
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
@@ -31,8 +31,8 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 
-# Expose port 8082 to the outside world
-EXPOSE 8082
+# Expose port 8086 to the outside world
+EXPOSE 8086
 
 # Command to run the executable
 CMD ["./main"]

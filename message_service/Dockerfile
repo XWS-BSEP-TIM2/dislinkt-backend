@@ -1,4 +1,4 @@
-# Dislinkt Notification Service
+# Dislinkt Message Service
 
 # Start from the latest golang base image
 FROM golang:latest as builder
@@ -31,7 +31,7 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 
-# Expose port 8082 to the outside world
+# Expose port 8085 to the outside world
 EXPOSE 8085
 
 # Command to run the executable

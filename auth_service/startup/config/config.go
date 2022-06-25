@@ -12,8 +12,8 @@ type Config struct {
 	UserDBPort         string
 	ProfileServicePort string
 	ProfileServiceHost string
-	ApiGatwayHost      string
-	ApiGatwayPort      string
+	ApiGatewayHost     string
+	ApiGatewayPort     string
 	Email              string
 	PasswordEmail      string
 	LoggingHost        string
@@ -31,8 +31,8 @@ func NewConfig() *Config {
 		ProfileServiceHost: goDotEnvVariable("PROFILE_SERVICE_HOST"),
 		ProfileServicePort: goDotEnvVariable("PROFILE_SERVICE_PORT"),
 
-		ApiGatwayHost: goDotEnvVariable("GATEWAY_HOST"),
-		ApiGatwayPort: goDotEnvVariable("GATEWAY_PORT"),
+		ApiGatewayHost: goDotEnvVariable("GATEWAY_HOST"),
+		ApiGatewayPort: goDotEnvVariable("GATEWAY_PORT"),
 
 		Email:         goDotEnvVariable("DISLINKT_EMAIL"),
 		PasswordEmail: goDotEnvVariable("EMAIL_PASSWORD"),

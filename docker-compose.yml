@@ -14,6 +14,12 @@ services:
       MONGO_DB_PORT: ${MONGO_DB_PORT}      
       PROFILE_SERVICE_HOST: ${PROFILE_SERVICE_HOST_DOCKER}
       PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
+      GATEWAY_HOST: ${GATEWAY_HOST_DOCKER}
+      GATEWAY_PORT: ${GATEWAY_PORT}
+      DISLINKT_EMAIL: ${DISLINKT_EMAIL}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
     volumes:
       - type: bind
         source: ./auth_service/certificates/
@@ -101,8 +107,14 @@ services:
     restart: on-failure
     environment:
       MESSAGE_SERVICE_PORT: ${MESSAGE_SERVICE_PORT}
-      MONGO_DB_HOST: ${MESSAGE_SERVICE_HOST_DOCKER}
+      MONGO_DB_HOST: ${MESSAGE_DB_HOST_DOCKER}
       MONGO_DB_PORT: ${MONGO_DB_PORT}
+      PROFILE_SERVICE_HOST: ${PROFILE_SERVICE_HOST_DOCKER}
+      PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
+      CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
+      CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
     volumes:
       - type: bind
         source: ./message_service/certificates/
@@ -123,12 +135,39 @@ services:
       NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
       MONGO_DB_HOST: ${NOTIFICATION_DB_HOST_DOCKER}
       MONGO_DB_PORT: ${MONGO_DB_PORT}
+      PROFILE_SERVICE_HOST: ${PROFILE_SERVICE_HOST_DOCKER}
+      PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
+      CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
+      CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
     volumes:
       - type: bind
         source: ./notification_service/certificates/
         target: /root/certificates
     depends_on:
       - notification_mongo_db
+    networks:
+      - network
+
+  logging_service:
+    image: logging_service
+    container_name: logging_service
+    build:
+      context: .
+      dockerfile: ./logging_service/Dockerfile
+    restart: on-failure
+    environment:
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
+      LOGGING_FILE_PATH: ${LOGGING_FILE_PATH}
+    volumes:
+      - type: bind
+        source: ./logging_service/certificates/
+        target: /root/certificates
+      - type: bind
+        source: ./logging_service/logData/
+        target: /root/logData
     networks:
       - network
 
@@ -157,6 +196,11 @@ services:
       MESSAGE_SERVICE_PORT: ${MESSAGE_SERVICE_PORT}
       NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST_DOCKER}
       NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
+      CERTIFICATE_PATH: ${CERTIFICATE_PATH}
+      CERTIFICATE_PRIVATE_KEY_PATH: ${CERTIFICATE_PRIVATE_KEY_PATH}
+
     volumes:
       - type: bind
         source: ./api_gateway/certificates/
@@ -259,6 +303,8 @@ services:
       NEO4J_PORT: ${NEO4J_PORT}
       NEO4J_USERNAME: ${NEO4J_USERNAME}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
     volumes:
       - type: bind
         source: ./connection_service/certificates/
