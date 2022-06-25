@@ -3,8 +3,10 @@ package application
 import (
 	"context"
 	"fmt"
+	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
 	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
+	nsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/notification_service_adapter"
 	psa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/profile_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/util"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
@@ -16,35 +18,38 @@ import (
 )
 
 type PostService struct {
-	store                    domain.PostStore
-	authServiceAdapter       asa.IAuthServiceAdapter
-	connectionServiceAdapter csa.IConnectionServiceAdapter
-	profileServiceAdapter    psa.IProfileServiceAdapter
-	postAccessValidator      *util.PostAccessValidator
-	ownerFinder              *util.OwnerFinder
-	feedCreator              *util.FeedCreator
+	store                      domain.PostStore
+	authServiceAdapter         asa.IAuthServiceAdapter
+	connectionServiceAdapter   csa.IConnectionServiceAdapter
+	notificationServiceAdapter nsa.INotificationServiceAdapter
+	profileServiceAdapter      psa.IProfileServiceAdapter
+	postAccessValidator        *util.PostAccessValidator
+	ownerFinder                *util.OwnerFinder
+	feedCreator                *util.FeedCreator
 }
 
 func NewPostService(
 	store domain.PostStore,
 	authServiceAddress,
 	connectionServiceAddress,
-	profileServiceAddress string) *PostService {
+	profileServiceAddress, notificationServiceAddress string) *PostService {
 
 	authServiceAdapter := asa.NewAuthServiceAdapter(authServiceAddress)
 	connectionServiceAdapter := csa.NewConnectionServiceAdapter(connectionServiceAddress)
+	notificationServiceAdapter := nsa.NewNotificationServiceAdapter(notificationServiceAddress)
 	profileServiceAdapter := psa.NewProfileServiceAdapter(profileServiceAddress)
 	postAccessValidator := util.NewPostAccessValidator(store, authServiceAdapter, connectionServiceAdapter)
 	ownerFinder := util.NewOwnerFinder(profileServiceAdapter)
 	feedCreator := util.NewFeedCreator(store, connectionServiceAdapter, profileServiceAdapter)
 	return &PostService{
-		store:                    store,
-		authServiceAdapter:       authServiceAdapter,
-		connectionServiceAdapter: connectionServiceAdapter,
-		profileServiceAdapter:    profileServiceAdapter,
-		postAccessValidator:      postAccessValidator,
-		ownerFinder:              ownerFinder,
-		feedCreator:              feedCreator,
+		store:                      store,
+		authServiceAdapter:         authServiceAdapter,
+		connectionServiceAdapter:   connectionServiceAdapter,
+		notificationServiceAdapter: notificationServiceAdapter,
+		profileServiceAdapter:      profileServiceAdapter,
+		postAccessValidator:        postAccessValidator,
+		ownerFinder:                ownerFinder,
+		feedCreator:                feedCreator,
 	}
 }
 
@@ -65,6 +70,20 @@ func (service *PostService) CreatePost(ctx context.Context, post *domain.Post) *
 		log("Error during post creation")
 		panic(fmt.Errorf("error during post creation"))
 	}
+
+	postOwner := service.profileServiceAdapter.GetSingleProfile(ctx, post.OwnerId)
+
+	connectionIds := service.connectionServiceAdapter.GetAllUserConnections(ctx, postOwner.UserId)
+
+	for _, id := range connectionIds {
+		var notification pb.Notification
+		notification.OwnerId = id.Hex()
+		notification.ForwardUrl = "posts/" + post.Id.Hex()
+		notification.Text = "posted on their profile"
+		notification.UserFullName = postOwner.Name + " " + postOwner.Surname
+		service.notificationServiceAdapter.InsertNotification(ctx, &pb.InsertNotificationRequest{Notification: &notification})
+	}
+
 	return service.getPostDetailsMapper(ctx)(post)
 }
 

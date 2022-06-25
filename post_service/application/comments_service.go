@@ -3,8 +3,10 @@ package application
 import (
 	"context"
 	"fmt"
+	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
 	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
+	nsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/notification_service_adapter"
 	psa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/profile_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/util"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
@@ -13,22 +15,24 @@ import (
 )
 
 type CommentService struct {
-	store                    domain.PostStore
-	authServiceAdapter       asa.IAuthServiceAdapter
-	connectionServiceAdapter csa.IConnectionServiceAdapter
-	profileServiceAdapter    psa.IProfileServiceAdapter
-	postAccessValidator      *util.PostAccessValidator
-	ownerFinder              *util.OwnerFinder
+	store                      domain.PostStore
+	authServiceAdapter         asa.IAuthServiceAdapter
+	connectionServiceAdapter   csa.IConnectionServiceAdapter
+	profileServiceAdapter      psa.IProfileServiceAdapter
+	notificationServiceAdapter nsa.INotificationServiceAdapter
+	postAccessValidator        *util.PostAccessValidator
+	ownerFinder                *util.OwnerFinder
 }
 
 func NewCommentService(postService *PostService) *CommentService {
 	return &CommentService{
-		store:                    postService.store,
-		authServiceAdapter:       postService.authServiceAdapter,
-		connectionServiceAdapter: postService.connectionServiceAdapter,
-		profileServiceAdapter:    postService.profileServiceAdapter,
-		postAccessValidator:      postService.postAccessValidator,
-		ownerFinder:              postService.ownerFinder,
+		store:                      postService.store,
+		authServiceAdapter:         postService.authServiceAdapter,
+		connectionServiceAdapter:   postService.connectionServiceAdapter,
+		notificationServiceAdapter: postService.notificationServiceAdapter,
+		profileServiceAdapter:      postService.profileServiceAdapter,
+		postAccessValidator:        postService.postAccessValidator,
+		ownerFinder:                postService.ownerFinder,
 	}
 }
 
@@ -39,6 +43,20 @@ func (service *CommentService) CreateComment(ctx context.Context, postId primiti
 	if err != nil {
 		panic(fmt.Errorf("Invalid comment"))
 	}
+
+	commenter := service.profileServiceAdapter.GetSingleProfile(ctx, comment.OwnerId)
+	post, _ := service.store.Get(postId)
+
+	var notification pb.Notification
+	notification.OwnerId = post.OwnerId.Hex()
+	notification.ForwardUrl = "posts/" + postId.Hex()
+	notification.Text = "commented your post"
+	notification.UserFullName = commenter.Name + " " + commenter.Surname
+
+	if notification.OwnerId != commenter.UserId.Hex() {
+		service.notificationServiceAdapter.InsertNotification(ctx, &pb.InsertNotificationRequest{Notification: &notification})
+	}
+
 	return service.getCommentDetailsMapper(ctx, postId)(comment)
 }
 

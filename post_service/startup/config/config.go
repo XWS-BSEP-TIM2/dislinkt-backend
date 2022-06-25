@@ -7,15 +7,17 @@ import (
 )
 
 type Config struct {
-	Port                  string
-	PostDBHost            string
-	PostDBPort            string
-	AuthServiceHost       string
-	AuthServicePort       string
-	ProfileServiceHost    string
-	ProfileServicePort    string
-	ConnectionServiceHost string
-	ConnectionServicePort string
+	Port                    string
+	PostDBHost              string
+	PostDBPort              string
+	AuthServiceHost         string
+	AuthServicePort         string
+	ProfileServiceHost      string
+	ProfileServicePort      string
+	ConnectionServiceHost   string
+	ConnectionServicePort   string
+	NotificationServiceHost string
+	NotificationServicePort string
 }
 
 func NewConfig() *Config {
@@ -34,6 +36,9 @@ func NewConfig() *Config {
 
 		ConnectionServiceHost: goDotEnvVariable("CONNECTION_SERVICE_HOST"),
 		ConnectionServicePort: goDotEnvVariable("CONNECTION_SERVICE_PORT"),
+
+		NotificationServiceHost: goDotEnvVariable("NOTIFICATION_SERVICE_HOST"),
+		NotificationServicePort: goDotEnvVariable("NOTIFICATION_SERVICE_PORT"),
 	}
 }
 
