@@ -17,9 +17,12 @@ type NotificationMongoDbStore struct {
 	notifications *mongo.Collection
 }
 
-func (store *NotificationMongoDbStore) MarkAllAsSeen(ctx context.Context) {
-	//TODO implement me
-	panic("implement me")
+func (store *NotificationMongoDbStore) MarkAsSeen(ctx context.Context, notificationId primitive.ObjectID) {
+	notificationToUpdate := bson.M{"_id": notificationId}
+	updatedNotification := bson.M{"$set": bson.M{
+		"seen": true,
+	}}
+	store.notifications.UpdateOne(context.TODO(), notificationToUpdate, updatedNotification)
 }
 
 func (store *NotificationMongoDbStore) DeleteAll(ctx context.Context) {

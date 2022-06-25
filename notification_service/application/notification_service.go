@@ -58,21 +58,36 @@ func (service *NotificationService) GetAllNotifications(ctx context.Context, req
 }
 
 func (service *NotificationService) MarkAllAsSeen(ctx context.Context, request *pb.MarkAllAsSeenRequest) (*pb.MarkAllAsSeenResponse, error) {
-	panic("unimplemented mark all as seen")
+	userId := request.UserID
+	allNotifications, err := service.store.GetAll(ctx)
+
+	if err == nil {
+		for _, notification := range allNotifications {
+			if notification.OwnerId.Hex() == userId {
+				if !notification.Seen {
+					service.store.MarkAsSeen(ctx, notification.Id)
+				}
+			}
+		}
+	}
+
+	return &pb.MarkAllAsSeenResponse{UserID: userId}, err
 }
 
 func (service *NotificationService) InsertNotification(ctx context.Context, request *pb.InsertNotificationRequest) (*pb.InsertNotificationRequestResponse, error) {
-	ownerId, err := primitive.ObjectIDFromHex("62752bf27407f54ce1839cb7")
+	ownerId, err := primitive.ObjectIDFromHex(request.Notification.OwnerId)
 
 	notification := &domain.Notification{
 		OwnerId:    ownerId,
-		ForwardUrl: "123",
-		Text:       "hiiihihi",
+		ForwardUrl: request.Notification.ForwardUrl,
+		Text:       request.Notification.Text,
 		Date:       time.Now(),
 		Seen:       false,
 	}
 
 	service.store.Insert(ctx, notification)
-	var response *pb.InsertNotificationRequestResponse
-	return response, err
+
+	return &pb.InsertNotificationRequestResponse{
+		Notification: request.Notification,
+	}, err
 }
