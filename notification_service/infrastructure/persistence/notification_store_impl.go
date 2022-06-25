@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/domain"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -16,14 +17,26 @@ type NotificationMongoDbStore struct {
 	notifications *mongo.Collection
 }
 
-func (n NotificationMongoDbStore) GetAll(ctx context.Context) (*domain.Notification, error) {
+func (store NotificationMongoDbStore) MarkAllAsSeen(ctx context.Context) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (n NotificationMongoDbStore) Insert(ctx context.Context, profile *domain.Notification) error {
+func (store NotificationMongoDbStore) DeleteAll(ctx context.Context) {
+	store.notifications.DeleteMany(context.TODO(), bson.D{{}})
+}
+
+func (store NotificationMongoDbStore) GetAll(ctx context.Context) (*domain.Notification, error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (store NotificationMongoDbStore) Insert(ctx context.Context, notification *domain.Notification) error {
+	_, err := store.notifications.InsertOne(context.TODO(), notification)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewNotificationMongoDbStore(client *mongo.Client) NotificationStore {

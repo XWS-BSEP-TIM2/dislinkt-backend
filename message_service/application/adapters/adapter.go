@@ -13,7 +13,7 @@ import (
 func NewProfileClient(address string) profileService.ProfileServiceClient {
 	conn, err := getConnection(address)
 	if err != nil {
-		fmt.Println("Gateway faild to start", "Failed to start")
+		fmt.Println("Gateway failed to start", "Failed to start")
 		log.Fatalf("Failed to start gRPC connection to Catalogue service: %v", err)
 	}
 	return profileService.NewProfileServiceClient(conn)
@@ -29,7 +29,7 @@ func getConnection(address string) (*grpc.ClientConn, error) {
 func NewConnectionClient(address string) connectionService.ConnectionServiceClient {
 	conn, err := getConnection(address)
 	if err != nil {
-		fmt.Println("Gateway faild to start", "Failed to start")
+		fmt.Println("Gateway failed to start", "Failed to start")
 		log.Fatalf("Failed to start gRPC connection to Catalogue service: %v", err)
 	}
 	return connectionService.NewConnectionServiceClient(conn)

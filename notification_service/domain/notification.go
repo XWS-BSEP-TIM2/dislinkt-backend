@@ -9,4 +9,5 @@ type Notification struct {
 	ForwardUrl string    `bson:"forwardUrl"`
 	Text       string    `bson:"text"`
 	Date       time.Time `bson:"date"`
+	Seen       bool      `bson:"seen"`
 }

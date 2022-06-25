@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+option go_package = "common/proto/notification_service";
+
+package notification_service;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service NotificationService{
+
+  rpc GetAllNotifications(GetAllNotificationsRequest) returns(GetAllNotificationsResponse){}
+
+  rpc InsertNotification(InsertNotificationRequest) returns (InsertNotificationRequestResponse){}
+
+  rpc MarkAllAsSeen(MarkAllAsSeenRequest) returns(MarkAllAsSeenResponse){}
+
+}
+
+message GetAllNotificationsRequest{
+  string userID = 1;
+}
+
+message GetAllNotificationsResponse{
+  repeated Notification notifications = 1;
+}
+
+message Notification{
+  string ownerId = 1;
+  string forwardUrl = 2;
+  string text = 3;
+  google.protobuf.Timestamp date = 4;
+  bool seen = 5;
+}
+
+message InsertNotificationRequest{
+  Notification notification = 1;
+}
+
+message InsertNotificationRequestResponse{
+  Notification notification = 1;
+}
+
+message MarkAllAsSeenRequest{
+  string userID = 1;
+}
+
+message MarkAllAsSeenResponse{
+  string userID = 1;
+}

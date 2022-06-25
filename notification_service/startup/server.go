@@ -33,7 +33,7 @@ func (server *Server) Start() {
 
 	loggingService := server.initLoggingService()
 
-	profileStore := server.initMessageStore(mongoClient)
+	profileStore := server.initNotificationStore(mongoClient)
 
 	profileService := server.initMessageService(profileStore, loggingService)
 
@@ -51,12 +51,12 @@ func (server *Server) initMongoClient() *mongo.Client {
 	return client
 }
 
-func (server *Server) initMessageStore(client *mongo.Client) persistence.NotificationStore {
+func (server *Server) initNotificationStore(client *mongo.Client) persistence.NotificationStore {
 	store := persistence.NewNotificationMongoDbStore(client)
 
 	store.DeleteAll(context.TODO())
-	for _, chat := range chats {
-		err := store.Insert(context.TODO(), chat)
+	for _, notification := range notifications {
+		err := store.Insert(context.TODO(), notification)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -93,7 +93,7 @@ func (server *Server) initLoggingService() loggingS.LoggingServiceClient {
 	address := fmt.Sprintf("%s:%s", server.config.LoggingHost, server.config.LoggingPort)
 	conn, err := getConnection(address)
 	if err != nil {
-		fmt.Println("Gateway faild to start", "Failed to start")
+		fmt.Println("Gateway failed to start", "Failed to start")
 		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
 	}
 	return loggingS.NewLoggingServiceClient(conn)

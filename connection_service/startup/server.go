@@ -88,7 +88,7 @@ func (server *Server) initLoggingService() pbLogg.LoggingServiceClient {
 	address := fmt.Sprintf("%s:%s", server.config.LoggingHost, server.config.LoggingPort)
 	conn, err := getConnection(address)
 	if err != nil {
-		fmt.Println("Gateway faild to start", "Failed to start")
+		fmt.Println("Gateway failed to start", "Failed to start")
 		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
 	}
 	return pbLogg.NewLoggingServiceClient(conn)

@@ -1,9 +1,11 @@
 package application
 
 import (
+	"context"
 	"fmt"
 	connectionService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/application/adapters"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/infrastructure/persistence"
@@ -24,4 +26,16 @@ func NewNotificationService(store persistence.NotificationStore, c *config.Confi
 		ProfileClient:    adapters.NewProfileClient(fmt.Sprintf("%s:%s", c.ProfileHost, c.ProfilePort)),
 		LoggingService:   loggingService,
 	}
+}
+
+func (service *NotificationService) GetAllNotifications(ctx context.Context, request *pb.GetAllNotificationsRequest) (*pb.GetAllNotificationsResponse, error) {
+	panic("unimplemented")
+}
+
+func (service *NotificationService) MarkAllAsSeen(ctx context.Context, request *pb.MarkAllAsSeenRequest) (*pb.MarkAllAsSeenResponse, error) {
+	panic("unimplemented")
+}
+
+func (service *NotificationService) InsertNotification(ctx context.Context, request *pb.InsertNotificationRequest) (*pb.InsertNotificationRequestResponse, error) {
+	panic("unimplemented")
 }

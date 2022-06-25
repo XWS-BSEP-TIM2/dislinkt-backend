@@ -1,4 +1,4 @@
-module github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service
+module github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service
 
 go 1.18
 

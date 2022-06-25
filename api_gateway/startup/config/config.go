@@ -30,6 +30,9 @@ type Config struct {
 	LoggingHost string
 	LoggingPort string
 
+	NotificationHost string
+	NotificationPort string
+
 	CertificatePath           string
 	CertificatePrivateKeyPath string
 }
@@ -55,6 +58,9 @@ func NewConfig() *Config {
 
 		MessageHost: goDotEnvVariable("MESSAGE_SERVICE_HOST"),
 		MessagePort: goDotEnvVariable("MESSAGE_SERVICE_PORT"),
+
+		NotificationHost: goDotEnvVariable("NOTIFICATION_SERVICE_HOST"),
+		NotificationPort: goDotEnvVariable("NOTIFICATION_SERVICE_PORT"),
 
 		LoggingHost: goDotEnvVariable("LOGGING_SERVICE_HOST"),
 		LoggingPort: goDotEnvVariable("LOGGING_SERVICE_PORT"),
