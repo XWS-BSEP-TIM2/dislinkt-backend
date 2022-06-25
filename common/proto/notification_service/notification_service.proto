@@ -27,6 +27,7 @@ message Notification{
   string text = 3;
   google.protobuf.Timestamp date = 4;
   bool seen = 5;
+  string userFullName = 6;
 }
 
 message InsertNotificationRequest{

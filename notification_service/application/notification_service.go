@@ -41,11 +41,12 @@ func (service *NotificationService) GetAllNotifications(ctx context.Context, req
 		for _, notification := range allNotifications {
 			if notification.OwnerId.Hex() == userId {
 				var newNotification = pb.Notification{
-					OwnerId:    notification.OwnerId.Hex(),
-					ForwardUrl: notification.ForwardUrl,
-					Text:       notification.Text,
-					Date:       &timestamppb.Timestamp{Seconds: notification.Date.Unix()},
-					Seen:       notification.Seen,
+					OwnerId:      notification.OwnerId.Hex(),
+					ForwardUrl:   notification.ForwardUrl,
+					Text:         notification.Text,
+					Date:         &timestamppb.Timestamp{Seconds: notification.Date.Unix()},
+					Seen:         notification.Seen,
+					UserFullName: notification.UserFullName,
 				}
 				userNotifications = append(userNotifications, &newNotification)
 			}
@@ -78,11 +79,12 @@ func (service *NotificationService) InsertNotification(ctx context.Context, requ
 	ownerId, err := primitive.ObjectIDFromHex(request.Notification.OwnerId)
 
 	notification := &domain.Notification{
-		OwnerId:    ownerId,
-		ForwardUrl: request.Notification.ForwardUrl,
-		Text:       request.Notification.Text,
-		Date:       time.Now(),
-		Seen:       false,
+		OwnerId:      ownerId,
+		ForwardUrl:   request.Notification.ForwardUrl,
+		Text:         request.Notification.Text,
+		Date:         time.Now(),
+		Seen:         false,
+		UserFullName: request.Notification.UserFullName,
 	}
 
 	service.store.Insert(ctx, notification)
