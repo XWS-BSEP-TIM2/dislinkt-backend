@@ -8,13 +8,9 @@ import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
 service NotificationService{
-
   rpc GetAllNotifications(GetAllNotificationsRequest) returns(GetAllNotificationsResponse){}
-
   rpc InsertNotification(InsertNotificationRequest) returns (InsertNotificationRequestResponse){}
-
   rpc MarkAllAsSeen(MarkAllAsSeenRequest) returns(MarkAllAsSeenResponse){}
-
 }
 
 message GetAllNotificationsRequest{

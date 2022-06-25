@@ -110,7 +110,7 @@ func NewNotificationClient(address string) notificationService.NotificationServi
 	conn, err := getConnection(address)
 	if err != nil {
 		fmt.Println("Gateway failed to start", "Failed to start")
-		log.Fatalf("Failed to start gRPC connection to Message service: %v", err)
+		log.Fatalf("Failed to start gRPC connection to Notification service: %v", err)
 	}
 	return notificationService.NewNotificationServiceClient(conn)
 }

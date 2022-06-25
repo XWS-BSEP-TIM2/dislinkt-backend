@@ -31,8 +31,6 @@ message EmptyResponse{
 
 }
 
-
-
 message GetAllJobOffersResponse{
   repeated JobOffer jobOffers = 1;
 }
@@ -59,8 +57,6 @@ message JobOffer{
   string companyName=7;
   string jobOfferUniqueCode=8;
 }
-
-
 
 message CreateJobOfferRequest{
   JobOffer jobOffer = 1;

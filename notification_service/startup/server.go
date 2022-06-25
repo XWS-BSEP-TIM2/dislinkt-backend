@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
-	messageS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
+	notificationS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/infrastructure/persistence"
@@ -33,14 +33,14 @@ func (server *Server) Start() {
 
 	loggingService := server.initLoggingService()
 
-	profileStore := server.initNotificationStore(mongoClient)
+	notificationStore := server.initNotificationStore(mongoClient)
 
-	profileService := server.initMessageService(profileStore, loggingService)
+	notificationService := server.initNotificationService(notificationStore, loggingService)
 
-	profileHandler := server.initMessageHandler(profileService)
+	notificationHandler := server.initNotificationHandler(notificationService)
 
 	fmt.Println("Notification service started.")
-	server.startGrpcServer(profileHandler)
+	server.startGrpcServer(notificationHandler)
 }
 
 func (server *Server) initMongoClient() *mongo.Client {
@@ -65,16 +65,16 @@ func (server *Server) initNotificationStore(client *mongo.Client) persistence.No
 	return store
 }
 
-func (server *Server) initMessageService(store persistence.NotificationStore, loggingService loggingS.LoggingServiceClient) *application.NotificationService {
+func (server *Server) initNotificationService(store persistence.NotificationStore, loggingService loggingS.LoggingServiceClient) *application.NotificationService {
 	return application.NewNotificationService(store, server.config, loggingService)
 }
 
-func (server *Server) initMessageHandler(service *application.NotificationService) *api.NotificationHandler {
-	return api.NewMessageHandler(service)
+func (server *Server) initNotificationHandler(service *application.NotificationService) *api.NotificationHandler {
+	return api.NewNotificationHandler(service)
 }
 
-func (server *Server) startGrpcServer(profileHandler *api.NotificationHandler) {
-	creds, err := credentials.NewServerTLSFromFile("./certificates/message_service.crt", "./certificates/message_service.key")
+func (server *Server) startGrpcServer(notificationHandler *api.NotificationHandler) {
+	creds, err := credentials.NewServerTLSFromFile("./certificates/notification_service.crt", "./certificates/notification_service.key")
 	if err != nil {
 		log.Fatalf("Failed to setup TLS: %v", err)
 	}
@@ -83,7 +83,7 @@ func (server *Server) startGrpcServer(profileHandler *api.NotificationHandler) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer(grpc.Creds(creds))
-	messageS.RegisterMessageServiceServer(grpcServer, profileHandler)
+	notificationS.RegisterNotificationServiceServer(grpcServer, notificationHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}

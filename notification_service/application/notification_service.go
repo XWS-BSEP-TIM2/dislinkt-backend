@@ -10,6 +10,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/application/adapters"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/startup/config"
+	"log"
 )
 
 type NotificationService struct {
@@ -29,13 +30,16 @@ func NewNotificationService(store persistence.NotificationStore, c *config.Confi
 }
 
 func (service *NotificationService) GetAllNotifications(ctx context.Context, request *pb.GetAllNotificationsRequest) (*pb.GetAllNotificationsResponse, error) {
-	panic("unimplemented")
+	log.Fatal("ERROR: 1")
+	panic("unimplemented get all")
 }
 
 func (service *NotificationService) MarkAllAsSeen(ctx context.Context, request *pb.MarkAllAsSeenRequest) (*pb.MarkAllAsSeenResponse, error) {
-	panic("unimplemented")
+	log.Fatal("ERROR: 2")
+	panic("unimplemented mark all as seen")
 }
 
 func (service *NotificationService) InsertNotification(ctx context.Context, request *pb.InsertNotificationRequest) (*pb.InsertNotificationRequestResponse, error) {
-	panic("unimplemented")
+	log.Fatal("ERROR: 3")
+	panic("unimplemented insert notification")
 }

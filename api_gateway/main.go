@@ -5,6 +5,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/connection"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/job_offer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/messages"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/notification"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/post"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/profile"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/security"
@@ -28,6 +29,7 @@ func main() {
 	connection.RegisterRoutes(r)
 	job_offer.RegisterRoutes(r)
 	messages.RegisterRoutes(r)
+	notification.RegisterRoutes(r)
 
 	//r.Run(":" + c.Port)
 

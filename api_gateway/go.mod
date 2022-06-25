@@ -8,7 +8,6 @@ require (
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220617075150-48a21e06c92f
 	github.com/casbin/casbin v1.9.1
 	github.com/gin-gonic/gin v1.8.1
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3
 	github.com/joho/godotenv v1.4.0
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
@@ -16,6 +15,7 @@ require (
 
 require (
 	github.com/goccy/go-json v0.9.7 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
 )
 

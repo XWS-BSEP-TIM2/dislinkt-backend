@@ -15,8 +15,8 @@ func RegisterRoutes(r *gin.Engine) {
 	notificationHandler := handler.InitNotificationHandler()
 	authorizedRoutes := r.Group("/notifications")
 
-	authorizedRoutes.GET("/:userId", a.Authorize("getAll", "read", false), notificationHandler.GetAllNotifications)
-	authorizedRoutes.POST("/", a.Authorize("insertNotification", "write", false), notificationHandler.InsertNotification)
-	authorizedRoutes.PUT("/:userId", a.Authorize("markAllAsRead", "update", false), notificationHandler.MarkAllAsSeen)
+	authorizedRoutes.GET("/:userId", a.Authorize("getAllNotifications", "read", false), notificationHandler.GetAllNotifications)
+	authorizedRoutes.POST("/", a.Authorize("insertNotification", "create", false), notificationHandler.InsertNotification)
+	authorizedRoutes.PUT("/:userId", a.Authorize("markAllNotificationsAsRead", "update", false), notificationHandler.MarkAllAsSeen)
 
 }

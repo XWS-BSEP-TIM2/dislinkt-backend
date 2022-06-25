@@ -92,6 +92,46 @@ services:
     networks:
       - network
 
+  message_service:
+    image: message_service
+    container_name: message_service
+    build:
+      context: .
+      dockerfile: ./message_service/Dockerfile
+    restart: on-failure
+    environment:
+      MESSAGE_SERVICE_PORT: ${MESSAGE_SERVICE_PORT}
+      MONGO_DB_HOST: ${MESSAGE_SERVICE_HOST_DOCKER}
+      MONGO_DB_PORT: ${MONGO_DB_PORT}
+    volumes:
+      - type: bind
+        source: ./message_service/certificates/
+        target: /root/certificates
+    depends_on:
+      - message_mongo_db
+    networks:
+      - network
+
+  notification_service:
+    image: notification_service
+    container_name: notification_service
+    build:
+      context: .
+      dockerfile: ./notification_service/Dockerfile
+    restart: on-failure
+    environment:
+      NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
+      MONGO_DB_HOST: ${NOTIFICATION_DB_HOST_DOCKER}
+      MONGO_DB_PORT: ${MONGO_DB_PORT}
+    volumes:
+      - type: bind
+        source: ./notification_service/certificates/
+        target: /root/certificates
+    depends_on:
+      - notification_mongo_db
+    networks:
+      - network
+
   api_gateway:
     image: api_gateway
     container_name: api_gateway
@@ -113,6 +153,10 @@ services:
       CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
       JOB_OFFER_SERVICE_HOST: ${JOB_OFFER_SERVICE_HOST_DOCKER}
       JOB_OFFER_SERVICE_PORT: ${JOB_OFFER_SERVICE_PORT}
+      MESSAGE_SERVICE_HOST: ${MESSAGE_SERVICE_HOST_DOCKER}
+      MESSAGE_SERVICE_PORT: ${MESSAGE_SERVICE_PORT}
+      NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST_DOCKER}
+      NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
     volumes:
       - type: bind
         source: ./api_gateway/certificates/
@@ -121,7 +165,7 @@ services:
         source: ./logging_service/logData/
         target: /root/logData
       - type: bind
-        source: ./security/
+        source: ./api_gateway/security/
         target: /root/security
     networks:
       - network
@@ -159,6 +203,26 @@ services:
   job_offer_mongo_db:
     image: mongo
     container_name: job_offer_mongo_db
+    command: mongod --quiet --logpath /dev/null
+    restart: on-failure
+    networks:
+      - network
+    logging:
+      driver: none
+
+  message_mongo_db:
+    image: mongo
+    container_name: message_mongo_db
+    command: mongod --quiet --logpath /dev/null
+    restart: on-failure
+    networks:
+      - network
+    logging:
+      driver: none
+
+  notification_mongo_db:
+    image: mongo
+    container_name: notification_mongo_db
     command: mongod --quiet --logpath /dev/null
     restart: on-failure
     networks:

@@ -33,3 +33,6 @@ p, USER, getContacts, read
 p, USER, getChat, read
 p, USER, sendMessage, update
 p, USER, setSeen, update
+p, USER, getAllNotifications, read
+p, USER, insertNotification, create
+p, USER, markAllNotificationsAsRead, update
