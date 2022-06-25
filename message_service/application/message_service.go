@@ -6,6 +6,9 @@ import (
 	connectionService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
+	notificationService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
+	pbn "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
+	pbp "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/application/adapters"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/domain"
@@ -18,18 +21,20 @@ import (
 )
 
 type MessageService struct {
-	store            persistence.MessageStore
-	ConnectionClient connectionService.ConnectionServiceClient
-	ProfileClient    profileService.ProfileServiceClient
-	LoggingService   loggingS.LoggingServiceClient
+	store               persistence.MessageStore
+	ConnectionClient    connectionService.ConnectionServiceClient
+	ProfileClient       profileService.ProfileServiceClient
+	LoggingService      loggingS.LoggingServiceClient
+	NotificationService notificationService.NotificationServiceClient
 }
 
 func NewMessageService(store persistence.MessageStore, c *config.Config, loggingService loggingS.LoggingServiceClient) *MessageService {
 	return &MessageService{
-		store:            store,
-		ConnectionClient: adapters.NewConnectionClient(fmt.Sprintf("%s:%s", c.ConnectionHost, c.ConnectionPort)),
-		ProfileClient:    adapters.NewProfileClient(fmt.Sprintf("%s:%s", c.ProfileHost, c.ProfilePort)),
-		LoggingService:   loggingService,
+		store:               store,
+		ConnectionClient:    adapters.NewConnectionClient(fmt.Sprintf("%s:%s", c.ConnectionHost, c.ConnectionPort)),
+		ProfileClient:       adapters.NewProfileClient(fmt.Sprintf("%s:%s", c.ProfileHost, c.ProfilePort)),
+		LoggingService:      loggingService,
+		NotificationService: adapters.NewNotificationClient(fmt.Sprintf("%s:%s", c.NotificationServiceHost, c.NotificationServicePort)),
 	}
 }
 
@@ -176,13 +181,17 @@ func (service *MessageService) SendMessage(ctx context.Context, request *pb.Send
 		return actionResult, err
 	}
 
+	recievingId := ""
+
 	text := request.Text
 	t := time.Now()
 	chat.Messages = append(chat.Messages, domain.Message{AuthorUserID: authorUserID, Text: text, Date: t})
 	if chat.UserIDa == authorUserID {
 		chat.UserASeenDate = time.Now()
+		recievingId = chat.UserIDb
 	} else if chat.UserIDb == authorUserID {
 		chat.UserBSeenDate = time.Now()
+		recievingId = chat.UserIDa
 	}
 	errUpdate := service.store.UpdateWithMessages(ctx, chat)
 	if errUpdate != nil {
@@ -191,6 +200,16 @@ func (service *MessageService) SendMessage(ctx context.Context, request *pb.Send
 	}
 
 	service.logg(ctx, "SUCCESS", "SendMessage", authorUserID, "User send message in chat:"+msgID)
+
+	sender, _ := service.ProfileClient.Get(ctx, &pbp.GetRequest{Id: request.AuthorUserID})
+
+	var notification pbn.Notification
+	notification.OwnerId = recievingId
+	notification.ForwardUrl = "chat"
+	notification.Text = "sent you a message"
+	notification.UserFullName = sender.Profile.Name + " " + sender.Profile.Surname
+	service.NotificationService.InsertNotification(ctx, &pbn.InsertNotificationRequest{Notification: &notification})
+
 	return actionResult, nil
 }
 

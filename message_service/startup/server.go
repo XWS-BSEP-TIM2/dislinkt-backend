@@ -33,14 +33,14 @@ func (server *Server) Start() {
 
 	loggingService := server.initLoggingService()
 
-	profileStore := server.initMessageStore(mongoClient)
+	messageStore := server.initMessageStore(mongoClient)
 
-	profileService := server.initMessageService(profileStore, loggingService)
+	messageService := server.initMessageService(messageStore, loggingService)
 
-	profileHandler := server.initMessageHandler(profileService)
+	messageHandler := server.initMessageHandler(messageService)
 
 	fmt.Println("Message service started.")
-	server.startGrpcServer(profileHandler)
+	server.startGrpcServer(messageHandler)
 }
 
 func (server *Server) initMongoClient() *mongo.Client {
