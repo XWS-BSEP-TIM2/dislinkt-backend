@@ -2,17 +2,25 @@ package application
 
 import (
 	"context"
+	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	notificationService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
+	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/startup/config"
 )
 
 type ConnectionService struct {
-	store domain.ConnectionStore
+	store               domain.ConnectionStore
+	NotificationService notificationService.NotificationServiceClient
+	ProfileClient       profileService.ProfileServiceClient
 }
 
-func NewConnectionService(store domain.ConnectionStore) *ConnectionService {
+func NewConnectionService(store domain.ConnectionStore, c *config.Config) *ConnectionService {
 	return &ConnectionService{
-		store: store,
+		store:               store,
+		NotificationService: NewNotificationClient(fmt.Sprintf("%s:%s", c.NotificationServiceHost, c.NotificationServicePort)),
+		ProfileClient:       NewProfileClient(fmt.Sprintf("%s:%s", c.ProfileHost, c.ProfilePort)),
 	}
 }
 
@@ -53,6 +61,13 @@ func (service *ConnectionService) Register(userID string, isPublic bool) (*pb.Ac
 }
 
 func (service *ConnectionService) AddFriend(userIDa, userIDb string) (*pb.ActionResult, error) {
+	sender, _ := service.ProfileClient.Get(context.TODO(), &profileService.GetRequest{Id: userIDa})
+	var notification notificationService.Notification
+	notification.OwnerId = userIDb
+	notification.ForwardUrl = "profile/" + userIDa
+	notification.Text = "is now your friend"
+	notification.UserFullName = sender.Profile.Name + " " + sender.Profile.Surname
+	service.NotificationService.InsertNotification(context.TODO(), &notificationService.InsertNotificationRequest{Notification: &notification})
 	return service.store.AddFriend(userIDa, userIDb)
 }
 
@@ -73,6 +88,14 @@ func (service *ConnectionService) GetRecommendation(userID string) ([]*domain.Us
 }
 
 func (service *ConnectionService) SendFriendRequest(userIDa, userIDb string) (*pb.ActionResult, error) {
+	sender, _ := service.ProfileClient.Get(context.TODO(), &profileService.GetRequest{Id: userIDa})
+	var notification notificationService.Notification
+	notification.OwnerId = userIDb
+	notification.ForwardUrl = "profile/" + userIDb + "/requests"
+	notification.Text = "sent you a friend request"
+	notification.UserFullName = sender.Profile.Name + " " + sender.Profile.Surname
+	service.NotificationService.InsertNotification(context.TODO(), &notificationService.InsertNotificationRequest{Notification: &notification})
+
 	return service.store.SendFriendRequest(userIDa, userIDb)
 }
 

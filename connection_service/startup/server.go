@@ -36,11 +36,11 @@ func (server *Server) Start() {
 
 	connectionStore := server.initConnectionStore(neo4jClient, loggingService)
 
-	productService := server.initConnectionService(connectionStore)
+	connectionService := server.initConnectionService(connectionStore)
 
-	productHandler := server.initConnectionHandler(productService)
+	connectionHandler := server.initConnectionHandler(connectionService)
 
-	server.startGrpcServer(productHandler)
+	server.startGrpcServer(connectionHandler)
 }
 
 func (server *Server) initNeo4J() *neo4j.Driver {
@@ -61,7 +61,7 @@ func (server *Server) initConnectionStore(client *neo4j.Driver, loggingService p
 }
 
 func (server *Server) initConnectionService(store domain.ConnectionStore) *application.ConnectionService {
-	return application.NewConnectionService(store)
+	return application.NewConnectionService(store, server.config)
 }
 
 func (server *Server) initConnectionHandler(service *application.ConnectionService) *api.ConnectionHandler {
