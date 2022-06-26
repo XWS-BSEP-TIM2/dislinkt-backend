@@ -113,17 +113,206 @@ var chats = []*domain.Chat{
 		Id:            getIdFromHex("62a76abf5b14e448f4bd23e4"),
 		UserIDa:       "62752bf27407f54ce1839cb9", //rasti
 		UserIDb:       "62752bf27407f54ce1839cb6", // zarko
-		UserASeenDate: time.Date(2022, time.June, 14, 12, 47, 0, 0, time.UTC),
-		UserBSeenDate: time.Date(2022, time.June, 14, 12, 47, 0, 0, time.UTC),
-		Messages:      []domain.Message{},
+		UserASeenDate: time.Date(2022, time.June, 26, 12, 55, 20, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 26, 12, 49, 0, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb9",
+				Text:         "Kako je na praksi iz AI sta radite sada, jel ste vec zavrsili chat bota? :)",
+				Date:         time.Date(2022, time.June, 26, 12, 47, 0, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb6",
+				Text:         "Hvala na pitanju odlicno je, stvarno je cool, uspeo sam da napravim jako korisnog chet bot, i pokrio jako puno slucaja :D",
+				Date:         time.Date(2022, time.June, 26, 12, 49, 0, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb9",
+				Text:         "Svaka cast, Odlicno jako mi je drago sto ti se svidja",
+				Date:         time.Date(2022, time.June, 26, 12, 51, 20, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb9",
+				Text:         "I meni je to bas cool, nlp :) mada openCV je strava",
+				Date:         time.Date(2022, time.June, 26, 12, 55, 20, 0, time.UTC),
+			},
+		},
 	},
 	{
 		Id:            getIdFromHex("62a76abf5b14e448f4bd23e6"),
 		UserIDa:       "62752bf27407f54ce1839cb9", //rasti
 		UserIDb:       "62752bf27407f54ce1839cb3", //srdjan
-		UserASeenDate: time.Date(2022, time.June, 13, 20, 11, 20, 0, time.UTC),
-		UserBSeenDate: time.Date(2022, time.June, 13, 21, 10, 5, 0, time.UTC),
-		Messages:      []domain.Message{},
+		UserASeenDate: time.Date(2022, time.June, 26, 12, 12, 4, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 26, 12, 14, 4, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb3",
+				Text:         "Sta radis ovih dana jel hoces da idemo na bazen?",
+				Date:         time.Date(2022, time.June, 26, 12, 10, 4, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb9",
+				Text:         "Aj tipa posle 12 jula kad nam zavrse obaveze",
+				Date:         time.Date(2022, time.June, 26, 12, 12, 4, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb3",
+				Text:         "Moze bice cool zovemo ekipu sa faxa",
+				Date:         time.Date(2022, time.June, 26, 12, 14, 4, 0, time.UTC),
+			},
+		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23e7"),
+		UserIDa:       "62752bf27407f54ce1839cb9", //rasti
+		UserIDb:       "62752bf27407f54ce1839cb2", //marko
+		UserASeenDate: time.Date(2022, time.June, 25, 8, 10, 4, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 25, 9, 10, 4, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb9",
+				Text:         "Da li si kupio knjige za srednju skolu? Moj brat prodaje :)",
+				Date:         time.Date(2022, time.June, 25, 8, 10, 4, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb2",
+				Text:         "Ee kupio sam hvala, nabavio sam vec",
+				Date:         time.Date(2022, time.June, 25, 9, 10, 4, 0, time.UTC),
+			},
+		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23e8"),
+		UserIDa:       "62752bf27407f54ce1839cb9", // rasti
+		UserIDb:       "62752bf27407f54ce1839cb5", //svetozar
+		UserASeenDate: time.Date(2022, time.June, 10, 20, 11, 15, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 11, 21, 10, 7, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb5",
+				Text:         "Dislinkt je jako lepa drustvena mreza",
+				Date:         time.Date(2022, time.June, 24, 17, 10, 4, 0, time.UTC),
+			},
+		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23e9"),
+		UserIDa:       "62752bf27407f54ce1839cb6", // zarko
+		UserIDb:       "62752bf27407f54ce1839cb7", //tara
+		UserASeenDate: time.Date(2022, time.June, 21, 21, 15, 4, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 22, 21, 13, 4, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb6",
+				Text:         "Kada nam ono bese dolazi ispit iz inteligentnih?",
+				Date:         time.Date(2022, time.June, 21, 21, 13, 4, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb6",
+				Text:         "Mislim da stizemo lagano",
+				Date:         time.Date(2022, time.June, 21, 21, 15, 4, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb7",
+				Text:         "3 Jula :) ",
+				Date:         time.Date(2022, time.June, 22, 21, 13, 4, 0, time.UTC),
+			},
+		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23ea"),
+		UserIDa:       "62752bf27407f54ce1839cb6", // zarko
+		UserIDb:       "62752bf27407f54ce1839cb8", //djordje
+		UserASeenDate: time.Date(2022, time.June, 22, 21, 16, 14, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 22, 21, 13, 14, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb8",
+				Text:         "Kako je bilo na keju preksinoc?",
+				Date:         time.Date(2022, time.June, 22, 21, 13, 4, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb8",
+				Text:         "Jel bilo drustva?",
+				Date:         time.Date(2022, time.June, 22, 21, 13, 14, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb6",
+				Text:         "uu bilo je odlicno, bas je bilo dobro druzenje izblejali smo, aj dodji veceras opet smo tu",
+				Date:         time.Date(2022, time.June, 22, 21, 16, 14, 0, time.UTC),
+			},
+		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23eb"),
+		UserIDa:       "62752bf27407f54ce1839cb6", // zarko
+		UserIDb:       "62752bf27407f54ce1839cb5", //svetozar
+		UserASeenDate: time.Date(2022, time.June, 10, 23, 11, 20, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 11, 21, 12, 53, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb5",
+				Text:         "Pozdrav :)",
+				Date:         time.Date(2022, time.June, 11, 21, 12, 53, 0, time.UTC),
+			},
+		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23ec"),
+		UserIDa:       "62752bf27407f54ce1839cb7", // tara
+		UserIDb:       "62752bf27407f54ce1839cb8", //djordje
+		UserASeenDate: time.Date(2022, time.June, 23, 14, 31, 14, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 23, 14, 31, 14, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb7",
+				Text:         "Kako ti se cini novi Apple Macbook Air 2022?",
+				Date:         time.Date(2022, time.June, 23, 14, 22, 4, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb8",
+				Text:         "A ne znam, posalji mi specifikacije da vidim",
+				Date:         time.Date(2022, time.June, 23, 14, 23, 14, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb7",
+				Text:         "Apple M2 chip\n\n8-core CPU with 4 performance cores and 4 efficiency cores\n8-core GPU\n16-core Neural Engine\n100GB/s memory bandwidth\nMedia engine\n\nHardware-accelerated H.264, HEVC, ProRes, and ProRes RAW\nVideo decode engine\nVideo encode engine\nProRes encode and decode engine\nConfigurable to:\n\nM2 with 8-core CPU and 10-core GPU",
+				Date:         time.Date(2022, time.June, 23, 14, 25, 14, 0, time.UTC),
+			},
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb8",
+				Text:         "Uuu Mocan bas",
+				Date:         time.Date(2022, time.June, 23, 14, 31, 14, 0, time.UTC),
+			},
+		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23ed"),
+		UserIDa:       "62752bf27407f54ce1839cb7", // tara
+		UserIDb:       "62752bf27407f54ce1839cb5", //svetozar
+		UserASeenDate: time.Date(2022, time.June, 10, 10, 11, 24, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 11, 10, 13, 5, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb5",
+				Text:         "Hello :)",
+				Date:         time.Date(2022, time.June, 11, 10, 13, 5, 0, time.UTC),
+			},
+		},
+	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23ee"),
+		UserIDa:       "62752bf27407f54ce1839cb8", // djordje
+		UserIDb:       "62752bf27407f54ce1839cb3", //srdjan
+		UserASeenDate: time.Date(2022, time.June, 10, 25, 11, 20, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 11, 12, 10, 5, 0, time.UTC),
+		Messages: []domain.Message{
+			{
+				AuthorUserID: "62752bf27407f54ce1839cb3",
+				Text:         "De si Djordje brate :D",
+				Date:         time.Date(2022, time.June, 11, 12, 10, 5, 0, time.UTC),
+			},
+		},
 	},
 }
 
