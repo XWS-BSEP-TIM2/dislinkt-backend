@@ -8,6 +8,7 @@ import (
 
 	connection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	pbMessage "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/infrastructure/api"
@@ -34,7 +35,9 @@ func (server *Server) Start() {
 
 	loggingService := server.initLoggingService()
 
-	connectionStore := server.initConnectionStore(neo4jClient, loggingService)
+	messageService := server.initMessageService()
+
+	connectionStore := server.initConnectionStore(neo4jClient, loggingService, messageService)
 
 	connectionService := server.initConnectionService(connectionStore)
 
@@ -54,8 +57,8 @@ func (server *Server) initNeo4J() *neo4j.Driver {
 	return client
 }
 
-func (server *Server) initConnectionStore(client *neo4j.Driver, loggingService pbLogg.LoggingServiceClient) domain.ConnectionStore {
-	store := persistence.NewConnectionDBStore(client, loggingService)
+func (server *Server) initConnectionStore(client *neo4j.Driver, loggingService pbLogg.LoggingServiceClient, messageService pbMessage.MessageServiceClient) domain.ConnectionStore {
+	store := persistence.NewConnectionDBStore(client, loggingService, messageService)
 	store.Init()
 	return store
 }
@@ -92,6 +95,16 @@ func (server *Server) initLoggingService() pbLogg.LoggingServiceClient {
 		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
 	}
 	return pbLogg.NewLoggingServiceClient(conn)
+}
+
+func (server *Server) initMessageService() pbMessage.MessageServiceClient {
+	address := fmt.Sprintf("%s:%s", server.config.MessageHost, server.config.MessagePort)
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("Gateway failed to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Message service: %v", err)
+	}
+	return pbMessage.NewMessageServiceClient(conn)
 }
 
 func getConnection(address string) (*grpc.ClientConn, error) {

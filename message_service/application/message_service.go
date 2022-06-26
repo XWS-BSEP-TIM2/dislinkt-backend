@@ -245,6 +245,27 @@ func (service *MessageService) SetSeen(ctx context.Context, request *pb.SetSeenR
 	return actionResult, nil
 }
 
+func (service *MessageService) CreateChat(ctx context.Context, request *pb.CreateChatRequest) (*pb.CreateChatResponse, error) {
+	chatResponse := &pb.CreateChatResponse{}
+	newChat := domain.Chat{}
+	newChat.UserIDa = request.UserIDa
+	newChat.UserIDb = request.UserIDb
+	newChat.UserASeenDate = time.Now()
+	newChat.UserBSeenDate = time.Now()
+	newChat.Messages = []domain.Message{}
+	msgID, err := service.store.Insert(ctx, &newChat)
+	if err != nil {
+		chatResponse.Status = 400
+		chatResponse.Msg = "Error"
+		return chatResponse, err
+	}
+	chatResponse.MsgID = msgID
+	chatResponse.Msg = "successfully creatend new chat for user " + request.UserIDa + " and " + request.UserIDb
+	chatResponse.Status = 200
+	service.logg(ctx, "SUCCESS", "CreateChat", request.UserIDa, chatResponse.Msg)
+	return chatResponse, nil
+}
+
 func (service *MessageService) logg(ctx context.Context, logType, serviceFunctionName, userID, description string) {
 	ipAddress := ""
 	p, ok := peer.FromContext(ctx)

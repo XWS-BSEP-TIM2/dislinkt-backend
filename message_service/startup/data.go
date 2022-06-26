@@ -117,6 +117,14 @@ var chats = []*domain.Chat{
 		UserBSeenDate: time.Date(2022, time.June, 14, 12, 47, 0, 0, time.UTC),
 		Messages:      []domain.Message{},
 	},
+	{
+		Id:            getIdFromHex("62a76abf5b14e448f4bd23e6"),
+		UserIDa:       "62752bf27407f54ce1839cb9", //rasti
+		UserIDb:       "62752bf27407f54ce1839cb3", //srdjan
+		UserASeenDate: time.Date(2022, time.June, 13, 20, 11, 20, 0, time.UTC),
+		UserBSeenDate: time.Date(2022, time.June, 13, 21, 10, 5, 0, time.UTC),
+		Messages:      []domain.Message{},
+	},
 }
 
 func getObjectId(id string) primitive.ObjectID {

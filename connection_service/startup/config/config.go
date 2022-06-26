@@ -23,6 +23,9 @@ type Config struct {
 
 	ProfileHost string
 	ProfilePort string
+
+	MessageHost string
+	MessagePort string
 }
 
 func NewConfig() *Config {
@@ -44,6 +47,9 @@ func NewConfig() *Config {
 
 		ProfileHost: goDotEnvVariable("PROFILE_SERVICE_HOST"),
 		ProfilePort: goDotEnvVariable("PROFILE_SERVICE_PORT"),
+
+		MessageHost: goDotEnvVariable("MESSAGE_SERVICE_HOST"),
+		MessagePort: goDotEnvVariable("MESSAGE_SERVICE_PORT"),
 	}
 }
 

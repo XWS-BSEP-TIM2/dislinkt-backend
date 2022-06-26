@@ -8,7 +8,7 @@ import (
 
 // Chat converter.GetObjectId(id)
 type Chat struct {
-	Id            primitive.ObjectID `bson:"_id"`
+	Id            primitive.ObjectID `bson:"_id,omitempty"`
 	UserIDa       string             `bson:"userIDa"`
 	UserIDb       string             `bson:"userIDb"`
 	UserASeenDate time.Time          `bson:"userASeenDate"`

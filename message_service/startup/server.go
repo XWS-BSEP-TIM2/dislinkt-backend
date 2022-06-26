@@ -56,7 +56,7 @@ func (server *Server) initMessageStore(client *mongo.Client) persistence.Message
 
 	store.DeleteAll(context.TODO())
 	for _, chat := range chats {
-		err := store.Insert(context.TODO(), chat)
+		_, err := store.Insert(context.TODO(), chat)
 		if err != nil {
 			log.Fatal(err)
 		}

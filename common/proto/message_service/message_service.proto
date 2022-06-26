@@ -17,6 +17,19 @@ service MessageService{
 
   rpc SetSeen(SetSeenRequest) returns(ActionResult){}
 
+  rpc CreateChat(CreateChatRequest) returns(CreateChatResponse){}
+
+}
+
+message CreateChatRequest{
+  string userIDa = 1;
+  string userIDb = 2;
+}
+
+message CreateChatResponse{
+  int64 status = 1;
+  string msg = 2;
+  string msgID = 3;
 }
 
 message ActionResult{

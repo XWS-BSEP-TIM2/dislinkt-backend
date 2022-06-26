@@ -48,12 +48,13 @@ func (store *MessageMongoDbStore) GetChat(ctx context.Context, msgID string) (*d
 	return store.filterOne(filter)
 }
 
-func (store *MessageMongoDbStore) Insert(ctx context.Context, chat *domain.Chat) error {
-	_, err := store.messages.InsertOne(context.TODO(), chat)
+func (store *MessageMongoDbStore) Insert(ctx context.Context, chat *domain.Chat) (string, error) {
+	result, err := store.messages.InsertOne(context.TODO(), chat)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	chat.Id = result.InsertedID.(primitive.ObjectID)
+	return chat.Id.Hex(), nil
 }
 
 func (store *MessageMongoDbStore) DeleteAll(ctx context.Context) {

@@ -26,6 +26,7 @@ type MessageServiceClient interface {
 	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*ChatResponse, error)
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*ActionResult, error)
 	SetSeen(ctx context.Context, in *SetSeenRequest, opts ...grpc.CallOption) (*ActionResult, error)
+	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*CreateChatResponse, error)
 }
 
 type messageServiceClient struct {
@@ -72,6 +73,15 @@ func (c *messageServiceClient) SetSeen(ctx context.Context, in *SetSeenRequest, 
 	return out, nil
 }
 
+func (c *messageServiceClient) CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*CreateChatResponse, error) {
+	out := new(CreateChatResponse)
+	err := c.cc.Invoke(ctx, "/message_service.MessageService/CreateChat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MessageServiceServer is the server API for MessageService service.
 // All implementations must embed UnimplementedMessageServiceServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type MessageServiceServer interface {
 	GetChat(context.Context, *GetChatRequest) (*ChatResponse, error)
 	SendMessage(context.Context, *SendMessageRequest) (*ActionResult, error)
 	SetSeen(context.Context, *SetSeenRequest) (*ActionResult, error)
+	CreateChat(context.Context, *CreateChatRequest) (*CreateChatResponse, error)
 	mustEmbedUnimplementedMessageServiceServer()
 }
 
@@ -98,6 +109,9 @@ func (UnimplementedMessageServiceServer) SendMessage(context.Context, *SendMessa
 }
 func (UnimplementedMessageServiceServer) SetSeen(context.Context, *SetSeenRequest) (*ActionResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSeen not implemented")
+}
+func (UnimplementedMessageServiceServer) CreateChat(context.Context, *CreateChatRequest) (*CreateChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateChat not implemented")
 }
 func (UnimplementedMessageServiceServer) mustEmbedUnimplementedMessageServiceServer() {}
 
@@ -184,6 +198,24 @@ func _MessageService_SetSeen_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageService_CreateChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).CreateChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/message_service.MessageService/CreateChat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).CreateChat(ctx, req.(*CreateChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MessageService_ServiceDesc is the grpc.ServiceDesc for MessageService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -206,6 +238,10 @@ var MessageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetSeen",
 			Handler:    _MessageService_SetSeen_Handler,
+		},
+		{
+			MethodName: "CreateChat",
+			Handler:    _MessageService_CreateChat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

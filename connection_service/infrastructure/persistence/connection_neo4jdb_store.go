@@ -5,6 +5,7 @@ import (
 	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	pbMessage "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/domain"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"google.golang.org/grpc/peer"
@@ -19,12 +20,14 @@ const (
 type ConnectionDBStore struct {
 	connectionDB   *neo4j.Driver
 	LoggingService pbLogg.LoggingServiceClient
+	MessageService pbMessage.MessageServiceClient
 }
 
-func NewConnectionDBStore(client *neo4j.Driver, loggingService pbLogg.LoggingServiceClient) domain.ConnectionStore {
+func NewConnectionDBStore(client *neo4j.Driver, loggingService pbLogg.LoggingServiceClient, messageService pbMessage.MessageServiceClient) domain.ConnectionStore {
 	return &ConnectionDBStore{
 		connectionDB:   client,
 		LoggingService: loggingService,
+		MessageService: messageService,
 	}
 }
 
@@ -228,6 +231,18 @@ func (store *ConnectionDBStore) AddFriend(userIDa, userIDb string) (*pb.ActionRe
 					}
 
 					// dodavanje prijatelja
+
+					// create chet for them
+					chatReq := &pbMessage.CreateChatRequest{UserIDa: userIDa, UserIDb: userIDb}
+					createChatResponse, errCreateChat := store.MessageService.CreateChat(context.TODO(), chatReq)
+					if errCreateChat != nil {
+						actionResult.Msg = errCreateChat.Error()
+						return actionResult, errCreateChat
+					}
+					if createChatResponse.Status != 200 || createChatResponse.MsgID == "" {
+						actionResult.Msg = createChatResponse.Msg
+						return actionResult, nil
+					}
 					dateNow := time.Now().Local().Unix()
 					result, err := transaction.Run(
 						"MATCH (u1:USER) WHERE u1.userID=$uIDa "+
@@ -235,7 +250,7 @@ func (store *ConnectionDBStore) AddFriend(userIDa, userIDb string) (*pb.ActionRe
 							"CREATE (u1)-[r1:FRIEND {date: $dateNow, msgID: $msgID}]->(u2) "+
 							"CREATE (u2)-[r2:FRIEND {date: $dateNow, msgID: $msgID}]->(u1) "+
 							"RETURN r1.date, r2.date",
-						map[string]interface{}{"uIDa": userIDa, "uIDb": userIDb, "dateNow": dateNow, "msgID": "newMsgID"})
+						map[string]interface{}{"uIDa": userIDa, "uIDb": userIDb, "dateNow": dateNow, "msgID": createChatResponse.MsgID})
 
 					if err != nil || result == nil {
 						actionResult.Msg = "error while creating new friends IDa:" + userIDa + " and IDb:" + userIDb

@@ -32,3 +32,7 @@ func (handler *MessageHandler) SendMessage(ctx context.Context, request *pb.Send
 func (handler *MessageHandler) SetSeen(ctx context.Context, request *pb.SetSeenRequest) (*pb.ActionResult, error) {
 	return handler.service.SetSeen(ctx, request)
 }
+
+func (handler *MessageHandler) CreateChat(ctx context.Context, request *pb.CreateChatRequest) (*pb.CreateChatResponse, error) {
+	return handler.service.CreateChat(ctx, request)
+}
