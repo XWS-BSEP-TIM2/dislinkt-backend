@@ -14,5 +14,6 @@ type JobOfferStore interface {
 	Search(ctx context.Context, search string) ([]*domain.JobOffer, error)
 	DeleteAll(ctx context.Context)
 	GetUserJobOffers(ctx context.Context, id primitive.ObjectID) ([]*domain.JobOffer, error)
-	Delete(ctx context.Context, id primitive.ObjectID) (int64, error)
+	Delete(ctx context.Context, jobId string) (bool, error)
+	Init()
 }

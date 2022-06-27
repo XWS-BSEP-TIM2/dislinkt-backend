@@ -1,14 +1,13 @@
 package startup
 
 import (
-	"context"
 	"fmt"
 	joboffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/startup/config"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"log"
@@ -26,8 +25,8 @@ func NewServer(config *config.Config) *Server {
 }
 
 func (server *Server) Start() {
-	mongoClient := server.initMongoClient()
-	jobOfferStore := server.initJobOfferStore(mongoClient)
+	neo4jClient := server.initNeo4J()
+	jobOfferStore := server.initJobOfferStore(neo4jClient)
 
 	jobOfferService := server.initJobOfferService(jobOfferStore)
 
@@ -37,25 +36,20 @@ func (server *Server) Start() {
 	server.startGrpcServer(jobOfferHandler)
 }
 
-func (server *Server) initMongoClient() *mongo.Client {
-	client, err := persistence.GetClient(server.config.JobOfferDBHost, server.config.JobOfferDBPort)
+func (server *Server) initNeo4J() *neo4j.Driver {
+	fmt.Println(fmt.Sprintf("%s://%s:%s", server.config.Neo4jUri, server.config.Neo4jHost, server.config.Neo4jPort))
+	neo4jServer := fmt.Sprintf("%s://%s:%s", server.config.Neo4jUri, server.config.Neo4jHost, server.config.Neo4jPort)
+
+	client, err := persistence.GetClient(neo4jServer, server.config.Neo4jUsername, server.config.Neo4jPassword)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return client
 }
 
-func (server *Server) initJobOfferStore(client *mongo.Client) persistence.JobOfferStore {
-	store := persistence.NewJobOfferMongoDbStore(client)
-
-	store.DeleteAll(context.TODO())
-	for _, jobOffer := range jobOffers {
-		err := store.Insert(context.TODO(), jobOffer)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
+func (server *Server) initJobOfferStore(driver *neo4j.Driver) persistence.JobOfferStore {
+	store := persistence.NewJobOfferDbStore(driver)
+	store.Init()
 	return store
 }
 

@@ -177,7 +177,7 @@ func getFriendsOfFriendsButNotBlockedRecommendation(userID string, transaction n
 func getFriendRecommendation(userID string, transaction neo4j.Transaction) ([]*domain.UserConn, error) {
 	result, err := transaction.Run(
 		"MATCH (u1:USER) "+
-			"MATCH (u2:USER)-[r:FRIEND]->(:USER) "+ //TODO: umesto (u2:USER)-[r:FRIEND]->(:USER) samo (u2:USER)
+			"MATCH (u2:USER)-[r:FRIEND]->(:USER) "+
 			"WHERE u1.userID=$uID AND u2.userID<>$uID "+
 			"AND NOT exists((u1)-[:FRIEND]-(u2)) "+
 			"AND NOT exists((u1)-[:BLOCK]-(u2)) "+

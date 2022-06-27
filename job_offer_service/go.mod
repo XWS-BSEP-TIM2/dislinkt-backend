@@ -10,6 +10,7 @@ require (
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service v0.0.0-20220617075150-48a21e06c92f
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220617075150-48a21e06c92f
 	github.com/joho/godotenv v1.4.0
+	github.com/neo4j/neo4j-go-driver/v4 v4.4.3
 	go.mongodb.org/mongo-driver v1.9.1
 	google.golang.org/grpc v1.47.0
 )
