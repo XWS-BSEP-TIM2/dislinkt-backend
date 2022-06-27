@@ -50,7 +50,7 @@ func (service *CommentService) CreateComment(ctx context.Context, postId primiti
 	var notification pb.Notification
 	notification.OwnerId = post.OwnerId.Hex()
 	notification.ForwardUrl = "posts/" + postId.Hex()
-	notification.Text = "commented your post"
+	notification.Text = "commented on your post"
 	notification.UserFullName = commenter.Name + " " + commenter.Surname
 
 	if notification.OwnerId != commenter.UserId.Hex() {

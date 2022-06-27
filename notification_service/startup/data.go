@@ -22,6 +22,15 @@ var userIdMap = map[int]primitive.ObjectID{
 	zare:  getIdFromHex("62752bf27407f54ce1839cb6"),
 }
 
+var userSettings = []*domain.UserSettings{
+	{
+		OwnerId:                 userIdMap[tara],
+		PostNotifications:       true,
+		ConnectionNotifications: true,
+		MessageNotifications:    false,
+	},
+}
+
 var notifications = []*domain.Notification{
 	{
 		Id:           getIdFromHex("62b739b2c74d379ebaf20ac4"),
@@ -81,7 +90,7 @@ var notifications = []*domain.Notification{
 		Id:           getIdFromHex("62b739b2c74d379ebaf20ad0"),
 		OwnerId:      userIdMap[tara],
 		ForwardUrl:   "profile/62752bf27407f54ce1839cb7/requests",
-		Text:         "sent you a connection request",
+		Text:         "sent you a friend request",
 		Date:         time.Date(2022, time.January, 3, 10, 0, 0, 10000000, time.UTC),
 		Seen:         true,
 		UserFullName: "Djordje Krsmanovic",

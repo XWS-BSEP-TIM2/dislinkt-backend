@@ -54,3 +54,26 @@ func (handler *NotificationHandler) InsertNotification(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, &response)
 }
+
+func (handler *NotificationHandler) GetUserSettings(ctx *gin.Context) {
+	notificationService := handler.grpcClient.NotificationClient
+	dataFromToken, _ := security.ExtractTokenDataFromContext(ctx)
+	response, err := notificationService.GetUserSettings(ctx, &pb.GetUserSettingsRequest{UserID: dataFromToken.Id})
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, &response)
+}
+
+func (handler *NotificationHandler) UpdateUserSettings(ctx *gin.Context) {
+	settingsCode := ctx.Param("code")
+	notificationService := handler.grpcClient.NotificationClient
+	dataFromToken, _ := security.ExtractTokenDataFromContext(ctx)
+	response, err := notificationService.UpdateUserSettings(ctx, &pb.UpdateUserSettingsRequest{UserID: dataFromToken.Id, SettingsCode: settingsCode})
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, &response)
+}

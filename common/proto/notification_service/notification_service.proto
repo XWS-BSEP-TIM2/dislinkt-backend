@@ -11,6 +11,24 @@ service NotificationService{
   rpc GetAllNotifications(GetAllNotificationsRequest) returns(GetAllNotificationsResponse){}
   rpc InsertNotification(InsertNotificationRequest) returns (InsertNotificationRequestResponse){}
   rpc MarkAllAsSeen(MarkAllAsSeenRequest) returns(MarkAllAsSeenResponse){}
+  rpc GetUserSettings(GetUserSettingsRequest) returns (GetUserSettingsResponse) {}
+  rpc UpdateUserSettings(UpdateUserSettingsRequest) returns (GetUserSettingsResponse) {}
+}
+
+message GetUserSettingsRequest{
+  string userID = 1;
+}
+
+message UpdateUserSettingsRequest{
+  string userID = 1;
+  string settingsCode = 2;
+}
+
+message GetUserSettingsResponse{
+  string userID = 1;
+  bool postNotifications = 2;
+  bool connectionNotifications = 3;
+  bool messageNotifications = 4;
 }
 
 message GetAllNotificationsRequest{

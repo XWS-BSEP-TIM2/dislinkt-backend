@@ -54,9 +54,17 @@ func (server *Server) initMongoClient() *mongo.Client {
 func (server *Server) initNotificationStore(client *mongo.Client) persistence.NotificationStore {
 	store := persistence.NewNotificationMongoDbStore(client)
 
-	store.DeleteAll(context.TODO())
+	store.DeleteAllNotifications(context.TODO())
+	store.DeleteAllSettings(context.TODO())
 	for _, notification := range notifications {
 		err := store.Insert(context.TODO(), notification)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	for _, setting := range userSettings {
+		err := store.InsertSetting(context.TODO(), setting)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -9,12 +9,58 @@ import (
 )
 
 const (
-	DATABASE   = "notification_db"
-	COLLECTION = "notifications"
+	DATABASE            = "notification_db"
+	COLLECTION          = "notifications"
+	SETTINGS_COLLECTION = "user_settings"
 )
 
 type NotificationMongoDbStore struct {
 	notifications *mongo.Collection
+	userSettings  *mongo.Collection
+}
+
+func (store *NotificationMongoDbStore) GetOrInitUserSetting(ctx context.Context, userId primitive.ObjectID) *domain.UserSettings {
+	settingsFilter := bson.M{"ownerId": userId}
+	settings, _ := store.filterOneSettings(settingsFilter)
+	if settings == nil {
+		newSettings := domain.UserSettings{
+			OwnerId:                 userId,
+			PostNotifications:       true,
+			ConnectionNotifications: true,
+			MessageNotifications:    true,
+		}
+
+		err := store.InsertSetting(ctx, &newSettings)
+		if err != nil {
+			return nil
+		}
+		return &newSettings
+	} else {
+		return settings
+	}
+}
+
+func (store *NotificationMongoDbStore) DeleteAllSettings(ctx context.Context) {
+	store.userSettings.DeleteMany(context.TODO(), bson.D{{}})
+}
+
+func (store *NotificationMongoDbStore) ModifyOrInsertSetting(ctx context.Context, setting *domain.UserSettings) {
+	settingOld := store.GetOrInitUserSetting(ctx, setting.OwnerId)
+	settingToUpdate := bson.M{"_id": settingOld.Id}
+	updatedSetting := bson.M{"$set": bson.M{
+		"postNotifications":       setting.PostNotifications,
+		"connectionNotifications": setting.ConnectionNotifications,
+		"messageNotifications":    setting.MessageNotifications,
+	}}
+	store.userSettings.UpdateOne(context.TODO(), settingToUpdate, updatedSetting)
+}
+
+func (store *NotificationMongoDbStore) InsertSetting(ctx context.Context, setting *domain.UserSettings) error {
+	_, err := store.userSettings.InsertOne(context.TODO(), setting)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (store *NotificationMongoDbStore) MarkAsSeen(ctx context.Context, notificationId primitive.ObjectID) {
@@ -25,7 +71,7 @@ func (store *NotificationMongoDbStore) MarkAsSeen(ctx context.Context, notificat
 	store.notifications.UpdateOne(context.TODO(), notificationToUpdate, updatedNotification)
 }
 
-func (store *NotificationMongoDbStore) DeleteAll(ctx context.Context) {
+func (store *NotificationMongoDbStore) DeleteAllNotifications(ctx context.Context) {
 	store.notifications.DeleteMany(context.TODO(), bson.D{{}})
 }
 
@@ -42,6 +88,12 @@ func (store *NotificationMongoDbStore) filter(filter interface{}) ([]*domain.Not
 func (store *NotificationMongoDbStore) filterOne(filter interface{}) (notification *domain.Notification, err error) {
 	result := store.notifications.FindOne(context.TODO(), filter)
 	err = result.Decode(&notification)
+	return
+}
+
+func (store *NotificationMongoDbStore) filterOneSettings(filter interface{}) (settings *domain.UserSettings, err error) {
+	result := store.userSettings.FindOne(context.TODO(), filter)
+	err = result.Decode(&settings)
 	return
 }
 
@@ -73,8 +125,10 @@ func (store *NotificationMongoDbStore) Insert(ctx context.Context, notification 
 
 func NewNotificationMongoDbStore(client *mongo.Client) NotificationStore {
 	notificationsDb := client.Database(DATABASE).Collection(COLLECTION)
+	settingsDb := client.Database(DATABASE).Collection(SETTINGS_COLLECTION)
 	return &NotificationMongoDbStore{
 		notifications: notificationsDb,
+		userSettings:  settingsDb,
 	}
 }
 

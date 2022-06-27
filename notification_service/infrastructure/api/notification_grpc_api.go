@@ -28,3 +28,11 @@ func (handler *NotificationHandler) MarkAllAsSeen(ctx context.Context, request *
 func (handler *NotificationHandler) InsertNotification(ctx context.Context, request *pb.InsertNotificationRequest) (*pb.InsertNotificationRequestResponse, error) {
 	return handler.service.InsertNotification(ctx, request)
 }
+
+func (handler *NotificationHandler) GetUserSettings(ctx context.Context, request *pb.GetUserSettingsRequest) (*pb.GetUserSettingsResponse, error) {
+	return handler.service.GetUserSettings(ctx, request)
+}
+
+func (handler *NotificationHandler) UpdateUserSettings(ctx context.Context, request *pb.UpdateUserSettingsRequest) (*pb.GetUserSettingsResponse, error) {
+	return handler.service.UpdateUserSettings(ctx, request)
+}

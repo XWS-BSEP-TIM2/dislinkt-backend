@@ -48,6 +48,8 @@ services:
       CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
       NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST_DOCKER}
       NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
     volumes:
       - type: bind
         source: ./post_service/certificates/
@@ -71,6 +73,8 @@ services:
       PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
       MONGO_DB_HOST: ${PROFILE_MONGO_DB_HOST_DOCKER}
       MONGO_DB_PORT: ${MONGO_DB_PORT}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
     volumes:
       - type: bind
         source: ./profile_service/certificates/
@@ -91,6 +95,8 @@ services:
       JOB_OFFER_SERVICE_PORT: ${JOB_OFFER_SERVICE_PORT}
       MONGO_DB_HOST: ${JOB_OFFER_DB_HOST_DOCKER}
       MONGO_DB_PORT: ${MONGO_DB_PORT}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
     volumes:
       - type: bind
         source: ./job_offer_service/certificates/

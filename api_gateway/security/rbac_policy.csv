@@ -36,3 +36,5 @@ p, USER, setSeen, update
 p, USER, getAllNotifications, read
 p, USER, insertNotification, create
 p, USER, markAllNotificationsAsRead, update
+p, USER, getUserSettings, read
+p, USER, updateUserSettings, update
