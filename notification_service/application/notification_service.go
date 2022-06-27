@@ -12,6 +12,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/startup/config"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
@@ -53,6 +54,7 @@ func (service *NotificationService) GetAllNotifications(ctx context.Context, req
 		}
 	}
 
+	service.logg(ctx, "SUCCESS", "GetUserNotifications", request.UserID, "Getting all user's notifications.")
 	return &pb.GetAllNotificationsResponse{
 		Notifications: userNotifications,
 	}, err
@@ -66,6 +68,7 @@ func (service *NotificationService) MarkAllAsSeen(ctx context.Context, request *
 		for _, notification := range allNotifications {
 			if notification.OwnerId.Hex() == userId {
 				if !notification.Seen {
+					service.logg(ctx, "SUCCESS", "MarkNotificationsAsSeen", request.UserID, "Marking all unread notifications as seen.")
 					service.store.MarkAsSeen(ctx, notification.Id)
 				}
 			}
@@ -88,7 +91,10 @@ func (service *NotificationService) InsertNotification(ctx context.Context, requ
 	}
 
 	if service.UserAcceptsNotification(notification) {
+		service.logg(ctx, "SUCCESS", "SendNotification", request.Notification.OwnerId, "Sending notification to user.")
 		service.store.Insert(ctx, notification)
+	} else {
+		service.logg(ctx, "WARNING", "SendNotification", request.Notification.OwnerId, "Notification declined by user's settings.")
 	}
 
 	return &pb.InsertNotificationRequestResponse{
@@ -101,6 +107,7 @@ func (service *NotificationService) GetUserSettings(ctx context.Context, request
 	id, err := primitive.ObjectIDFromHex(userId)
 	if err == nil {
 		settings := service.store.GetOrInitUserSetting(ctx, id)
+		service.logg(ctx, "SUCCESS", "GetUserSettings", request.UserID, "Fetching informations about user's notification settings.")
 		return &pb.GetUserSettingsResponse{
 			UserID:                  settings.OwnerId.Hex(),
 			PostNotifications:       settings.PostNotifications,
@@ -108,6 +115,7 @@ func (service *NotificationService) GetUserSettings(ctx context.Context, request
 			MessageNotifications:    settings.MessageNotifications,
 		}, nil
 	} else {
+		service.logg(ctx, "ERROR", "GetUserSettings", request.UserID, "No such user.")
 		return &pb.GetUserSettingsResponse{}, err
 	}
 }
@@ -173,4 +181,21 @@ func (service *NotificationService) UserAcceptsNotification(notification *domain
 	}
 
 	return true
+}
+
+func (service *NotificationService) logg(ctx context.Context, logType, serviceFunctionName, userID, description string) {
+	ipAddress := ""
+	p, ok := peer.FromContext(ctx)
+	if ok {
+		ipAddress = p.Addr.String()
+	}
+	if logType == "ERROR" {
+		service.LoggingService.LoggError(ctx, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "SUCCESS" {
+		service.LoggingService.LoggSuccess(ctx, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "WARNING" {
+		service.LoggingService.LoggWarning(ctx, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "INFO" {
+		service.LoggingService.LoggInfo(ctx, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	}
 }
