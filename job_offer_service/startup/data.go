@@ -1,9 +1,12 @@
 package startup
 
+/*
+
 import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/domain"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
 
 var jobOffers = []*domain.JobOffer{
 	{
@@ -55,3 +58,6 @@ func getIdFromHex(userID string) primitive.ObjectID {
 	id, _ := primitive.ObjectIDFromHex(userID)
 	return id
 }
+
+
+*/

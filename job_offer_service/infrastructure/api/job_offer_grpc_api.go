@@ -4,7 +4,6 @@ import (
 	"context"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/application"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type JobOfferHandler struct {
@@ -21,11 +20,7 @@ func NewJobOfferHandler(service *application.JobOfferService) *JobOfferHandler {
 func (handler *JobOfferHandler) GetJobOffer(ctx context.Context, request *pb.GetJobOfferRequest) (*pb.GetJobOfferResponse, error) {
 
 	id := request.Id
-	objectId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-	jobOffer, err := handler.service.Get(ctx, objectId)
+	jobOffer, err := handler.service.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -60,10 +55,10 @@ func (handler *JobOfferHandler) GetAllJobOffers(ctx context.Context, request *pb
 
 func (handler *JobOfferHandler) CreateJobOffer(ctx context.Context, request *pb.CreateJobOfferRequest) (*pb.CreateJobOfferResponse, error) {
 
-	profile := MapJobOffer(request.JobOffer)
-	handler.service.Insert(ctx, &profile)
+	jobOffer := MapJobOffer(request.JobOffer)
+	handler.service.Insert(ctx, &jobOffer)
 	return &pb.CreateJobOfferResponse{
-		JobOffer: mapJobOffer(&profile),
+		JobOffer: mapJobOffer(&jobOffer),
 	}, nil
 }
 
@@ -91,12 +86,8 @@ func (handler *JobOfferHandler) SearchJobOffer(ctx context.Context, request *pb.
 
 func (handler *JobOfferHandler) GetUserJobOffers(ctx context.Context, request *pb.GetJobOfferRequest) (*pb.GetAllJobOffersResponse, error) {
 
-	id := request.Id
-	objectId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-	jobOffers, err := handler.service.GetUserJobOffers(ctx, objectId)
+	userID := request.Id
+	jobOffers, err := handler.service.GetUserJobOffers(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
