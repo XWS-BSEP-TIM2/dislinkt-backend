@@ -36,12 +36,7 @@ func (handler *JobOfferHandler) GetJobOffer(ctx context.Context, request *pb.Get
 
 func (handler *JobOfferHandler) DeleteJobOffer(ctx context.Context, request *pb.GetJobOfferRequest) (*pb.EmptyResponse, error) {
 
-	id := request.Id
-	objectId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-	_, err = handler.service.Delete(ctx, objectId)
+	_, err := handler.service.Delete(ctx, request.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +51,8 @@ func (handler *JobOfferHandler) GetAllJobOffers(ctx context.Context, request *pb
 	response := &pb.GetAllJobOffersResponse{
 		JobOffers: []*pb.JobOffer{},
 	}
-	for _, profile := range jobOffers {
-		current := mapJobOffer(profile)
+	for _, jobs := range jobOffers {
+		current := mapJobOffer(jobs)
 		response.JobOffers = append(response.JobOffers, current)
 	}
 	return response, nil
@@ -73,9 +68,9 @@ func (handler *JobOfferHandler) CreateJobOffer(ctx context.Context, request *pb.
 }
 
 func (handler *JobOfferHandler) UpdateJobOffer(ctx context.Context, request *pb.CreateJobOfferRequest) (*pb.CreateJobOfferResponse, error) {
-	profile := MapJobOffer(request.GetJobOffer())
-	handler.service.Update(ctx, &profile)
-	return &pb.CreateJobOfferResponse{JobOffer: mapJobOffer(&profile)}, nil
+	jobOffer := MapJobOffer(request.GetJobOffer())
+	handler.service.Update(ctx, &jobOffer)
+	return &pb.CreateJobOfferResponse{JobOffer: mapJobOffer(&jobOffer)}, nil
 }
 
 func (handler *JobOfferHandler) SearchJobOffer(ctx context.Context, request *pb.SearchJobOfferRequest) (*pb.GetAllJobOffersResponse, error) {

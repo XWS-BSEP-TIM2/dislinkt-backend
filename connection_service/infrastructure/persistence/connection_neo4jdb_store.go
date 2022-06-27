@@ -12,11 +12,6 @@ import (
 	"time"
 )
 
-const (
-	DATABASE   = "post_db"
-	COLLECTION = "post"
-)
-
 type ConnectionDBStore struct {
 	connectionDB   *neo4j.Driver
 	LoggingService pbLogg.LoggingServiceClient

@@ -47,6 +47,6 @@ func (service *JobOfferService) GetUserJobOffers(ctx context.Context, id primiti
 	return service.store.GetUserJobOffers(ctx, id)
 }
 
-func (service *JobOfferService) Delete(ctx context.Context, id primitive.ObjectID) (int64, error) {
-	return service.store.Delete(ctx, id)
+func (service *JobOfferService) Delete(ctx context.Context, jobID string) (bool, error) {
+	return service.store.Delete(ctx, jobID)
 }
