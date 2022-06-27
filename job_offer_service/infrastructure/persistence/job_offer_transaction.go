@@ -1,7 +1,9 @@
 package persistence
 
 import (
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/domain"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
+	"strings"
 )
 
 func clearGraphDB(transaction neo4j.Transaction) error {
@@ -27,4 +29,190 @@ func checkIfJobOfferExist(jobId string, transaction neo4j.Transaction) bool {
 		return true
 	}
 	return false
+}
+
+func checkIfUserExist(userID string, transaction neo4j.Transaction) bool {
+	result, _ := transaction.Run(
+		"MATCH (existing_user:USER) WHERE existing_user.userID=$userID RETURN existing_user.userID",
+		map[string]interface{}{"userID": userID})
+
+	if result != nil && result.Next() && result.Record().Values[0] == userID {
+		return true
+	}
+	return false
+}
+
+func checkIfSkillExist(skillName string, transaction neo4j.Transaction) bool {
+	result, _ := transaction.Run(
+		"MATCH (existing_skill:SKILL) WHERE existing_skill.name=$skillName RETURN existing_skill.name",
+		map[string]interface{}{"skillName": skillName})
+
+	if result != nil && result.Next() && result.Record().Values[0] == skillName {
+		return true
+	}
+	return false
+}
+
+func checkIfSkillIsPresentInJobOffer(jobId, skillName string, transaction neo4j.Transaction) bool {
+	result, _ := transaction.Run(
+		"MATCH (j:JOB) -[n:NEED]-> (s:SKILL) WHERE j.Id=$jobId AND s.name=$skillName RETURN s.name ",
+		map[string]interface{}{"jobId": jobId, "skillName": skillName})
+
+	if result != nil && result.Next() && result.Record().Values[0] == skillName {
+		return true
+	}
+	return false
+}
+
+func checkIfSkillIsPresentInUser(userID, skillName string, transaction neo4j.Transaction) bool {
+	result, _ := transaction.Run(
+		"MATCH (u:USER) -[k:KNOWS]-> (s:SKILL) WHERE u.userID=$uID AND s.name=$skillName RETURN s.name",
+		map[string]interface{}{"uID": userID, "skillName": skillName})
+
+	if result != nil && result.Next() && result.Record().Values[0] == skillName {
+		return true
+	}
+	return false
+}
+
+func createNewSkill(skillName string, transaction neo4j.Transaction) bool {
+	_, err := transaction.Run(
+		"CREATE (:SKILL{name:$skillName})",
+		map[string]interface{}{"skillName": skillName})
+
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func getUserJobOffersIds(userID string, transaction neo4j.Transaction) ([]string, error) {
+	result, err := transaction.Run(
+		"MATCH (j:JOB) where j.UserId=$uID RETURN j.Id ",
+		map[string]interface{}{"uID": userID})
+
+	var jobOfferIds []string
+
+	if result == nil {
+		return jobOfferIds, err
+	}
+	for result.Next() {
+		jobOfferIds = append(jobOfferIds, result.Record().Values[0].(string))
+	}
+	return jobOfferIds, nil
+}
+
+func searchJobOffersIds(position string, transaction neo4j.Transaction) ([]string, error) {
+	result, err := transaction.Run(
+		"MATCH (j:JOB) RETURN j.Id, j.Position ",
+		map[string]interface{}{})
+
+	var jobOfferIds []string
+
+	if result == nil {
+		return jobOfferIds, err
+	}
+	for result.Next() {
+		itPos := result.Record().Values[1].(string)
+		if strings.Contains(itPos, position) {
+			jobOfferIds = append(jobOfferIds, result.Record().Values[0].(string))
+		}
+	}
+	return jobOfferIds, nil
+}
+
+func getAllJobOffersIds(transaction neo4j.Transaction) ([]string, error) {
+	result, err := transaction.Run(
+		"MATCH (j:JOB) RETURN j.Id ",
+		map[string]interface{}{})
+
+	var jobOfferIds []string
+
+	if result == nil {
+		return jobOfferIds, err
+	}
+	for result.Next() {
+		jobOfferIds = append(jobOfferIds, result.Record().Values[0].(string))
+	}
+	return jobOfferIds, nil
+}
+
+func getJobOfferSkills(jobId string, transaction neo4j.Transaction) ([]string, error) {
+	result, err := transaction.Run(
+		"MATCH (j:JOB) -[n:NEED]-> (s:SKILL) WHERE j.Id=$jobId return s.name ",
+		map[string]interface{}{"jobId": jobId})
+
+	var skills []string
+
+	if err != nil || result == nil {
+		return nil, err
+	}
+	for result.Next() {
+		skills = append(skills, result.Record().Values[0].(string))
+	}
+	return skills, nil
+}
+
+func getJobOfferData(jobId string, transaction neo4j.Transaction) ([]string, error) {
+	result, err := transaction.Run(
+		"MATCH (j:JOB) WHERE j.Id=$jobId RETURN j.CompanyName, j.Description, j.Id, j.Position, j.Seniority, j.UserId ",
+		map[string]interface{}{"jobId": jobId})
+
+	var data []string
+
+	if result == nil {
+		return nil, err
+	}
+	for result.Next() {
+		data = append(data, result.Record().Values[0].(string))
+		data = append(data, result.Record().Values[1].(string))
+		data = append(data, result.Record().Values[2].(string))
+		data = append(data, result.Record().Values[3].(string))
+		data = append(data, result.Record().Values[4].(string))
+		data = append(data, result.Record().Values[5].(string))
+	}
+	if len(data) != 6 {
+		return nil, nil
+	}
+	return data, nil
+}
+
+func getJobOffer(jobId string, transaction neo4j.Transaction) (*domain.JobOffer, error) {
+	jobOfferData, err1 := getJobOfferData(jobId, transaction)
+	if err1 != nil || jobOfferData == nil {
+		return nil, err1
+	}
+	skills, err2 := getJobOfferSkills(jobId, transaction)
+	if err2 != nil || skills == nil {
+		return nil, err2
+	}
+	//j.CompanyName, j.Description, j.Id, j.Position, j.Seniority, j.UserId
+	jobOffer := &domain.JobOffer{CompanyName: jobOfferData[0], Description: jobOfferData[1], Id: jobOfferData[2], Position: jobOfferData[3], Seniority: jobOfferData[4], UserId: jobOfferData[5]}
+	jobOffer.Technologies = skills
+	return jobOffer, nil
+}
+
+func createNewJobOffer(jobOffer *domain.JobOffer, transaction neo4j.Transaction) error {
+	_, err := transaction.Run(
+		"CREATE (:JOB{Id:$id,CompanyName:$companyName, Description:$description, Position:$position, Seniority:$seniority, UserId:$userId}) ",
+		map[string]interface{}{"id": jobOffer.Id, "companyName": jobOffer.CompanyName, "description": jobOffer.Description, "position": jobOffer.Position, "seniority": jobOffer.Seniority, "userId": jobOffer.UserId})
+	return err
+}
+
+func addSkillToJobOffer(jobId, skillName string, transaction neo4j.Transaction) (bool, error) {
+	result, err := transaction.Run(
+		"MATCH (j:JOB) WHERE j.Id=$jobId "+
+			"MATCH (s:SKILL) WHERE s.name=$skillName "+
+			"CREATE (j) -[:NEED]-> (s) "+
+			"CREATE (s) -[:NEED]-> (j) "+
+			"RETURN j.Id, s.name ",
+		map[string]interface{}{"jobId": jobId, "skillName": skillName})
+	if err != nil {
+		return false, err
+	}
+
+	if result != nil && result.Next() && result.Record().Values[0].(string) == jobId {
+		return true, nil
+	}
+	return false, nil
 }
