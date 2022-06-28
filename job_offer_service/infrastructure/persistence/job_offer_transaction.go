@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/domain"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"strings"
@@ -212,6 +213,205 @@ func addSkillToJobOffer(jobId, skillName string, transaction neo4j.Transaction) 
 	}
 
 	if result != nil && result.Next() && result.Record().Values[0].(string) == jobId {
+		return true, nil
+	}
+	return false, nil
+}
+
+func updateJobOfferData(jobOffer *domain.JobOffer, transaction neo4j.Transaction) (bool, error) {
+	result, err := transaction.Run(
+		"MATCH (j:JOB) WHERE j.Id=$id SET j.CompanyName=$companyName, j.Description=$description, j.Position=$position, j.Seniority=$seniority, j.UserId=$userId RETURN j.Id ",
+		map[string]interface{}{"id": jobOffer.Id, "companyName": jobOffer.CompanyName, "description": jobOffer.Description, "position": jobOffer.Position, "seniority": jobOffer.Seniority, "userId": jobOffer.UserId})
+
+	if err != nil {
+		return false, err
+	}
+
+	if result != nil && result.Next() && result.Record().Values[0].(string) == jobOffer.Id {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func removeSkillFromJobOffer(jobId, skillName string, transaction neo4j.Transaction) (bool, error) {
+	result, err := transaction.Run(
+		"MATCH (j:JOB)-[n:NEED]-(s:SKILL) WHERE j.Id=$jobId AND s.name=$skillName DELETE n RETURN s.name ",
+		map[string]interface{}{"jobId": jobId, "skillName": skillName})
+
+	if err != nil {
+		return false, err
+	}
+
+	if result != nil && result.Next() && result.Record().Values[0].(string) == skillName {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func updateSkillsForJobOffer(jobOffer *domain.JobOffer, transaction neo4j.Transaction) (bool, error) {
+	skills, errS := getJobOfferSkills(jobOffer.Id, transaction)
+	if errS != nil || skills == nil {
+		return false, errS
+	}
+
+	//delete old skills
+	currentSkillPresent := false
+	for _, currentSkill := range skills {
+		currentSkillPresent = false
+		for _, newSkill := range jobOffer.Technologies {
+			if currentSkill == newSkill {
+				currentSkillPresent = true
+				break
+			}
+		}
+
+		if !currentSkillPresent {
+			//obrisi vezu imzejdu jobOffera i skila
+			isRemoved, err := removeSkillFromJobOffer(jobOffer.Id, currentSkill, transaction)
+			if err != nil || isRemoved == false {
+				return false, err
+			}
+			fmt.Println("Removed skill " + currentSkill + " from jobOffer")
+		}
+	}
+
+	// add new skills to job offer
+	newSkillNotPresent := true
+	for _, newSkill := range jobOffer.Technologies {
+		newSkillNotPresent = true
+		for _, oldSkill := range skills {
+			if newSkill == oldSkill {
+				newSkillNotPresent = false
+				break
+			}
+		}
+
+		if newSkillNotPresent {
+			if !checkIfSkillExist(newSkill, transaction) {
+				createNewSkill(newSkill, transaction)
+			}
+			isAdded, err := addSkillToJobOffer(jobOffer.Id, newSkill, transaction)
+			if err != nil || isAdded == false {
+				return false, err
+			}
+			fmt.Println("Added skill " + newSkill + " to jobOffer")
+		}
+	}
+
+	return true, nil
+}
+
+func createNewUser(userID string, transaction neo4j.Transaction) bool {
+	_, err := transaction.Run(
+		"CREATE (:USER{userID:$uID})",
+		map[string]interface{}{"uID": userID})
+
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func updateSkillsForUser(userID string, newSkills []string, transaction neo4j.Transaction) (bool, error) {
+	skills, errS := getUserSkills(userID, transaction)
+	if errS != nil || skills == nil {
+		return false, errS
+	}
+
+	//delete old skills
+	currentSkillPresent := false
+	for _, currentSkill := range skills {
+		currentSkillPresent = false
+		for _, newSkill := range newSkills {
+			if currentSkill == newSkill {
+				currentSkillPresent = true
+				break
+			}
+		}
+
+		if !currentSkillPresent {
+			//obrisi vezu imzejdu jobOffera i skila
+			isRemoved, err := removeSkillFromUser(userID, currentSkill, transaction)
+			if err != nil || isRemoved == false {
+				return false, err
+			}
+			fmt.Println("Removed skill " + currentSkill + " from user")
+		}
+	}
+
+	// add new skills to user
+	newSkillNotPresent := true
+	for _, newSkill := range newSkills {
+		newSkillNotPresent = true
+		for _, oldSkill := range skills {
+			if newSkill == oldSkill {
+				newSkillNotPresent = false
+				break
+			}
+		}
+
+		if newSkillNotPresent {
+			if !checkIfSkillExist(newSkill, transaction) {
+				createNewSkill(newSkill, transaction)
+			}
+			isAdded, err := addSkillToUser(userID, newSkill, transaction)
+			if err != nil || isAdded == false {
+				return false, err
+			}
+			fmt.Println("Added skill " + newSkill + " to user")
+		}
+	}
+
+	return true, nil
+}
+
+func getUserSkills(userID string, transaction neo4j.Transaction) ([]string, error) {
+	result, err := transaction.Run(
+		"MATCH (u:USER) -[k:KNOWS]-> (s:SKILL) WHERE u.userID=$uID return s.name ",
+		map[string]interface{}{"uID": userID})
+
+	var skills []string
+
+	if err != nil || result == nil {
+		return nil, err
+	}
+	for result.Next() {
+		skills = append(skills, result.Record().Values[0].(string))
+	}
+	return skills, nil
+}
+
+func removeSkillFromUser(userID, skillName string, transaction neo4j.Transaction) (bool, error) {
+	result, err := transaction.Run(
+		"MATCH (u:USER)-[k:KNOWS]-(s:SKILL) WHERE u.userID=$uID AND s.name=$skillName DELETE k RETURN s.name ",
+		map[string]interface{}{"uID": userID, "skillName": skillName})
+
+	if err != nil {
+		return false, err
+	}
+
+	if result != nil && result.Next() && result.Record().Values[0].(string) == skillName {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func addSkillToUser(userID, skillName string, transaction neo4j.Transaction) (bool, error) {
+	result, err := transaction.Run(
+		"MATCH (u:USER) WHERE u.userID=$uID "+
+			"MATCH (s:SKILL) WHERE s.name=$skillName "+
+			"CREATE (u) -[:KNOWS]-> (s) "+
+			"CREATE (s) -[:KNOWS]-> (u) "+
+			"RETURN u.userID, s.name ",
+		map[string]interface{}{"uID": userID, "skillName": skillName})
+	if err != nil {
+		return false, err
+	}
+
+	if result != nil && result.Next() && result.Record().Values[0].(string) == userID {
 		return true, nil
 	}
 	return false, nil

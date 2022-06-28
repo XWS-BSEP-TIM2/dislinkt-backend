@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"fmt"
+	joboffer_service "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/domain"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
@@ -168,23 +169,94 @@ func (store *JobOfferDbStore) Insert(ctx context.Context, jobOffer *domain.JobOf
 	return err
 }
 
-func (store *JobOfferDbStore) Update(ctx context.Context, jobOffer *domain.JobOffer) error {
-	/*
-		profileToUpdate := bson.M{"_id": jobOffer.Id}
-		updatedProfile := bson.M{"$set": bson.M{
-			"position":     jobOffer.Position,
-			"seniority":    jobOffer.Seniority,
-			"description":  jobOffer.Description,
-			"company_name": jobOffer.CompanyName,
-			"technologies": jobOffer.Technologies,
-		}}
+func (store *JobOfferDbStore) Update(ctx context.Context, jobOffer *domain.JobOffer) (bool, error) {
+	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
 
-		_, err := store.jobOffers.UpdateOne(ctx, profileToUpdate, updatedProfile)
+	result, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 
-		if err != nil {
-			return err
+		if checkIfJobOfferExist(jobOffer.Id, transaction) {
+			updateResult, errU := updateJobOfferData(jobOffer, transaction)
+			if errU != nil || updateResult == false {
+				return false, errU
+			}
+
+			isSkillUpdated, err := updateSkillsForJobOffer(jobOffer, transaction)
+			if err != nil || isSkillUpdated == false {
+				return false, err
+			}
+
+			return true, nil
 		}
-		return nil
-	*/
-	return nil
+		return false, nil
+	})
+
+	if err != nil || result == nil {
+		return false, err
+	}
+
+	return result.(bool), nil
+}
+
+func (store *JobOfferDbStore) CreateUser(ctx context.Context, userID string) (*joboffer_service.ActionResult, error) {
+	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	actionResult := &joboffer_service.ActionResult{Status: 0, Msg: ""}
+
+	actRes, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		actRes := &joboffer_service.ActionResult{Status: 0, Msg: "Error"}
+		if checkIfUserExist(userID, transaction) {
+			createNewUser(userID, transaction)
+			actRes.Msg = "Successfully created new user " + userID
+			actRes.Status = 200
+		}
+		return actRes, nil
+	})
+
+	if err != nil {
+		actionResult.Msg = err.Error()
+		actionResult.Status = 400
+		return actionResult, err
+	}
+
+	if actRes != nil {
+		actionResult = actRes.(*joboffer_service.ActionResult)
+	}
+
+	return actionResult, nil
+}
+
+func (store *JobOfferDbStore) UpdateUserSkills(ctx context.Context, userID string, skills []string) (*joboffer_service.ActionResult, error) {
+	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	actionResult := &joboffer_service.ActionResult{Status: 0, Msg: "Error"}
+
+	actRes, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		actRes := &joboffer_service.ActionResult{Status: 0, Msg: "Error"}
+		if checkIfUserExist(userID, transaction) {
+			isSkillUpdated, err := updateSkillsForUser(userID, skills, transaction)
+			if err != nil || isSkillUpdated == false {
+				return actRes, err
+			}
+
+			actRes.Status = 200
+			actRes.Msg = "Successfully updated skills for user " + userID
+			return actRes, nil
+		}
+		return actRes, nil
+	})
+
+	if err != nil {
+		actionResult.Msg = err.Error()
+		actionResult.Status = 400
+		return actionResult, err
+	}
+
+	if actRes != nil {
+		actionResult = actRes.(*joboffer_service.ActionResult)
+	}
+
+	return actionResult, nil
 }

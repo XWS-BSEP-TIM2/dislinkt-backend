@@ -100,5 +100,12 @@ func (handler *JobOfferHandler) GetUserJobOffers(ctx context.Context, request *p
 		response.JobOffers = append(response.JobOffers, current)
 	}
 	return response, nil
+}
 
+func (handler *JobOfferHandler) CreateUser(ctx context.Context, request *pb.CreateUserRequest) (*pb.ActionResult, error) {
+	return handler.service.CreateUser(ctx, request.UserID)
+}
+
+func (handler *JobOfferHandler) UpdateUserSkills(ctx context.Context, request *pb.UpdateUserSkillsRequest) (*pb.ActionResult, error) {
+	return handler.service.UpdateUserSkills(ctx, request.UserID, request.Technologies)
 }

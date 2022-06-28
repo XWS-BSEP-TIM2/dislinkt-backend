@@ -8,6 +8,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	pbAuth "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	pbConnection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	pbJobOffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	pbProfile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/validators"
 	"github.com/gin-gonic/gin"
@@ -194,6 +195,12 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 
+	errRegUserInJobOffer := authHandler.registerUserInJobOffer(userID)
+	if errRegUserInJobOffer != nil {
+		ctx.AbortWithError(http.StatusBadGateway, errConnection)
+		return
+	}
+
 	fmt.Println("successfully registered new user with ID:", userID)
 
 	responsDTO := dto.RegisterResponsDTO{Id: userID, Username: registerDto.Username}
@@ -238,6 +245,16 @@ func (authHandler *AuthHandler) registerProfile(userID string, registerDTO dto.R
 func (authHandler *AuthHandler) registerConnection(userID string, IsPrivate bool) error {
 	connectionService := authHandler.grpcClient.ConnectionClient
 	registrationResult, err := connectionService.Register(context.TODO(), &pbConnection.RegisterRequest{User: &pbConnection.User{UserID: userID, IsPrivate: IsPrivate}})
+	fmt.Println(registrationResult)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return err
+}
+
+func (authHandler *AuthHandler) registerUserInJobOffer(userID string) error {
+	jobOfferService := authHandler.grpcClient.JobOfferClient
+	registrationResult, err := jobOfferService.CreateUser(context.TODO(), &pbJobOffer.CreateUserRequest{UserID: userID})
 	fmt.Println(registrationResult)
 	if err != nil {
 		fmt.Println(err.Error())

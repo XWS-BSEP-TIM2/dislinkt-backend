@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/utils"
+	joboffer_service "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/infrastructure/persistence"
 )
@@ -49,4 +50,12 @@ func (service *JobOfferService) GetUserJobOffers(ctx context.Context, userID str
 
 func (service *JobOfferService) Delete(ctx context.Context, jobID string) (bool, error) {
 	return service.store.Delete(ctx, jobID)
+}
+
+func (service *JobOfferService) CreateUser(ctx context.Context, userID string) (*joboffer_service.ActionResult, error) {
+	return service.store.CreateUser(ctx, userID)
+}
+
+func (service *JobOfferService) UpdateUserSkills(ctx context.Context, userID string, skills []string) (*joboffer_service.ActionResult, error) {
+	return service.store.UpdateUserSkills(ctx, userID, skills)
 }
