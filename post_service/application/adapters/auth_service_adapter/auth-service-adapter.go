@@ -6,16 +6,18 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/helper"
 	authService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters"
+	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AuthServiceAdapter struct {
-	address string
+	address               string
+	loggingServiceAdapter lsa.ILoggingServiceAdapter
 }
 
-func NewAuthServiceAdapter(address string) *AuthServiceAdapter {
-	return &AuthServiceAdapter{address: address}
+func NewAuthServiceAdapter(address string, loggingServiceAdapter lsa.ILoggingServiceAdapter) *AuthServiceAdapter {
+	return &AuthServiceAdapter{address: address, loggingServiceAdapter: loggingServiceAdapter}
 }
 
 func (auth *AuthServiceAdapter) GetRequesterId(ctx context.Context) primitive.ObjectID {
@@ -39,7 +41,9 @@ func (auth *AuthServiceAdapter) GetRequesterId(ctx context.Context) primitive.Ob
 func (auth *AuthServiceAdapter) ValidateCurrentUser(ctx context.Context, userId primitive.ObjectID) {
 	requesterId := auth.GetRequesterId(ctx)
 	if requesterId != userId {
-		panic(errors.NewEntityForbiddenError("Given user id does not match current user id"))
+		message := fmt.Sprintf("Current user (id: %s) is trying to take action on behalf user with id %s", requesterId.Hex(), userId.Hex())
+		auth.loggingServiceAdapter.Log(ctx, "WARNING", "ValidateCurrentUser", requesterId.Hex(), message)
+		panic(errors.NewEntityForbiddenError(message))
 	}
 }
 

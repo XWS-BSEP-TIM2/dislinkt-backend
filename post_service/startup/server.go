@@ -55,8 +55,15 @@ func (server *Server) initPostService(store domain.PostStore) *application.PostS
 	connectionServiceAddress := fmt.Sprintf("%s:%s", server.config.ConnectionServiceHost, server.config.ConnectionServicePort)
 	profileServiceAddress := fmt.Sprintf("%s:%s", server.config.ProfileServiceHost, server.config.ProfileServicePort)
 	notificationServiceAddress := fmt.Sprintf("%s:%s", server.config.NotificationServiceHost, server.config.NotificationServicePort)
+	loggingServiceAddress := fmt.Sprintf("%s:%s", server.config.LoggingServiceHost, server.config.LoggingServicePort)
 
-	return application.NewPostService(store, authServiceAddress, connectionServiceAddress, profileServiceAddress, notificationServiceAddress)
+	return application.NewPostService(
+		store,
+		authServiceAddress,
+		connectionServiceAddress,
+		profileServiceAddress,
+		notificationServiceAddress,
+		loggingServiceAddress)
 }
 
 func (server *Server) initPostHandler(service *application.PostService) *api.PostHandler {

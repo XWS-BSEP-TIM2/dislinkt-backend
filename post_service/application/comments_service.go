@@ -6,6 +6,7 @@ import (
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
 	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
+	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
 	nsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/notification_service_adapter"
 	psa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/profile_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/util"
@@ -19,6 +20,7 @@ type CommentService struct {
 	authServiceAdapter         asa.IAuthServiceAdapter
 	connectionServiceAdapter   csa.IConnectionServiceAdapter
 	profileServiceAdapter      psa.IProfileServiceAdapter
+	loggingServiceAdapter      lsa.ILoggingServiceAdapter
 	notificationServiceAdapter nsa.INotificationServiceAdapter
 	postAccessValidator        *util.PostAccessValidator
 	ownerFinder                *util.OwnerFinder
@@ -31,6 +33,7 @@ func NewCommentService(postService *PostService) *CommentService {
 		connectionServiceAdapter:   postService.connectionServiceAdapter,
 		notificationServiceAdapter: postService.notificationServiceAdapter,
 		profileServiceAdapter:      postService.profileServiceAdapter,
+		loggingServiceAdapter:      postService.loggingServiceAdapter,
 		postAccessValidator:        postService.postAccessValidator,
 		ownerFinder:                postService.ownerFinder,
 	}
@@ -41,7 +44,9 @@ func (service *CommentService) CreateComment(ctx context.Context, postId primiti
 	service.authServiceAdapter.ValidateCurrentUser(ctx, comment.OwnerId)
 	err := service.store.InsertComment(postId, comment)
 	if err != nil {
-		panic(fmt.Errorf("Invalid comment"))
+		message := fmt.Sprintf("Error during comment creation on post with id: %s", postId.Hex())
+		service.loggingServiceAdapter.Log(ctx, "ERROR", "CreateComment", comment.OwnerId.Hex(), message)
+		panic(fmt.Errorf(message))
 	}
 
 	commenter := service.profileServiceAdapter.GetSingleProfile(ctx, comment.OwnerId)
@@ -57,29 +62,43 @@ func (service *CommentService) CreateComment(ctx context.Context, postId primiti
 		service.notificationServiceAdapter.InsertNotification(ctx, &pb.InsertNotificationRequest{Notification: &notification})
 	}
 
+	message := fmt.Sprintf("User commented on post with id: %s", postId.Hex())
+	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "CreateComment", comment.OwnerId.Hex(), message)
 	return service.getCommentDetailsMapper(ctx, postId)(comment)
 }
 
 func (service *CommentService) GetComment(ctx context.Context, postId primitive.ObjectID, commentId primitive.ObjectID) *domain.CommentDetailsDTO {
 	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
 	comment, err := service.store.GetComment(postId, commentId)
+	requesterId := service.authServiceAdapter.GetRequesterId(ctx)
+
 	if err != nil {
-		panic(fmt.Errorf("Invalid comment"))
+		message := fmt.Sprintf("Comment with id: %s not found on post with id %s", commentId.Hex(), postId.Hex())
+		service.loggingServiceAdapter.Log(ctx, "WARNING", "GetComment", requesterId.Hex(), message)
+		panic(fmt.Errorf(message))
 	}
+
+	message := fmt.Sprintf("User fetched comment with id: %s on post with id %s", commentId.Hex(), postId.Hex())
+	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetComment", requesterId.Hex(), message)
 	return service.getCommentDetailsMapper(ctx, postId)(comment)
 }
 
 func (service *CommentService) GetCommentsForPost(ctx context.Context, postId primitive.ObjectID) []*domain.CommentDetailsDTO {
 	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
 	comments, err := service.store.GetCommentsForPost(postId)
+	requesterId := service.authServiceAdapter.GetRequesterId(ctx)
 	if err != nil {
-		panic(fmt.Errorf("comments for post unavailable"))
+		message := fmt.Sprintf("Comments on post with id %s unavailable.", postId.Hex())
+		service.loggingServiceAdapter.Log(ctx, "ERROR", "GetCommentsForPost", requesterId.Hex(), message)
+		panic(fmt.Errorf(message))
 	}
 	commentsDetails, ok := funk.Map(comments, service.getCommentDetailsMapper(ctx, postId)).([]*domain.CommentDetailsDTO)
 	if !ok {
-		log("Error in conversion of comments to commentDetails")
-		panic(fmt.Errorf("comments unavailable"))
+		panic(fmt.Errorf("Error during mapping of CommentDetails"))
 	}
+
+	message := fmt.Sprintf("User fetched comments on post with id %s", postId.Hex())
+	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetCommentsForPost", requesterId.Hex(), message)
 	return commentsDetails
 }
 

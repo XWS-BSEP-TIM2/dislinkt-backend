@@ -5,17 +5,19 @@ import (
 	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters"
+	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/thoas/go-funk"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ProfileServiceAdapter struct {
-	address string
+	address               string
+	loggingServiceAdapter lsa.ILoggingServiceAdapter
 }
 
-func NewProfileServiceAdapter(address string) *ProfileServiceAdapter {
-	return &ProfileServiceAdapter{address: address}
+func NewProfileServiceAdapter(address string, loggingServiceAdapter lsa.ILoggingServiceAdapter) *ProfileServiceAdapter {
+	return &ProfileServiceAdapter{address: address, loggingServiceAdapter: loggingServiceAdapter}
 }
 
 func (p *ProfileServiceAdapter) GetAllProfiles(ctx context.Context) []*domain.Owner {
@@ -23,7 +25,9 @@ func (p *ProfileServiceAdapter) GetAllProfiles(ctx context.Context) []*domain.Ow
 	response, profileErr := profileClient.GetAll(ctx, &pb.EmptyRequest{})
 
 	if profileErr != nil {
-		panic(fmt.Errorf("Error during getting all profiles: Profile Service"))
+		message := "Error during getting all profiles: Profile Service"
+		p.loggingServiceAdapter.Log(ctx, "ERROR", "GetAllProfiles", "N/A", message)
+		panic(fmt.Errorf(message))
 	}
 	res, ok := funk.Map(response.Profiles, mapProfileToOwner).([]*domain.Owner)
 	if !ok {
@@ -37,7 +41,9 @@ func (p *ProfileServiceAdapter) GetSingleProfile(ctx context.Context, profileId 
 	response, profileErr := profileClient.Get(ctx, &pb.GetRequest{Id: profileId.Hex()})
 
 	if profileErr != nil {
-		panic(fmt.Errorf("Error during getting all profiles: Profile Service"))
+		message := "Error during getting all profiles: Profile Service"
+		p.loggingServiceAdapter.Log(ctx, "ERROR", "GetSingleProfile", "N/A", message)
+		panic(fmt.Errorf(message))
 	}
 	return mapProfileToOwner(response.Profile)
 }
@@ -47,7 +53,9 @@ func (p *ProfileServiceAdapter) GetAllPublicProfilesIds(ctx context.Context) []*
 	response, profileErr := profileClient.GetAll(ctx, &pb.EmptyRequest{})
 
 	if profileErr != nil {
-		panic(fmt.Errorf("Error during getting all profiles: Profile Service"))
+		message := "Error during getting all profiles: Profile Service"
+		p.loggingServiceAdapter.Log(ctx, "ERROR", "GetAllPublicProfilesIds", "N/A", message)
+		panic(fmt.Errorf(message))
 	}
 
 	publicProfiles := funk.Filter(response.Profiles, func(profile *pb.Profile) bool {

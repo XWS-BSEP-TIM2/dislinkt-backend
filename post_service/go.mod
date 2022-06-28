@@ -6,7 +6,6 @@ replace github.com/XWS-BSEP-TIM2/dislinkt-backend/common => ../common
 
 require (
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220617075150-48a21e06c92f
-	github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service v0.0.0-20220625211917-f15192578193
 	github.com/joho/godotenv v1.4.0
 	github.com/thoas/go-funk v0.9.2
 	go.mongodb.org/mongo-driver v1.9.1

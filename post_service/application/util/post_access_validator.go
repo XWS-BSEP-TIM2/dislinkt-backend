@@ -2,8 +2,10 @@ package util
 
 import (
 	"context"
+	"fmt"
 	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
+	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -12,14 +14,20 @@ import (
 type PostAccessValidator struct {
 	store              domain.PostStore
 	authServiceAdapter asa.IAuthServiceAdapter
-	connServiceAddress csa.IConnectionServiceAdapter
+	connServiceAdapter csa.IConnectionServiceAdapter
+	loggServiceAdapter lsa.ILoggingServiceAdapter
 }
 
-func NewPostAccessValidator(store domain.PostStore, authAdapter asa.IAuthServiceAdapter, connAdapter csa.IConnectionServiceAdapter) *PostAccessValidator {
+func NewPostAccessValidator(
+	store domain.PostStore,
+	authAdapter asa.IAuthServiceAdapter,
+	connAdapter csa.IConnectionServiceAdapter,
+	loggAdapter lsa.ILoggingServiceAdapter) *PostAccessValidator {
 	return &PostAccessValidator{
 		store:              store,
 		authServiceAdapter: authAdapter,
-		connServiceAddress: connAdapter,
+		connServiceAdapter: connAdapter,
+		loggServiceAdapter: loggAdapter,
 	}
 }
 
@@ -34,9 +42,11 @@ func (validator *PostAccessValidator) ValidateUserAccessPost(ctx context.Context
 		return
 	}
 
-	res := validator.connServiceAddress.CanUserAccessPostFromOwner(ctx, currentUserId, post.OwnerId)
+	res := validator.connServiceAdapter.CanUserAccessPostFromOwner(ctx, currentUserId, post.OwnerId)
 	if res {
 		return
 	}
-	panic(errors.NewEntityForbiddenError("Current user cannot access info from post with id: " + postId.Hex()))
+	message := fmt.Sprintf("Current user (id: %s) is forbidden to access info from post with id: %s", currentUserId.Hex(), postId.Hex())
+	validator.loggServiceAdapter.Log(ctx, "WARNING", "ValidateUserAccessPost", currentUserId.Hex(), message)
+	panic(errors.NewEntityForbiddenError(message))
 }

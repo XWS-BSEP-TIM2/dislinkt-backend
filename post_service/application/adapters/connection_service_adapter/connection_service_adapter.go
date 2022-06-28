@@ -5,23 +5,27 @@ import (
 	"fmt"
 	cb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters"
+	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
 	"github.com/thoas/go-funk"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ConnectionServiceAdapter struct {
-	address string
+	address               string
+	loggingServiceAdapter lsa.ILoggingServiceAdapter
 }
 
-func NewConnectionServiceAdapter(address string) *ConnectionServiceAdapter {
-	return &ConnectionServiceAdapter{address: address}
+func NewConnectionServiceAdapter(address string, loggingServiceAdapter lsa.ILoggingServiceAdapter) *ConnectionServiceAdapter {
+	return &ConnectionServiceAdapter{address: address, loggingServiceAdapter: loggingServiceAdapter}
 }
 
 func (conn *ConnectionServiceAdapter) GetAllUserConnections(ctx context.Context, id primitive.ObjectID) []*primitive.ObjectID {
 	connClient := adapters.NewConnectionClient(conn.address)
 	response, connErr := connClient.GetFriends(ctx, &cb.GetRequest{UserID: id.Hex()})
 	if connErr != nil {
-		panic(fmt.Errorf("Error during getting all connections: Connection Service"))
+		message := "Error during getting all connections: Connection Service"
+		conn.loggingServiceAdapter.Log(ctx, "ERROR", "GetAllUserConnections", id.Hex(), message)
+		panic(fmt.Errorf(message))
 	}
 	res, ok := funk.Map(response.Users, mapUserToUserId).([]*primitive.ObjectID)
 	if !ok {
@@ -37,7 +41,9 @@ func (conn *ConnectionServiceAdapter) CanUserAccessPostFromOwner(ctx context.Con
 		UserIDb: ownerId.Hex(),
 	})
 	if connErr != nil {
-		panic(fmt.Errorf("Error during getting connection details: Connection Service"))
+		message := "Error during getting connection details: Connection Service"
+		conn.loggingServiceAdapter.Log(ctx, "ERROR", "CanUserAccessPostFromOwner", userId.Hex(), message)
+		panic(fmt.Errorf(message))
 	}
 	if details.IsPrivate {
 		if details.Relation != "CONNECTED" {

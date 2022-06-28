@@ -6,6 +6,7 @@ import (
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
 	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
+	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
 	nsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/notification_service_adapter"
 	psa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/profile_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/util"
@@ -23,6 +24,7 @@ type PostService struct {
 	connectionServiceAdapter   csa.IConnectionServiceAdapter
 	notificationServiceAdapter nsa.INotificationServiceAdapter
 	profileServiceAdapter      psa.IProfileServiceAdapter
+	loggingServiceAdapter      lsa.ILoggingServiceAdapter
 	postAccessValidator        *util.PostAccessValidator
 	ownerFinder                *util.OwnerFinder
 	feedCreator                *util.FeedCreator
@@ -32,13 +34,16 @@ func NewPostService(
 	store domain.PostStore,
 	authServiceAddress,
 	connectionServiceAddress,
-	profileServiceAddress, notificationServiceAddress string) *PostService {
+	profileServiceAddress,
+	notificationServiceAddress,
+	loggingServiceAddress string) *PostService {
 
-	authServiceAdapter := asa.NewAuthServiceAdapter(authServiceAddress)
-	connectionServiceAdapter := csa.NewConnectionServiceAdapter(connectionServiceAddress)
+	loggingServiceAdapter := lsa.NewLoggingServiceAdapter(loggingServiceAddress)
+	authServiceAdapter := asa.NewAuthServiceAdapter(authServiceAddress, loggingServiceAdapter)
+	connectionServiceAdapter := csa.NewConnectionServiceAdapter(connectionServiceAddress, loggingServiceAdapter)
 	notificationServiceAdapter := nsa.NewNotificationServiceAdapter(notificationServiceAddress)
-	profileServiceAdapter := psa.NewProfileServiceAdapter(profileServiceAddress)
-	postAccessValidator := util.NewPostAccessValidator(store, authServiceAdapter, connectionServiceAdapter)
+	profileServiceAdapter := psa.NewProfileServiceAdapter(profileServiceAddress, loggingServiceAdapter)
+	postAccessValidator := util.NewPostAccessValidator(store, authServiceAdapter, connectionServiceAdapter, loggingServiceAdapter)
 	ownerFinder := util.NewOwnerFinder(profileServiceAdapter)
 	feedCreator := util.NewFeedCreator(store, connectionServiceAdapter, profileServiceAdapter)
 	return &PostService{
@@ -47,6 +52,7 @@ func NewPostService(
 		connectionServiceAdapter:   connectionServiceAdapter,
 		notificationServiceAdapter: notificationServiceAdapter,
 		profileServiceAdapter:      profileServiceAdapter,
+		loggingServiceAdapter:      loggingServiceAdapter,
 		postAccessValidator:        postAccessValidator,
 		ownerFinder:                ownerFinder,
 		feedCreator:                feedCreator,
@@ -56,10 +62,14 @@ func NewPostService(
 func (service *PostService) GetPost(ctx context.Context, id primitive.ObjectID) *domain.PostDetailsDTO {
 	service.postAccessValidator.ValidateUserAccessPost(ctx, id)
 	post, postNotFoundErr := service.store.Get(id)
+	requesterId := service.authServiceAdapter.GetRequesterId(ctx)
+
 	if postNotFoundErr != nil {
-		log(fmt.Sprintf("Post with id: %v not found", id))
+		message := fmt.Sprintf("Post with id: %s not found", id.Hex())
+		service.loggingServiceAdapter.Log(ctx, "WARNING", "GetPost", requesterId.Hex(), message)
 		panic(errors.NewEntityNotFoundError("Post with given id does not exist."))
 	}
+	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetPost", requesterId.Hex(), "User fetched post.")
 	return service.getPostDetailsMapper(ctx)(post)
 }
 
@@ -67,8 +77,9 @@ func (service *PostService) CreatePost(ctx context.Context, post *domain.Post) *
 	service.authServiceAdapter.ValidateCurrentUser(ctx, post.OwnerId)
 	err := service.store.Insert(post)
 	if err != nil {
-		log("Error during post creation")
-		panic(fmt.Errorf("error during post creation"))
+		message := "Error during post creation."
+		service.loggingServiceAdapter.Log(ctx, "ERROR", "CreatePost", post.OwnerId.Hex(), message)
+		panic(fmt.Errorf(message))
 	}
 
 	postOwner := service.profileServiceAdapter.GetSingleProfile(ctx, post.OwnerId)
@@ -84,12 +95,15 @@ func (service *PostService) CreatePost(ctx context.Context, post *domain.Post) *
 		service.notificationServiceAdapter.InsertNotification(ctx, &pb.InsertNotificationRequest{Notification: &notification})
 	}
 
+	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "CreatePost", post.OwnerId.Hex(), "User created a new post.")
 	return service.getPostDetailsMapper(ctx)(post)
 }
 
 func (service *PostService) GetPosts(ctx context.Context) []*domain.PostDetailsDTO {
 	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
 	posts := service.feedCreator.CreateFeedForUser(ctx, currentUserId)
+	requesterId := service.authServiceAdapter.GetRequesterId(ctx)
+	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetPosts", requesterId.Hex(), "User fetched posts for feed.")
 	return service.getMultiplePostsDetails(ctx, posts)
 }
 
@@ -98,15 +112,19 @@ func (service *PostService) GetPostsFromUser(ctx context.Context, userId primiti
 	if currentUserId != userId {
 		result := service.connectionServiceAdapter.CanUserAccessPostFromOwner(ctx, currentUserId, userId)
 		if !result {
-			panic(errors.NewEntityForbiddenError("Current user cannot access posts from given user."))
+			message := fmt.Sprintf("Current user (id: %s) cannot access posts from user with id: %s.", currentUserId.Hex(), userId.Hex())
+			service.loggingServiceAdapter.Log(ctx, "WARNING", "GetPostsFromUser", currentUserId.Hex(), message)
+			panic(errors.NewEntityForbiddenError(message))
 		}
 	}
 	posts, err := service.store.GetPostsFromUser(userId)
 	if err != nil {
-		log("Error loading posts")
-		panic(errors.NewEntityNotFoundError("Posts unavailable."))
+		message := fmt.Sprintf("Posts from user id: %s unavailabe", userId.Hex())
+		service.loggingServiceAdapter.Log(ctx, "WARNING", "GetPostsFromUser", currentUserId.Hex(), message)
+		panic(errors.NewEntityNotFoundError(message))
 	}
 
+	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetPostsFromUser", currentUserId.Hex(), "User fetched posts from other profile.")
 	return service.getMultiplePostsDetails(ctx, posts)
 }
 

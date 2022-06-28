@@ -18,6 +18,8 @@ type Config struct {
 	ConnectionServicePort   string
 	NotificationServiceHost string
 	NotificationServicePort string
+	LoggingServiceHost      string
+	LoggingServicePort      string
 }
 
 func NewConfig() *Config {
@@ -39,6 +41,9 @@ func NewConfig() *Config {
 
 		NotificationServiceHost: goDotEnvVariable("NOTIFICATION_SERVICE_HOST"),
 		NotificationServicePort: goDotEnvVariable("NOTIFICATION_SERVICE_PORT"),
+
+		LoggingServiceHost: goDotEnvVariable("LOGGING_SERVICE_HOST"),
+		LoggingServicePort: goDotEnvVariable("LOGGING_SERVICE_PORT"),
 	}
 }
 
