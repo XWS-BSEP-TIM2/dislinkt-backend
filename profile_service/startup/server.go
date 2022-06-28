@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	profile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging/nats"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/infrastructure/persistence"
@@ -26,6 +28,10 @@ func NewServer(config *config.Config) *Server {
 	}
 }
 
+const (
+	QueueGroup = "profile_service"
+)
+
 func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
 	profileStore := server.initProfileStore(mongoClient)
@@ -34,8 +40,39 @@ func (server *Server) Start() {
 
 	profileHandler := server.initProfileHandler(profileService)
 
+	commandSubscriber := server.initSubscriber(server.config.RegisterUserCommandSubject, QueueGroup)
+	replyPublisher := server.initPublisher(server.config.RegisterUserReplySubject)
+	server.initRegisterUserHandler(profileService, replyPublisher, commandSubscriber)
+
 	fmt.Println("Profile service started.")
 	server.startGrpcServer(profileHandler)
+}
+
+func (server *Server) initRegisterUserHandler(authService *application.ProfileService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := api.NewRegisterUserCommandHandler(authService, publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (server *Server) initPublisher(subject string) saga.Publisher {
+	publisher, err := nats.NewNATSPublisher(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return publisher
+}
+
+func (server *Server) initSubscriber(subject, queueGroup string) saga.Subscriber {
+	subscriber, err := nats.NewNATSSubscriber(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject, queueGroup)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return subscriber
 }
 
 func (server *Server) initMongoClient() *mongo.Client {

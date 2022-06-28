@@ -7,17 +7,23 @@ import (
 )
 
 type Config struct {
-	Port               string
-	UserDBHost         string
-	UserDBPort         string
-	ProfileServicePort string
-	ProfileServiceHost string
-	ApiGatewayHost     string
-	ApiGatewayPort     string
-	Email              string
-	PasswordEmail      string
-	LoggingHost        string
-	LoggingPort        string
+	Port                       string
+	UserDBHost                 string
+	UserDBPort                 string
+	ProfileServicePort         string
+	ProfileServiceHost         string
+	ApiGatewayHost             string
+	ApiGatewayPort             string
+	Email                      string
+	PasswordEmail              string
+	LoggingHost                string
+	LoggingPort                string
+	NatsHost                   string
+	NatsPort                   string
+	NatsUser                   string
+	NatsPass                   string
+	RegisterUserCommandSubject string
+	RegisterUserReplySubject   string
 }
 
 func NewConfig() *Config {
@@ -39,6 +45,13 @@ func NewConfig() *Config {
 
 		LoggingHost: goDotEnvVariable("LOGGING_SERVICE_HOST"),
 		LoggingPort: goDotEnvVariable("LOGGING_SERVICE_PORT"),
+
+		NatsHost:                   goDotEnvVariable("NATS_HOST"),
+		NatsPort:                   goDotEnvVariable("NATS_PORT"),
+		NatsUser:                   goDotEnvVariable("NATS_USER"),
+		NatsPass:                   goDotEnvVariable("NATS_PASS"),
+		RegisterUserCommandSubject: goDotEnvVariable("REGISTER_USER_COMMAND_SUBJECT"),
+		RegisterUserReplySubject:   goDotEnvVariable("REGISTER_USER_REPLY_SUBJECT"),
 	}
 }
 

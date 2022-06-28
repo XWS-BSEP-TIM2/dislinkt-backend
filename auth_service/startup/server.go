@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging/nats"
 
 	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	"google.golang.org/grpc/credentials"
@@ -30,6 +32,10 @@ func NewServer(config *config.Config) *Server {
 	}
 }
 
+const (
+	QueueGroup = "auth_service"
+)
+
 func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
 	credentialStore := server.initCredentialStore(mongoClient)
@@ -37,16 +43,30 @@ func (server *Server) Start() {
 	apiTokenStore := server.initApiTokenStore(mongoClient)
 
 	loggingService := server.initLoggingService()
-
 	emailService := server.initEmailService()
 	authService := server.initAuthService(credentialStore, emailService, loggingService)
 	apiTokenService := server.initApiTokenService(apiTokenStore)
 	passwordlessLoginService := server.initPasswordlessLoginService(passwordlessTokenStore, emailService)
 
-	authHandler := server.initAuthHandler(authService, passwordlessLoginService, apiTokenService, loggingService)
+	commandPublisher := server.initPublisher(server.config.RegisterUserCommandSubject)
+	replySubscriber := server.initSubscriber(server.config.RegisterUserReplySubject, QueueGroup)
+	registerUserOrhcestrator := server.initCreateOrderOrchestrator(commandPublisher, replySubscriber)
+
+	commandSubscriber := server.initSubscriber(server.config.RegisterUserCommandSubject, QueueGroup)
+	replyPublisher := server.initPublisher(server.config.RegisterUserReplySubject)
+	server.initRegisterUserHandler(authService, replyPublisher, commandSubscriber)
+
+	authHandler := server.initAuthHandler(authService, passwordlessLoginService, apiTokenService, loggingService, registerUserOrhcestrator)
 
 	fmt.Println("Auth service started.")
 	server.startGrpcServer(authHandler)
+}
+
+func (server *Server) initRegisterUserHandler(authService *application.AuthService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := api.NewRegisterUserCommandHandler(authService, publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (server *Server) initMongoClient() *mongo.Client {
@@ -79,8 +99,8 @@ func (server *Server) initAuthService(store domain.UserStore, emailService *appl
 	return application.NewAuthService(store, profileServiceEndpoint, emailService, loggingService)
 }
 
-func (server *Server) initAuthHandler(service *application.AuthService, passwordlessService *application.PasswordlessTokenService, tokenService *application.ApiTokenService, loggingService pbLogg.LoggingServiceClient) *api.AuthHandler {
-	return api.NewAuthHandler(service, passwordlessService, tokenService, loggingService)
+func (server *Server) initAuthHandler(service *application.AuthService, passwordlessService *application.PasswordlessTokenService, tokenService *application.ApiTokenService, loggingService pbLogg.LoggingServiceClient, orchestrator *application.RegisterUserOrchestrator) *api.AuthHandler {
+	return api.NewAuthHandler(service, passwordlessService, tokenService, loggingService, orchestrator)
 }
 
 func (server *Server) startGrpcServer(authHandler *api.AuthHandler) {
@@ -139,4 +159,32 @@ func getConnection(address string) (*grpc.ClientConn, error) {
 		InsecureSkipVerify: true,
 	}
 	return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
+}
+
+func (server *Server) initPublisher(subject string) saga.Publisher {
+	publisher, err := nats.NewNATSPublisher(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return publisher
+}
+
+func (server *Server) initSubscriber(subject, queueGroup string) saga.Subscriber {
+	subscriber, err := nats.NewNATSSubscriber(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject, queueGroup)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return subscriber
+}
+
+func (server *Server) initCreateOrderOrchestrator(publisher saga.Publisher, subscriber saga.Subscriber) *application.RegisterUserOrchestrator {
+	orchestrator, err := application.NewRegisterUserOrchestrator(publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return orchestrator
 }

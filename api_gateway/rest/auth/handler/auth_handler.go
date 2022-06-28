@@ -12,9 +12,11 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/validators"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type AuthHandler struct {
@@ -182,17 +184,17 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	errProfile := authHandler.registerProfile(userID, registerDto)
-	if errProfile != nil {
-		ctx.AbortWithError(http.StatusBadGateway, errProfile)
-		return
-	}
-
-	errConnection := authHandler.registerConnection(userID, registerDto.IsPrivate)
-	if errProfile != nil {
-		ctx.AbortWithError(http.StatusBadGateway, errConnection)
-		return
-	}
+	//errProfile := authHandler.registerProfile(userID, registerDto)
+	//if errProfile != nil {
+	//	ctx.AbortWithError(http.StatusBadGateway, errProfile)
+	//	return
+	//}
+	//
+	//errConnection := authHandler.registerConnection(userID, registerDto.IsPrivate)
+	//if errProfile != nil {
+	//	ctx.AbortWithError(http.StatusBadGateway, errConnection)
+	//	return
+	//}
 
 	fmt.Println("successfully registered new user with ID:", userID)
 
@@ -214,8 +216,12 @@ func (authHandler *AuthHandler) SendMailForMagicLinkRegistration(ctx *gin.Contex
 }
 
 func (authHandler *AuthHandler) registerAuth(registerDTO dto.RegisterDTO) (string, error) {
+	t, err := time.Parse("2022-02-25", registerDTO.Birthday)
+	if err != nil {
+		fmt.Println("Error BirthDate")
+	}
 	authS := authHandler.grpcClient.AuthClient
-	response, err := authS.Register(context.TODO(), &pbAuth.RegisterRequest{Username: registerDTO.Username, Password: registerDTO.Password, Email: registerDTO.Email})
+	response, err := authS.Register(context.TODO(), &pbAuth.RegisterRequest{Username: registerDTO.Username, Password: registerDTO.Password, Email: registerDTO.Email, Gender: registerDTO.Gender, Name: registerDTO.Name, BirthDate: timestamppb.New(t), Surname: registerDTO.Surname, PhoneNumber: registerDTO.PhoneNumber, IsPrivate: registerDTO.IsPrivate})
 	if err != nil {
 		fmt.Println(err.Error())
 		return "", err

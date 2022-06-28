@@ -3,6 +3,8 @@ package startup
 import (
 	"crypto/tls"
 	"fmt"
+	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging/nats"
 	"log"
 	"net"
 
@@ -29,6 +31,10 @@ func NewServer(config *config.Config) *Server {
 	}
 }
 
+const (
+	QueueGroup = "connection_service"
+)
+
 func (server *Server) Start() {
 
 	neo4jClient := server.initNeo4J()
@@ -43,7 +49,38 @@ func (server *Server) Start() {
 
 	connectionHandler := server.initConnectionHandler(connectionService)
 
+	commandSubscriber := server.initSubscriber(server.config.RegisterUserCommandSubject, QueueGroup)
+	replyPublisher := server.initPublisher(server.config.RegisterUserReplySubject)
+	server.initRegisterUserHandler(connectionService, replyPublisher, commandSubscriber)
+
 	server.startGrpcServer(connectionHandler)
+}
+
+func (server *Server) initRegisterUserHandler(connectionService *application.ConnectionService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := api.NewRegisterUserCommandHandler(connectionService, publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (server *Server) initPublisher(subject string) saga.Publisher {
+	publisher, err := nats.NewNATSPublisher(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return publisher
+}
+
+func (server *Server) initSubscriber(subject, queueGroup string) saga.Subscriber {
+	subscriber, err := nats.NewNATSSubscriber(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject, queueGroup)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return subscriber
 }
 
 func (server *Server) initNeo4J() *neo4j.Driver {

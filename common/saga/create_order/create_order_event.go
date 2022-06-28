@@ -1,55 +1,51 @@
 package create_order
 
-type Color struct {
-	Code string
+import "time"
+
+type UserDetails struct {
+	Id          string
+	Name        string
+	Surname     string
+	Username    string
+	Email       string
+	Birthday    time.Time
+	Gender      string
+	PhoneNumber string
+	IsPrivate   bool
 }
 
-type Product struct {
-	Id    string
-	Color Color
-}
-
-type OrderItem struct {
-	Product  Product
-	Quantity uint16
-}
-
-type OrderDetails struct {
-	Id      string
-	Items   []OrderItem
-	Address string
-}
-
-type CreateOrderCommandType int8
+type RegisterUserCommandType int8
 
 const (
-	UpdateInventory CreateOrderCommandType = iota
-	RollbackInventory
-	ApproveOrder
-	CancelOrder
-	ShipOrder
+	CreateUserCredentials RegisterUserCommandType = iota
+	RollbackCreateUserCredentials
+	CreateUserProfile
+	RollbackCreateUserProfile
+	CreateNodeInConnectionBase
+	RollbackCreateNodeInConnectionBase
+	UserRegistered
 	UnknownCommand
 )
 
-type CreateOrderCommand struct {
-	Order OrderDetails
-	Type  CreateOrderCommandType
+type RegisterUserCommand struct {
+	Order UserDetails
+	Type  RegisterUserCommandType
 }
 
-type CreateOrderReplyType int8
+type RegisterUserReplyType int8
 
 const (
-	InventoryUpdated CreateOrderReplyType = iota
-	InventoryNotUpdated
-	InventoryRolledBack
-	OrderShippingScheduled
-	OrderShippingNotScheduled
-	OrderApproved
-	OrderCancelled
+	UserCredentialsCreated RegisterUserReplyType = iota
+	UserProfileCreated
+	UserProfileNotCreated
+	NodeInConnectionBaseCreated
+	NodeInConnectionBaseNotCreated
+	DoneRollbackOfProfile
+	UserNotRegistered
 	UnknownReply
 )
 
-type CreateOrderReply struct {
-	Order OrderDetails
-	Type  CreateOrderReplyType
+type RegisterUserReply struct {
+	Order UserDetails
+	Type  RegisterUserReplyType
 }

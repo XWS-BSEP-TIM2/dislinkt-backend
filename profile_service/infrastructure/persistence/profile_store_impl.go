@@ -147,6 +147,14 @@ func appendUser(destination *[]*domain.Profile, source *domain.Profile) {
 	*destination = append(*destination, source)
 }
 
+func (store *ProfileMongoDbStore) DeleteById(ctx context.Context, id primitive.ObjectID) (int64, error) {
+	result, err := store.profiles.DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		return 0, err
+	}
+	return result.DeletedCount, nil
+}
+
 func (store *ProfileMongoDbStore) DeleteAll(ctx context.Context) {
 	store.profiles.DeleteMany(context.TODO(), bson.D{{}})
 }

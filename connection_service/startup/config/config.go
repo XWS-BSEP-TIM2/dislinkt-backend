@@ -24,8 +24,14 @@ type Config struct {
 	ProfileHost string
 	ProfilePort string
 
-	MessageHost string
-	MessagePort string
+	MessageHost                string
+	MessagePort                string
+	NatsHost                   string
+	NatsPort                   string
+	NatsUser                   string
+	NatsPass                   string
+	RegisterUserCommandSubject string
+	RegisterUserReplySubject   string
 }
 
 func NewConfig() *Config {
@@ -50,6 +56,13 @@ func NewConfig() *Config {
 
 		MessageHost: goDotEnvVariable("MESSAGE_SERVICE_HOST"),
 		MessagePort: goDotEnvVariable("MESSAGE_SERVICE_PORT"),
+
+		NatsHost:                   goDotEnvVariable("NATS_HOST"),
+		NatsPort:                   goDotEnvVariable("NATS_PORT"),
+		NatsUser:                   goDotEnvVariable("NATS_USER"),
+		NatsPass:                   goDotEnvVariable("NATS_PASS"),
+		RegisterUserCommandSubject: goDotEnvVariable("REGISTER_USER_COMMAND_SUBJECT"),
+		RegisterUserReplySubject:   goDotEnvVariable("REGISTER_USER_REPLY_SUBJECT"),
 	}
 }
 

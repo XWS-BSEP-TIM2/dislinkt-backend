@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/converter"
 	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	events "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/create_order"
 	"google.golang.org/grpc/peer"
 	"net/http"
 	"time"
@@ -18,19 +19,21 @@ import (
 
 type AuthHandler struct {
 	pb.UnimplementedAuthServiceServer
-	userService         *application.AuthService
-	Jwt                 utils.JwtWrapper
-	passwordlessService *application.PasswordlessTokenService
-	apiTokenService     *application.ApiTokenService
-	LoggingService      pbLogg.LoggingServiceClient
+	userService              *application.AuthService
+	Jwt                      utils.JwtWrapper
+	passwordlessService      *application.PasswordlessTokenService
+	apiTokenService          *application.ApiTokenService
+	LoggingService           pbLogg.LoggingServiceClient
+	RegisterUserOrchestrator *application.RegisterUserOrchestrator
 }
 
-func NewAuthHandler(service *application.AuthService, passwordlessServices *application.PasswordlessTokenService, apiTokenService *application.ApiTokenService, loggingService pbLogg.LoggingServiceClient) *AuthHandler {
+func NewAuthHandler(service *application.AuthService, passwordlessServices *application.PasswordlessTokenService, apiTokenService *application.ApiTokenService, loggingService pbLogg.LoggingServiceClient, orchestrator *application.RegisterUserOrchestrator) *AuthHandler {
 	return &AuthHandler{
-		userService:         service,
-		passwordlessService: passwordlessServices,
-		apiTokenService:     apiTokenService,
-		LoggingService:      loggingService,
+		userService:              service,
+		passwordlessService:      passwordlessServices,
+		apiTokenService:          apiTokenService,
+		LoggingService:           loggingService,
+		RegisterUserOrchestrator: orchestrator,
 	}
 }
 
@@ -66,10 +69,13 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 		}, err
 	}
 
-	errSendVerification := handler.userService.SendVerification(ctx, &user)
-	if errSendVerification != nil {
-		fmt.Println("Error:", errSendVerification.Error())
-	}
+	user.Id = converter.GetObjectId(userID)
+	handler.RegisterUserOrchestrator.Start(events.UserDetails{Id: user.Id.Hex(), Birthday: request.BirthDate.AsTime(), Surname: request.Surname, Username: request.Username, Email: request.Email, Gender: request.Gender, PhoneNumber: request.PhoneNumber, IsPrivate: request.IsPrivate, Name: request.Name})
+
+	//errSendVerification := handler.userService.SendVerification(ctx, &user)
+	//if errSendVerification != nil {
+	//	fmt.Println("Error:", errSendVerification.Error())
+	//}
 
 	handler.logg(ctx, "SUCCESS", "Register", request.Username, "Successfully register new user")
 	return &pb.RegisterResponse{

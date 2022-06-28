@@ -296,3 +296,12 @@ func (service *AuthService) logg(ctx context.Context, logType, serviceFunctionNa
 		service.LoggingService.LoggInfo(ctx, &pbLogg.LogRequest{ServiceName: "AUTH_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	}
 }
+
+func (service *AuthService) DeleteById(ctx context.Context, id primitive.ObjectID) error {
+	_, err := service.store.DeleteById(ctx, id)
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
+}

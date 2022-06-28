@@ -53,6 +53,14 @@ func (store *CreadentialsMongoDBStore) Insert(ctx context.Context, product *doma
 	return nil, product.Id.Hex()
 }
 
+func (store *CreadentialsMongoDBStore) DeleteById(ctx context.Context, id primitive.ObjectID) (int64, error) {
+	result, err := store.users.DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		return 0, err
+	}
+	return result.DeletedCount, nil
+}
+
 func (store *CreadentialsMongoDBStore) Update(ctx context.Context, user *domain.User) error {
 	userToUpdate := bson.M{"_id": user.Id}
 	updatedUser := bson.M{"$set": bson.M{

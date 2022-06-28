@@ -38,3 +38,7 @@ func (service *ProfileService) Update(ctx context.Context, profile *domain.Profi
 func (service *ProfileService) Search(ctx context.Context, search string) ([]*domain.Profile, error) {
 	return service.store.Search(ctx, search)
 }
+
+func (service *ProfileService) DeleteById(ctx context.Context, id primitive.ObjectID) {
+	service.store.DeleteById(ctx, id)
+}
