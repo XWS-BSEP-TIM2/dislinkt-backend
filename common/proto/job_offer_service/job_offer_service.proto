@@ -21,6 +21,25 @@ service JobOfferService{
   rpc GetUserJobOffers(GetJobOfferRequest) returns(GetAllJobOffersResponse){}
 
   rpc DeleteJobOffer(GetJobOfferRequest) returns(EmptyResponse) {}
+
+  rpc CreateUser(CreateUserRequest) returns(ActionResult){}
+
+  rpc UpdateUserSkills(UpdateUserSkillsRequest) returns(ActionResult){}
+
+  rpc GetRecommendationJobOffer(GetRecommendationJobOfferRequest) returns(GetJobOfferResponse){}
+}
+
+message CreateUserRequest{
+  string userID = 1;
+}
+
+message UpdateUserSkillsRequest{
+  string userID = 1;
+  repeated string technologies = 2;
+}
+
+message GetRecommendationJobOfferRequest{
+  string userID = 1;
 }
 
 message SearchJobOfferRequest{
@@ -29,6 +48,11 @@ message SearchJobOfferRequest{
 
 message EmptyResponse{
 
+}
+
+message ActionResult{
+  int64 status = 1;
+  string msg = 2;
 }
 
 message GetAllJobOffersResponse{

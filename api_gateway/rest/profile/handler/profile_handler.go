@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	pbAuth "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	pbConnection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	pbJobOffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	pbProfile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/validators"
 	"github.com/gin-gonic/gin"
@@ -62,8 +64,37 @@ func (handler *ProfileHandler) Update(ctx *gin.Context) {
 	if err2 != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err2)
 	}
+	errUpdateSkillsInJobOfferService := handler.updateSkillsInJobOfferService(ctx, &profile)
+	if errUpdateSkillsInJobOfferService != nil {
+		ctx.AbortWithError(http.StatusBadGateway, errUpdateSkillsInJobOfferService)
+	}
 
 	ctx.JSON(http.StatusCreated, &res)
+}
+
+func (handler *ProfileHandler) updateSkillsInJobOfferService(ctx *gin.Context, profile *pbProfile.Profile) error {
+	jobOfferService := handler.grpcClient.JobOfferClient
+	var technologies []string
+	addTechnologie := true
+	for _, s1 := range profile.Skills {
+		addTechnologie = true
+		for _, t := range technologies {
+			if s1.Name == t {
+				addTechnologie = false
+				break
+			}
+		}
+		if addTechnologie {
+			technologies = append(technologies, s1.Name)
+		}
+	}
+
+	registrationResult, err := jobOfferService.UpdateUserSkills(ctx, &pbJobOffer.UpdateUserSkillsRequest{UserID: profile.Id, Technologies: technologies})
+	fmt.Println(registrationResult)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return err
 }
 
 func (handler *ProfileHandler) ChangePassword(ctx *gin.Context) {
