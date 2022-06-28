@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/job_offer/dto"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/security"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	pbAuth "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/auth_service"
 	pbJobOffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
@@ -40,6 +41,16 @@ func (handler *JobOfferHandler) GetById(ctx *gin.Context) {
 	id := ctx.Param("id")
 	jobOfferService := handler.grpcClient.JobOfferClient
 	res, err := jobOfferService.GetJobOffer(ctx, &pbJobOffer.GetJobOfferRequest{Id: id})
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+	}
+	ctx.JSON(http.StatusOK, &res)
+}
+
+func (handler *JobOfferHandler) GetRecommend(ctx *gin.Context) {
+	dataFromToken, _ := security.ExtractTokenDataFromContext(ctx)
+	jobOfferService := handler.grpcClient.JobOfferClient
+	res, err := jobOfferService.GetRecommendationJobOffer(ctx, &pbJobOffer.GetRecommendationJobOfferRequest{UserID: dataFromToken.Id})
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
 	}

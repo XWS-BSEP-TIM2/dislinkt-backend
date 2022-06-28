@@ -31,7 +31,7 @@ type JobOfferServiceClient interface {
 	DeleteJobOffer(ctx context.Context, in *GetJobOfferRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*ActionResult, error)
 	UpdateUserSkills(ctx context.Context, in *UpdateUserSkillsRequest, opts ...grpc.CallOption) (*ActionResult, error)
-	GetRecommendationJobOffer(ctx context.Context, in *GetRecommendationJobOfferRequest, opts ...grpc.CallOption) (*GetJobOfferResponse, error)
+	GetRecommendationJobOffer(ctx context.Context, in *GetRecommendationJobOfferRequest, opts ...grpc.CallOption) (*GetAllJobOffersResponse, error)
 }
 
 type jobOfferServiceClient struct {
@@ -123,8 +123,8 @@ func (c *jobOfferServiceClient) UpdateUserSkills(ctx context.Context, in *Update
 	return out, nil
 }
 
-func (c *jobOfferServiceClient) GetRecommendationJobOffer(ctx context.Context, in *GetRecommendationJobOfferRequest, opts ...grpc.CallOption) (*GetJobOfferResponse, error) {
-	out := new(GetJobOfferResponse)
+func (c *jobOfferServiceClient) GetRecommendationJobOffer(ctx context.Context, in *GetRecommendationJobOfferRequest, opts ...grpc.CallOption) (*GetAllJobOffersResponse, error) {
+	out := new(GetAllJobOffersResponse)
 	err := c.cc.Invoke(ctx, "/profile_service.JobOfferService/GetRecommendationJobOffer", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ type JobOfferServiceServer interface {
 	DeleteJobOffer(context.Context, *GetJobOfferRequest) (*EmptyResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*ActionResult, error)
 	UpdateUserSkills(context.Context, *UpdateUserSkillsRequest) (*ActionResult, error)
-	GetRecommendationJobOffer(context.Context, *GetRecommendationJobOfferRequest) (*GetJobOfferResponse, error)
+	GetRecommendationJobOffer(context.Context, *GetRecommendationJobOfferRequest) (*GetAllJobOffersResponse, error)
 	mustEmbedUnimplementedJobOfferServiceServer()
 }
 
@@ -180,7 +180,7 @@ func (UnimplementedJobOfferServiceServer) CreateUser(context.Context, *CreateUse
 func (UnimplementedJobOfferServiceServer) UpdateUserSkills(context.Context, *UpdateUserSkillsRequest) (*ActionResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserSkills not implemented")
 }
-func (UnimplementedJobOfferServiceServer) GetRecommendationJobOffer(context.Context, *GetRecommendationJobOfferRequest) (*GetJobOfferResponse, error) {
+func (UnimplementedJobOfferServiceServer) GetRecommendationJobOffer(context.Context, *GetRecommendationJobOfferRequest) (*GetAllJobOffersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRecommendationJobOffer not implemented")
 }
 func (UnimplementedJobOfferServiceServer) mustEmbedUnimplementedJobOfferServiceServer() {}

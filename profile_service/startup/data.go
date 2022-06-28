@@ -228,7 +228,7 @@ var users = []*domain.Profile{
 				EndDate:          time.Date(2022, time.June, 30, 10, 0, 0, 0, time.UTC),
 			},
 		},
-		IsTwoFactor: true,
+		IsTwoFactor: false,
 	},
 }
 

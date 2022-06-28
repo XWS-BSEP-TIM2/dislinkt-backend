@@ -17,6 +17,7 @@ func RegisterRoutes(r *gin.Engine) {
 	authorizedRoutes.Use(a.AuthRequired)
 
 	authorizedRoutes.PUT("", a.Authorize("updateJobOffer", "update", false), jobOfferHandler.Update)
+	authorizedRoutes.GET("/recommend", a.Authorize("getJobOffer", "read", false), jobOfferHandler.GetRecommend)
 	authorizedRoutes.GET("/:id", a.Authorize("getJobOffer", "read", false), jobOfferHandler.GetById)
 	authorizedRoutes.POST("/search", a.Authorize("searchJobOffers", "read", false), jobOfferHandler.Search)
 	authorizedRoutes.POST("", a.Authorize("createJobOffer", "create", false), jobOfferHandler.Create)

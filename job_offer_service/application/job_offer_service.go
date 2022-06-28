@@ -59,3 +59,7 @@ func (service *JobOfferService) CreateUser(ctx context.Context, userID string) (
 func (service *JobOfferService) UpdateUserSkills(ctx context.Context, userID string, skills []string) (*joboffer_service.ActionResult, error) {
 	return service.store.UpdateUserSkills(ctx, userID, skills)
 }
+
+func (service *JobOfferService) GetRecommendationJobOffer(ctx context.Context, userID string) ([]*domain.JobOffer, error) {
+	return service.store.GetRecommendationJobOffer(ctx, userID)
+}
