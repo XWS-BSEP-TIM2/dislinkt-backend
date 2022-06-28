@@ -98,6 +98,10 @@ func (store *JobOfferDbStore) Search(ctx context.Context, search string) ([]*dom
 	return store.getMany(ctx, "Search", search)
 }
 
+func (store *JobOfferDbStore) GetRecommendationJobOffer(ctx context.Context, userID string) ([]*domain.JobOffer, error) {
+	return store.getMany(ctx, "recommendation", userID)
+}
+
 func (store *JobOfferDbStore) getMany(ctx context.Context, getManyParam, param string) ([]*domain.JobOffer, error) {
 
 	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
@@ -112,6 +116,8 @@ func (store *JobOfferDbStore) getMany(ctx context.Context, getManyParam, param s
 			jobOfferIds, err = getUserJobOffersIds(param, transaction)
 		} else if getManyParam == "Search" {
 			jobOfferIds, err = searchJobOffersIds(param, transaction)
+		} else if getManyParam == "recommendation" {
+			jobOfferIds, err = getRecommendationJobOfferIds(param, transaction)
 		}
 		if err != nil {
 			return nil, err

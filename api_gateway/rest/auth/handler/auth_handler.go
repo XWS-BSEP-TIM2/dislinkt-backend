@@ -197,11 +197,14 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 	//	return
 	//}
 
-	errRegUserInJobOffer := authHandler.registerUserInJobOffer(userID)
-	if errRegUserInJobOffer != nil {
-		ctx.AbortWithError(http.StatusBadGateway, errConnection)
-		return
-	}
+	/*
+			//TODO: poziv reg usera u jobOffer graf bazi
+		errRegUserInJobOffer := authHandler.registerUserInJobOffer(userID)
+		if errRegUserInJobOffer != nil {
+			ctx.AbortWithError(http.StatusBadGateway, errConnection)
+			return
+		}
+	*/
 
 	fmt.Println("successfully registered new user with ID:", userID)
 

@@ -17,4 +17,5 @@ type JobOfferStore interface {
 	Init()
 	CreateUser(ctx context.Context, userID string) (*joboffer_service.ActionResult, error)
 	UpdateUserSkills(ctx context.Context, userID string, skills []string) (*joboffer_service.ActionResult, error)
+	GetRecommendationJobOffer(ctx context.Context, userID string) ([]*domain.JobOffer, error)
 }

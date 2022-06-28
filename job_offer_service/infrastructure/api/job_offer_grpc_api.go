@@ -109,3 +109,18 @@ func (handler *JobOfferHandler) CreateUser(ctx context.Context, request *pb.Crea
 func (handler *JobOfferHandler) UpdateUserSkills(ctx context.Context, request *pb.UpdateUserSkillsRequest) (*pb.ActionResult, error) {
 	return handler.service.UpdateUserSkills(ctx, request.UserID, request.Technologies)
 }
+
+func (handler *JobOfferHandler) GetRecommendationJobOffer(ctx context.Context, request *pb.GetRecommendationJobOfferRequest) (*pb.GetAllJobOffersResponse, error) {
+	jobOffers, err := handler.service.GetRecommendationJobOffer(ctx, request.UserID)
+	if err != nil {
+		return nil, err
+	}
+	response := &pb.GetAllJobOffersResponse{
+		JobOffers: []*pb.JobOffer{},
+	}
+	for _, jobs := range jobOffers {
+		current := mapJobOffer(jobs)
+		response.JobOffers = append(response.JobOffers, current)
+	}
+	return response, nil
+}

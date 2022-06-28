@@ -103,6 +103,70 @@ func getUserJobOffersIds(userID string, transaction neo4j.Transaction) ([]string
 	return jobOfferIds, nil
 }
 
+func getRecommendationJobOfferIds(userID string, transaction neo4j.Transaction) ([]string, error) {
+	// get job offers by skills order by number of intersect skills
+	var jobOfferIds []string
+	result1, err1 := transaction.Run(
+		"MATCH (u:USER) -[k:KNOWS]-> (s:SKILL) -[n:NEED]-> (j:JOB) WHERE u.userID=$uID RETURN DISTINCT j.Id, count(s) as numOfSkill ORDER BY numOfSkill DESC ",
+		map[string]interface{}{"uID": userID})
+
+	if err1 != nil {
+		return jobOfferIds, err1
+	}
+	if result1 == nil {
+		return jobOfferIds, nil
+	}
+
+	for result1.Next() {
+		jobOfferIds = append(jobOfferIds, result1.Record().Values[0].(string))
+	}
+
+	// get job offer recomendation by popularity of jobOffer skill count
+	result2, err2 := transaction.Run(
+		"MATCH (j:JOB) -[n:NEED]-> (s:SKILL) -[k:KNOWS]-> (u:USER) RETURN DISTINCT j.Id, count(u) as numOfUserWhoKnowsS ORDER BY numOfUserWhoKnowsS DESC ",
+		map[string]interface{}{})
+
+	if err2 != nil {
+		return jobOfferIds, err2
+	}
+	if result2 == nil {
+		return jobOfferIds, nil
+	}
+
+	for result2.Next() {
+		id2 := result2.Record().Values[0].(string)
+		uniqJobOfferId := true
+		for _, id1 := range jobOfferIds {
+			if id1 == id2 {
+				uniqJobOfferId = false
+				break
+			}
+		}
+		if uniqJobOfferId {
+			jobOfferIds = append(jobOfferIds, id2)
+		}
+	}
+
+	// get all jobs
+	allJobOfferIds, err3 := getAllJobOffersIds(transaction)
+	if err3 == nil && allJobOfferIds != nil {
+		for _, id3 := range allJobOfferIds {
+			uniqJobOfferId := true
+			for _, id1 := range jobOfferIds {
+				if id1 == id3 {
+					uniqJobOfferId = false
+					break
+				}
+			}
+			if uniqJobOfferId {
+				jobOfferIds = append(jobOfferIds, id3)
+			}
+		}
+	}
+
+	return jobOfferIds, nil
+}
+
 func searchJobOffersIds(position string, transaction neo4j.Transaction) ([]string, error) {
 	result, err := transaction.Run(
 		"MATCH (j:JOB) RETURN j.Id, j.Position ",
