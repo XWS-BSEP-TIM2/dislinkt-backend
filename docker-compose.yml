@@ -372,12 +372,12 @@ services:
     container_name: neo4j
     hostname: neo4j
     restart: on-failure
-    ports:
-      - ${NEO4J_PORT}:${NEO4J_PORT}
-      - ${NEO4J_PORT_2}:${NEO4J_PORT_2}
     environment:
       NEO4J_AUTH: none
       NEO4J_dbms_allow__upgrade: true
+    ports:
+      - ${NEO4J_PORT}:${NEO4J_PORT}
+      - ${NEO4J_PORT_2}:${NEO4J_PORT_2}
     networks:
       - network
 
@@ -386,12 +386,13 @@ services:
     container_name: jobOfferNeo4j
     hostname: jobOfferNeo4j
     restart: on-failure
-    ports:
-      - ${JOB_OFFER_NEO4J_PORT}:${JOB_OFFER_NEO4J_PORT}
-      - ${JOB_OFFER_NEO4J_PORT_2}:${JOB_OFFER_NEO4J_PORT_2}
     environment:
       NEO4J_AUTH: none
       NEO4J_dbms_allow__upgrade: true
+      NEO4J_dbms_connector_bolt_listen__address: ":7686"
+    ports:
+      - ${JOB_OFFER_NEO4J_PORT}:${JOB_OFFER_NEO4J_PORT}
+      - ${JOB_OFFER_NEO4J_PORT_2}:${JOB_OFFER_NEO4J_PORT_2}
     networks:
       - network
 

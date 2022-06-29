@@ -72,10 +72,10 @@ func (handler *AuthHandler) Register(ctx context.Context, request *pb.RegisterRe
 	user.Id = converter.GetObjectId(userID)
 	handler.RegisterUserOrchestrator.Start(events.UserDetails{Id: user.Id.Hex(), Birthday: request.BirthDate.AsTime(), Surname: request.Surname, Username: request.Username, Email: request.Email, Gender: request.Gender, PhoneNumber: request.PhoneNumber, IsPrivate: request.IsPrivate, Name: request.Name})
 
-	//errSendVerification := handler.userService.SendVerification(ctx, &user)
-	//if errSendVerification != nil {
-	//	fmt.Println("Error:", errSendVerification.Error())
-	//}
+	errSendVerification := handler.userService.SendVerification(ctx, &user)
+	if errSendVerification != nil {
+		fmt.Println("Error:", errSendVerification.Error())
+	}
 
 	handler.logg(ctx, "SUCCESS", "Register", request.Username, "Successfully register new user")
 	return &pb.RegisterResponse{
