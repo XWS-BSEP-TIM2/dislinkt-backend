@@ -1,5 +1,10 @@
 version: "3.8"
 
+x-logging: &fluent-bit
+  driver: fluentd
+  options:
+    fluentd-address: ${FLUENT_BIT_ADDRESS}:24224
+
 services:
   auth_service:
     image: auth_service
@@ -31,11 +36,13 @@ services:
       - type: bind
         source: ./auth_service/certificates/
         target: /root/certificates
+    logging:  *fluent-bit
     depends_on:
       - auth_mongo_db
       - nats
     networks:
       - network
+      - monitoring
 
   post_service:
     image: post_service
@@ -74,8 +81,10 @@ services:
     depends_on:
       - post_mongo_db
       - nats
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   profile_service:
     image: profile_service
@@ -103,8 +112,10 @@ services:
     depends_on:
       - profile_mongo_db
       - nats
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   job_offer_service:
     image: job_offer_service
@@ -134,8 +145,10 @@ services:
         target: /root/certificates
     depends_on:
       - jobOfferNeo4j
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   message_service:
     image: message_service
@@ -169,8 +182,10 @@ services:
     depends_on:
       - message_mongo_db
       - nats
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   notification_service:
     image: notification_service
@@ -202,8 +217,10 @@ services:
     depends_on:
       - notification_mongo_db
       - nats
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   logging_service:
     image: logging_service
@@ -231,8 +248,10 @@ services:
         target: /root/logData
     depends_on:
       - nats
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   api_gateway:
     image: api_gateway
@@ -279,8 +298,10 @@ services:
       - type: bind
         source: ./api_gateway/security/
         target: /root/security
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   connection_service:
     image: connection_service
@@ -315,58 +336,60 @@ services:
         target: /root/certificates
     depends_on:
       - neo4j
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   auth_mongo_db:
     image: mongo
     container_name: auth_mongo_db
     command: mongod --quiet --logpath /dev/null
     restart: on-failure
+    logging:  *fluent-bit
     networks:
       - network
-    logging:
-      driver: none
+      - monitoring
 
   profile_mongo_db:
     image: mongo
     container_name: profile_mongo_db
     command: mongod --quiet --logpath /dev/null
     restart: on-failure
+    logging:  *fluent-bit
     networks:
       - network
-    logging:
-      driver: none
+      - monitoring
 
   post_mongo_db:
     image: mongo
     container_name: post_mongo_db
     command: mongod --quiet --logpath /dev/null
     restart: on-failure
+    logging:  *fluent-bit
     networks:
       - network
-    logging:
-      driver: none
+      - monitoring
 
   message_mongo_db:
     image: mongo
     container_name: message_mongo_db
     command: mongod --quiet --logpath /dev/null
     restart: on-failure
+    logging:  *fluent-bit
     networks:
       - network
-    logging:
-      driver: none
+      - monitoring
 
   notification_mongo_db:
     image: mongo
     container_name: notification_mongo_db
     command: mongod --quiet --logpath /dev/null
     restart: on-failure
+    logging:  *fluent-bit
     networks:
       - network
-    logging:
-      driver: none
+      - monitoring
 
   neo4j:
     image: neo4j:4.3.3
@@ -379,8 +402,10 @@ services:
     ports:
       - ${NEO4J_PORT}:${NEO4J_PORT}
       - ${NEO4J_PORT_2}:${NEO4J_PORT_2}
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   jobOfferNeo4j:
     image: neo4j:4.3.3
@@ -394,8 +419,10 @@ services:
     ports:
       - ${JOB_OFFER_NEO4J_PORT}:${JOB_OFFER_NEO4J_PORT}
       - ${JOB_OFFER_NEO4J_PORT_2}:${JOB_OFFER_NEO4J_PORT_2}
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
   nats:
     image: nats
@@ -414,9 +441,13 @@ services:
       NATS_PASSWORD: ${NATS_PASS}
       NATS_CLIENT_PORT_NUMBER: ${NATS_PORT}
       NATS_BIND_ADDRESS: ${NATS_HOST}
+    logging:  *fluent-bit
     networks:
       - network
+      - monitoring
 
 networks:
   network:
     driver: bridge
+  monitoring:
+    external: true
