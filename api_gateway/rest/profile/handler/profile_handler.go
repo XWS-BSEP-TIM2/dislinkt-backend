@@ -44,7 +44,6 @@ func (handler *ProfileHandler) Get(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, &res)
-
 }
 
 func (handler *ProfileHandler) GetById(ctx *gin.Context) {

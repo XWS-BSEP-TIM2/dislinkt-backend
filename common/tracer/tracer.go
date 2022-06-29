@@ -16,13 +16,14 @@ import (
 
 // Init returns an instance of Jaeger Tracer.
 func Init(service string) (opentracing.Tracer, io.Closer) {
+	fmt.Println("Initing tracer in process")
 	cfg, err := config.FromEnv()
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, nil
 	}
 
-	cfg.ServiceName = "dislinkt"
+	cfg.ServiceName = service
 	cfg.Sampler.Type = jaeger.SamplerTypeConst
 	cfg.Sampler.Param = 1
 	cfg.Reporter.LogSpans = true
