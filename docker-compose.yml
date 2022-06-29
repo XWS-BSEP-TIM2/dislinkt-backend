@@ -20,12 +20,19 @@ services:
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PASS: ${NATS_PASS}
+      REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
+      REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
     volumes:
       - type: bind
         source: ./auth_service/certificates/
         target: /root/certificates
     depends_on:
       - auth_mongo_db
+      - nats
     networks:
       - network
 
@@ -50,6 +57,12 @@ services:
       NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
       LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PASS: ${NATS_PASS}
+      REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
+      REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
     volumes:
       - type: bind
         source: ./post_service/certificates/
@@ -59,6 +72,7 @@ services:
         target: /root/startup/data/post_images
     depends_on:
       - post_mongo_db
+      - nats
     networks:
       - network
 
@@ -75,12 +89,19 @@ services:
       MONGO_DB_PORT: ${MONGO_DB_PORT}
       LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PASS: ${NATS_PASS}
+      REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
+      REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
     volumes:
       - type: bind
         source: ./profile_service/certificates/
         target: /root/certificates
     depends_on:
       - profile_mongo_db
+      - nats
     networks:
       - network
 
@@ -93,16 +114,25 @@ services:
     restart: on-failure
     environment:
       JOB_OFFER_SERVICE_PORT: ${JOB_OFFER_SERVICE_PORT}
-      MONGO_DB_HOST: ${JOB_OFFER_DB_HOST_DOCKER}
-      MONGO_DB_PORT: ${MONGO_DB_PORT}
-      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      JOB_OFFER_NEO4J_URI: ${JOB_OFFER_NEO4J_URI}
+      JOB_OFFER_NEO4J_HOST: ${JOB_OFFER_NEO4J_HOST_DOCKER}
+      JOB_OFFER_NEO4J_PORT: ${JOB_OFFER_NEO4J_PORT}
+      JOB_OFFER_NEO4J_PORT_2: ${JOB_OFFER_NEO4J_PORT_2}
+      JOB_OFFER_NEO4J_USERNAME: ${JOB_OFFER_NEO4J_USERNAME}
+      JOB_OFFER_NEO4J_PASSWORD: ${JOB_OFFER_NEO4J_PASSWORD}
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PASS: ${NATS_PASS}
+      REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
+      REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
     volumes:
       - type: bind
         source: ./job_offer_service/certificates/
         target: /root/certificates
     depends_on:
-      - job_offer_mongo_db
+      - jobOfferNeo4j
     networks:
       - network
 
@@ -125,12 +155,19 @@ services:
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
       NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST_DOCKER}
       NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PASS: ${NATS_PASS}
+      REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
+      REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
     volumes:
       - type: bind
         source: ./message_service/certificates/
         target: /root/certificates
     depends_on:
       - message_mongo_db
+      - nats
     networks:
       - network
 
@@ -151,12 +188,19 @@ services:
       CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
       LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PASS: ${NATS_PASS}
+      REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
+      REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
     volumes:
       - type: bind
         source: ./notification_service/certificates/
         target: /root/certificates
     depends_on:
       - notification_mongo_db
+      - nats
     networks:
       - network
 
@@ -171,6 +215,12 @@ services:
       LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
       LOGGING_FILE_PATH: ${LOGGING_FILE_PATH}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PASS: ${NATS_PASS}
+      REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
+      REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
     volumes:
       - type: bind
         source: ./logging_service/certificates/
@@ -178,6 +228,8 @@ services:
       - type: bind
         source: ./logging_service/logData/
         target: /root/logData
+    depends_on:
+      - nats
     networks:
       - network
 
@@ -210,7 +262,12 @@ services:
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
       CERTIFICATE_PATH: ${CERTIFICATE_PATH}
       CERTIFICATE_PRIVATE_KEY_PATH: ${CERTIFICATE_PRIVATE_KEY_PATH}
-
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PASS: ${NATS_PASS}
+      REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
+      REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
     volumes:
       - type: bind
         source: ./api_gateway/certificates/
@@ -221,6 +278,42 @@ services:
       - type: bind
         source: ./api_gateway/security/
         target: /root/security
+    networks:
+      - network
+
+  connection_service:
+    image: connection_service
+    container_name: connection_service
+    build:
+      context: .
+      dockerfile: ./connection_service/Dockerfile
+    restart: on-failure
+    environment:
+      CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
+      CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
+      NEO4J_URI: ${NEO4J_URI}
+      NEO4J_HOST: ${NEO4J_HOST_DOCKER}
+      NEO4J_PORT: ${NEO4J_PORT}
+      NEO4J_USERNAME: ${NEO4J_USERNAME}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
+      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
+      NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST_DOCKER}
+      NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
+      PROFILE_SERVICE_HOST: ${PROFILE_SERVICE_HOST_DOCKER}
+      PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+      NATS_USER: ${NATS_USER}
+      NATS_PASS: ${NATS_PASS}
+      REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
+      REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
+    volumes:
+      - type: bind
+        source: ./connection_service/certificates/
+        target: /root/certificates
+    depends_on:
+      - neo4j
     networks:
       - network
 
@@ -247,16 +340,6 @@ services:
   post_mongo_db:
     image: mongo
     container_name: post_mongo_db
-    command: mongod --quiet --logpath /dev/null
-    restart: on-failure
-    networks:
-      - network
-    logging:
-      driver: none
-
-  job_offer_mongo_db:
-    image: mongo
-    container_name: job_offer_mongo_db
     command: mongod --quiet --logpath /dev/null
     restart: on-failure
     networks:
@@ -297,40 +380,38 @@ services:
       NEO4J_dbms_allow__upgrade: true
     networks:
       - network
-  nats:
-    image: nats
-    container_name: nats
+
+  jobOfferNeo4j:
+    image: neo4j:4.3.3
+    container_name: jobOfferNeo4j
+    hostname: jobOfferNeo4j
     restart: on-failure
+    ports:
+      - ${JOB_OFFER_NEO4J_PORT}:${JOB_OFFER_NEO4J_PORT}
+      - ${JOB_OFFER_NEO4J_PORT_2}:${JOB_OFFER_NEO4J_PORT_2}
+    environment:
+      NEO4J_AUTH: none
+      NEO4J_dbms_allow__upgrade: true
     networks:
       - network
 
-  connection_service:
-    image: connection_service
-    container_name: connection_service
-    build:
-      context: .
-      dockerfile: ./connection_service/Dockerfile
+  nats:
+    image: nats
+    container_name: nats
+    hostname: ${NATS_HOST}
     restart: on-failure
+    expose:
+      - "4222"
+    ports:
+      - "4222:4222"
+      - "6222:6222"
+      - "8222:8222"
     environment:
-      CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
-      CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
-      NEO4J_URI: ${NEO4J_URI}
-      NEO4J_HOST: ${NEO4J_HOST_DOCKER}
-      NEO4J_PORT: ${NEO4J_PORT}
-      NEO4J_USERNAME: ${NEO4J_USERNAME}
-      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
-      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
-      LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
-      NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST_DOCKER}
-      NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
-      PROFILE_SERVICE_HOST: ${PROFILE_SERVICE_HOST_DOCKER}
-      PROFILE_SERVICE_PORT: ${PROFILE_SERVICE_PORT}
-    volumes:
-      - type: bind
-        source: ./connection_service/certificates/
-        target: /root/certificates
-    depends_on:
-      - neo4j
+      NATS_ENABLE_AUTH: yes
+      NATS_USERNAME: ${NATS_USER}
+      NATS_PASSWORD: ${NATS_PASS}
+      NATS_CLIENT_PORT_NUMBER: ${NATS_PORT}
+      NATS_BIND_ADDRESS: ${NATS_HOST}
     networks:
       - network
 
