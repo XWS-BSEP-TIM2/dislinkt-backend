@@ -120,7 +120,7 @@ func (server *Server) startGrpcServer(authHandler *api.AuthHandler) {
 }
 
 func (server *Server) initEmailService() *application.EmailService {
-	return application.NewEmailService(server.config.Email, server.config.PasswordEmail, server.config.ApiGatewayHost, server.config.ApiGatewayPort)
+	return application.NewEmailService(server.config.Email, server.config.PasswordEmail, server.config.EmailHost, server.config.ApiGatewayPort)
 }
 
 func (server *Server) initPasswordlessLoginService(store persistence.PasswordlessTokenMongoDBStore, service *application.EmailService) *application.PasswordlessTokenService {
