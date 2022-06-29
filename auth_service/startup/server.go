@@ -4,10 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging/nats"
-
-	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	"google.golang.org/grpc/credentials"
 	"log"
 	"net"

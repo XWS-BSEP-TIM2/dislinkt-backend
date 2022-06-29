@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
@@ -8,26 +9,40 @@ import (
 	pbConnection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	pbJobOffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	pbProfile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	tracer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/validators"
 	"github.com/gin-gonic/gin"
+	"github.com/opentracing/opentracing-go"
+	"io"
 	"net/http"
 )
 
 type ProfileHandler struct {
 	grpcClient *rest.ServiceClientGrpc
+	tracer     opentracing.Tracer
+	closer     io.Closer
 }
 
 func InitProfileHandler() *ProfileHandler {
+	tracer, closer := tracer.Init("profile_service")
+	opentracing.SetGlobalTracer(tracer)
 	client := rest.InitServiceClient(config.NewConfig())
-	return &ProfileHandler{grpcClient: client}
+	return &ProfileHandler{grpcClient: client,
+		tracer: tracer,
+		closer: closer}
 }
 
 func (handler *ProfileHandler) Get(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("Get", handler.tracer, ctx.Request)
+	defer span.Finish()
+
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
 	profileService := handler.grpcClient.ProfileClient
-	res, err := profileService.GetAll(ctx, &pbProfile.EmptyRequest{})
+	res, err := profileService.GetAll(ctx2, &pbProfile.EmptyRequest{})
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
 	}
+
 	ctx.JSON(http.StatusCreated, &res)
 
 }

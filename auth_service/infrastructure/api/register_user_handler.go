@@ -7,18 +7,22 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
 	events "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/create_order"
 	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
+	"github.com/opentracing/opentracing-go"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"io"
 )
 
-type CreateOrderCommandHandler struct {
-	orderService      *application.AuthService
+type CreateRegisterCommandHandler struct {
+	registerService   *application.AuthService
 	replyPublisher    saga.Publisher
 	commandSubscriber saga.Subscriber
+	tracer            opentracing.Tracer
+	closer            io.Closer
 }
 
-func NewRegisterUserCommandHandler(orderService *application.AuthService, publisher saga.Publisher, subscriber saga.Subscriber) (*CreateOrderCommandHandler, error) {
-	o := &CreateOrderCommandHandler{
-		orderService:      orderService,
+func NewRegisterUserCommandHandler(registerService *application.AuthService, publisher saga.Publisher, subscriber saga.Subscriber) (*CreateRegisterCommandHandler, error) {
+	o := &CreateRegisterCommandHandler{
+		registerService:   registerService,
 		replyPublisher:    publisher,
 		commandSubscriber: subscriber,
 	}
@@ -29,7 +33,7 @@ func NewRegisterUserCommandHandler(orderService *application.AuthService, publis
 	return o, nil
 }
 
-func (handler *CreateOrderCommandHandler) handle(command *events.RegisterUserCommand) {
+func (handler *CreateRegisterCommandHandler) handle(command *events.RegisterUserCommand) {
 	id, err := primitive.ObjectIDFromHex(command.Order.Id)
 	if err != nil {
 		return
@@ -42,7 +46,7 @@ func (handler *CreateOrderCommandHandler) handle(command *events.RegisterUserCom
 
 	case events.RollbackCreateUserProfile:
 		fmt.Println("Auth service:Rollback kredencijala")
-		err := handler.orderService.DeleteById(context.TODO(), order.Id)
+		err := handler.registerService.DeleteById(context.TODO(), order.Id)
 		if err != nil {
 			return
 		}

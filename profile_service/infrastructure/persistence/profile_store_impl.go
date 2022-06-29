@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -46,6 +47,8 @@ func (store *ProfileMongoDbStore) Update(ctx context.Context, profile *domain.Pr
 }
 
 func (store *ProfileMongoDbStore) Get(ctx context.Context, id primitive.ObjectID) (*domain.Profile, error) {
+	span := tracer.StartSpanFromContext(ctx, "Get")
+	defer span.Finish()
 	filter := bson.M{"_id": id}
 	return store.filterOne(filter)
 }
