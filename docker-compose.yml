@@ -5,6 +5,13 @@ x-logging: &fluent-bit
   options:
     fluentd-address: ${FLUENT_BIT_ADDRESS}:24224
 
+x-tracing: &jaeger-env
+  JAEGER_AGENT_HOST: ${JAEGER_HOST}
+  JAEGER_AGENT_PORT: 6831
+  JAEGER_SAMPLER_MANAGER_HOST_PORT: ${JAEGER_HOST}:5778
+  JAEGER_SAMPLER_TYPE: const
+  JAEGER_SAMPLER_PARAM: 1
+
 services:
   auth_service:
     image: auth_service
@@ -105,6 +112,7 @@ services:
       NATS_PASS: ${NATS_PASS}
       REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
       REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
+      <<: *jaeger-env
     volumes:
       - type: bind
         source: ./profile_service/certificates/
@@ -263,13 +271,6 @@ services:
     ports:
       - ${GATEWAY_PORT}:${GATEWAY_PORT}
     environment:
-      JAEGER_SERVICE_NAME: profile_service
-      JAEGER_AGENT_HOST: jaeger
-      JAEGER_AGENT_PORT: 6831
-      JAEGER_SAMPLER_MANAGER_HOST_PORT: jaeger:5778
-      JAEGER_SAMPLER_TYPE: const
-      JAEGER_SAMPLER_PARAM: 1
-
       GATEWAY_PORT: ${GATEWAY_PORT}
       POST_SERVICE_HOST: ${POST_SERVICE_HOST_DOCKER}
       POST_SERVICE_PORT: ${POST_SERVICE_PORT}
@@ -295,6 +296,7 @@ services:
       NATS_PASS: ${NATS_PASS}
       REGISTER_USER_COMMAND_SUBJECT: ${REGISTER_USER_COMMAND_SUBJECT}
       REGISTER_USER_REPLY_SUBJECT: ${REGISTER_USER_REPLY_SUBJECT}
+      <<: *jaeger-env
     volumes:
       - type: bind
         source: ./api_gateway/certificates/

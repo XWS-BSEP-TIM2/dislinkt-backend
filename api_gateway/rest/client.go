@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
@@ -12,6 +13,8 @@ import (
 	notificationService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
 	postService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"log"
@@ -87,14 +90,27 @@ func NewJobOfferClient(address string) jobOfferService.JobOfferServiceClient {
 	return jobOfferService.NewJobOfferServiceClient(conn)
 }
 
-func getConnectionSecure(address string, cred credentials.TransportCredentials) (*grpc.ClientConn, error) {
-	return grpc.Dial(address, grpc.WithTransportCredentials(cred))
-}
 func getConnection(address string) (*grpc.ClientConn, error) {
 	config := &tls.Config{
 		InsecureSkipVerify: true,
 	}
-	return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
+	return grpc.DialContext(
+		context.Background(),
+		address,
+		grpc.WithTransportCredentials(credentials.NewTLS(config)),
+		// tracer
+		grpc.WithUnaryInterceptor(
+			grpc_opentracing.UnaryClientInterceptor(
+				grpc_opentracing.WithTracer(opentracing.GlobalTracer()),
+			),
+		),
+		grpc.WithStreamInterceptor(
+			grpc_opentracing.StreamClientInterceptor(
+				grpc_opentracing.WithTracer(opentracing.GlobalTracer()),
+			),
+		))
+
+	//return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 }
 
 func NewMessageClient(address string) messageService.MessageServiceClient {

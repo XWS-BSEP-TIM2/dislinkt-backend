@@ -7,10 +7,12 @@ import (
 	profile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging/nats"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/startup/config"
+	"github.com/opentracing/opentracing-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -33,6 +35,9 @@ const (
 )
 
 func (server *Server) Start() {
+	trace, _ := tracer.Init("profile_service")
+	opentracing.SetGlobalTracer(trace)
+
 	mongoClient := server.initMongoClient()
 	profileStore := server.initProfileStore(mongoClient)
 

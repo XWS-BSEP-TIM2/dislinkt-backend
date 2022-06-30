@@ -6,6 +6,8 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
+	"github.com/uber/jaeger-lib/metrics"
+
 	// "github.com/uber/jaeger-lib/metrics"
 
 	"context"
@@ -16,7 +18,7 @@ import (
 
 // Init returns an instance of Jaeger Tracer.
 func Init(service string) (opentracing.Tracer, io.Closer) {
-	fmt.Println("Initing tracer in process")
+	fmt.Println("Initializing tracer in process")
 	cfg, err := config.FromEnv()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -43,7 +45,9 @@ func Init(service string) (opentracing.Tracer, io.Closer) {
 	// 		LogSpans: true,
 	// 	},
 	// }
-	tracer, closer, err := cfg.NewTracer(config.Logger(jaeger.StdLogger))
+	tracer, closer, err := cfg.NewTracer(
+		config.Logger(jaeger.StdLogger),
+		config.Metrics(metrics.NullFactory))
 	if err != nil {
 		panic(fmt.Sprintf("ERROR: cannot init Jaeger: %v\n", err))
 	}

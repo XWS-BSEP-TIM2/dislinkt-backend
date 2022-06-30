@@ -49,16 +49,23 @@ func (store *ProfileMongoDbStore) Update(ctx context.Context, profile *domain.Pr
 func (store *ProfileMongoDbStore) Get(ctx context.Context, id primitive.ObjectID) (*domain.Profile, error) {
 	span := tracer.StartSpanFromContext(ctx, "Get")
 	defer span.Finish()
+
 	filter := bson.M{"_id": id}
 	return store.filterOne(filter)
 }
 
 func (store *ProfileMongoDbStore) GetAll(ctx context.Context) ([]*domain.Profile, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetAll")
+	defer span.Finish()
+
 	filter := bson.D{{}}
 	return store.filter(filter)
 }
 
 func (store *ProfileMongoDbStore) Insert(ctx context.Context, profile *domain.Profile) error {
+	span := tracer.StartSpanFromContext(ctx, "Insert")
+	defer span.Finish()
+
 	_, err := store.profiles.InsertOne(context.TODO(), profile)
 	if err != nil {
 		return err
@@ -103,6 +110,9 @@ func decode(cursor *mongo.Cursor) (profiles []*domain.Profile, err error) {
 }
 
 func (store *ProfileMongoDbStore) Search(ctx context.Context, search string) ([]*domain.Profile, error) {
+	span := tracer.StartSpanFromContext(ctx, "Search")
+	defer span.Finish()
+
 	var profiles []*domain.Profile
 	search = strings.TrimSpace(search)
 	splitedSearch := strings.Split(search, " ")
@@ -151,6 +161,9 @@ func appendUser(destination *[]*domain.Profile, source *domain.Profile) {
 }
 
 func (store *ProfileMongoDbStore) DeleteById(ctx context.Context, id primitive.ObjectID) (int64, error) {
+	span := tracer.StartSpanFromContext(ctx, "DeleteById")
+	defer span.Finish()
+
 	result, err := store.profiles.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		return 0, err
@@ -159,5 +172,8 @@ func (store *ProfileMongoDbStore) DeleteById(ctx context.Context, id primitive.O
 }
 
 func (store *ProfileMongoDbStore) DeleteAll(ctx context.Context) {
+	span := tracer.StartSpanFromContext(ctx, "DeleteAll")
+	defer span.Finish()
+
 	store.profiles.DeleteMany(context.TODO(), bson.D{{}})
 }

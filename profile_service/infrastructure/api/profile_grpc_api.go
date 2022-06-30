@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/application"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -19,13 +20,16 @@ func NewProfileHandler(service *application.ProfileService) *ProfileHandler {
 }
 
 func (handler *ProfileHandler) Get(ctx context.Context, request *pb.GetRequest) (*pb.GetResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "Get")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
 
 	id := request.Id
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
-	profile, err := handler.service.Get(ctx, objectId)
+	profile, err := handler.service.Get(ctx2, objectId)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +39,11 @@ func (handler *ProfileHandler) Get(ctx context.Context, request *pb.GetRequest) 
 }
 
 func (handler *ProfileHandler) GetAll(ctx context.Context, request *pb.EmptyRequest) (*pb.GetAllResponse, error) {
-	profiles, err := handler.service.GetAll(ctx)
+	span := tracer.StartSpanFromContext(ctx, "GetAll")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	profiles, err := handler.service.GetAll(ctx2)
 	if err != nil {
 		return nil, err
 	}
@@ -50,24 +58,34 @@ func (handler *ProfileHandler) GetAll(ctx context.Context, request *pb.EmptyRequ
 }
 
 func (handler *ProfileHandler) CreateProfile(ctx context.Context, request *pb.CreateProfileRequest) (*pb.CreateProfileResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "CreateProfile")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
 
 	profile := MapProfile(request.Profile)
-	handler.service.Insert(ctx, &profile)
+	handler.service.Insert(ctx2, &profile)
 	return &pb.CreateProfileResponse{
 		Profile: mapProfile(&profile),
 	}, nil
 }
 
 func (handler *ProfileHandler) UpdateProfile(ctx context.Context, request *pb.CreateProfileRequest) (*pb.CreateProfileResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "UpdateProfile")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	profile := MapProfile(request.GetProfile())
-	handler.service.Update(ctx, &profile)
+	handler.service.Update(ctx2, &profile)
 
 	return &pb.CreateProfileResponse{Profile: mapProfile(&profile)}, nil
 }
 
 func (handler *ProfileHandler) SearchProfile(ctx context.Context, request *pb.SearchProfileRequest) (*pb.GetAllResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "SearchProfile")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
 
-	profiles, err := handler.service.Search(ctx, request.GetParam())
+	profiles, err := handler.service.Search(ctx2, request.GetParam())
 	if err != nil {
 		return nil, err
 	}

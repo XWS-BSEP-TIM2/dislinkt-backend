@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/infrastructure/persistence"
@@ -22,29 +21,48 @@ func NewProfileService(store persistence.ProfileStore) *ProfileService {
 func (service *ProfileService) Get(ctx context.Context, id primitive.ObjectID) (*domain.Profile, error) {
 	span := tracer.StartSpanFromContext(ctx, "Get")
 	defer span.Finish()
-	ctx = tracer.ContextWithSpan(context.Background(), span)
-	return service.store.Get(ctx, id)
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	return service.store.Get(ctx2, id)
 }
 
 func (service *ProfileService) GetAll(ctx context.Context) ([]*domain.Profile, error) {
-	fmt.Println()
-	return service.store.GetAll(ctx)
+	span := tracer.StartSpanFromContext(ctx, "GetAll")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	return service.store.GetAll(ctx2)
 }
 
 func (service *ProfileService) Insert(ctx context.Context, profile *domain.Profile) {
-	service.store.Insert(ctx, profile)
+	span := tracer.StartSpanFromContext(ctx, "Insert")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
 
+	service.store.Insert(ctx2, profile)
 }
 
 func (service *ProfileService) Update(ctx context.Context, profile *domain.Profile) {
+	span := tracer.StartSpanFromContext(ctx, "Update")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	//TODO if username changes update it in auth service
-	service.store.Update(ctx, profile)
+	service.store.Update(ctx2, profile)
 }
 
 func (service *ProfileService) Search(ctx context.Context, search string) ([]*domain.Profile, error) {
-	return service.store.Search(ctx, search)
+	span := tracer.StartSpanFromContext(ctx, "Search")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	return service.store.Search(ctx2, search)
 }
 
 func (service *ProfileService) DeleteById(ctx context.Context, id primitive.ObjectID) {
-	service.store.DeleteById(ctx, id)
+	span := tracer.StartSpanFromContext(ctx, "DeleteById")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	service.store.DeleteById(ctx2, id)
 }
