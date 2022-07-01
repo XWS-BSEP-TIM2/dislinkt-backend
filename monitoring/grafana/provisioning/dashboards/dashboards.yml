@@ -9,3 +9,7 @@ providers:
     type: file
     options:
       path: /var/lib/grafana/dashboards/cadvisor-exporter
+  - name: 'Gin Exporter'
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards/gin-exporter
