@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,27 +26,43 @@ func NewCredentialsMongoDBStore(client *mongo.Client) *CreadentialsMongoDBStore 
 }
 
 func (store *CreadentialsMongoDBStore) Get(ctx context.Context, id primitive.ObjectID) (*domain.User, error) {
+	span := tracer.StartSpanFromContext(ctx, "Get")
+	defer span.Finish()
+
 	filter := bson.M{"_id": id}
 	return store.filterOne(filter)
 }
 
 func (store *CreadentialsMongoDBStore) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetByUsername")
+	defer span.Finish()
+
 	filter := bson.M{"username": username}
 	return store.filterOne(filter)
 }
 
 func (store *CreadentialsMongoDBStore) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetByEmail")
+	defer span.Finish()
+
 	filter := bson.M{"email": email}
 	return store.filterOne(filter)
 }
 
 func (store *CreadentialsMongoDBStore) GetAll(ctx context.Context) ([]*domain.User, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetAll")
+	defer span.Finish()
+
 	filter := bson.D{{}}
 	return store.filter(filter)
 }
 
 func (store *CreadentialsMongoDBStore) Insert(ctx context.Context, product *domain.User) (error, string) {
-	result, err := store.users.InsertOne(context.TODO(), product)
+	span := tracer.StartSpanFromContext(ctx, "Insert")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	result, err := store.users.InsertOne(ctx2, product)
 	if err != nil {
 		return err, ""
 	}
@@ -54,7 +71,11 @@ func (store *CreadentialsMongoDBStore) Insert(ctx context.Context, product *doma
 }
 
 func (store *CreadentialsMongoDBStore) DeleteById(ctx context.Context, id primitive.ObjectID) (int64, error) {
-	result, err := store.users.DeleteOne(ctx, bson.M{"_id": id})
+	span := tracer.StartSpanFromContext(ctx, "DeleteById")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	result, err := store.users.DeleteOne(ctx2, bson.M{"_id": id})
 	if err != nil {
 		return 0, err
 	}
@@ -62,6 +83,10 @@ func (store *CreadentialsMongoDBStore) DeleteById(ctx context.Context, id primit
 }
 
 func (store *CreadentialsMongoDBStore) Update(ctx context.Context, user *domain.User) error {
+	span := tracer.StartSpanFromContext(ctx, "Update")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	userToUpdate := bson.M{"_id": user.Id}
 	updatedUser := bson.M{"$set": bson.M{
 		"username":                 user.Username,
@@ -81,7 +106,7 @@ func (store *CreadentialsMongoDBStore) Update(ctx context.Context, user *domain.
 		"TFASecret":                user.TFASecret,
 	}}
 
-	_, err := store.users.UpdateOne(context.TODO(), userToUpdate, updatedUser)
+	_, err := store.users.UpdateOne(ctx2, userToUpdate, updatedUser)
 
 	if err != nil {
 		return err
@@ -90,7 +115,11 @@ func (store *CreadentialsMongoDBStore) Update(ctx context.Context, user *domain.
 }
 
 func (store *CreadentialsMongoDBStore) DeleteAll(ctx context.Context) {
-	store.users.DeleteMany(context.TODO(), bson.D{{}})
+	span := tracer.StartSpanFromContext(ctx, "DeleteAll")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	store.users.DeleteMany(ctx2, bson.D{{}})
 }
 
 func (store *CreadentialsMongoDBStore) filter(filter interface{}) ([]*domain.User, error) {

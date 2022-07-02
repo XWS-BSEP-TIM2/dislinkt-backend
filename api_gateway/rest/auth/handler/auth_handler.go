@@ -10,9 +10,11 @@ import (
 	pbConnection "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
 	pbJobOffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	pbProfile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/validators"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"net/http"
 	"strconv"
@@ -22,13 +24,20 @@ import (
 
 type AuthHandler struct {
 	grpcClient *rest.ServiceClientGrpc
+	tracer     opentracing.Tracer
 }
 
-func InitAuthHandler() *AuthHandler {
+func InitAuthHandler(tracer opentracing.Tracer) *AuthHandler {
 	client := rest.InitServiceClient(config.NewConfig())
-	return &AuthHandler{grpcClient: client}
+	return &AuthHandler{
+		grpcClient: client,
+		tracer:     tracer,
+	}
 }
 func (authHandler *AuthHandler) Login(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("Login", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
 
 	loginDto := dto.LoginRequestDto{}
 
@@ -38,7 +47,7 @@ func (authHandler *AuthHandler) Login(ctx *gin.Context) {
 	}
 
 	v := validator.New()
-	validators.UsernameValidator(ctx, v)
+	validators.UsernameValidator(ctx2, v)
 	errV := v.Struct(loginDto)
 	if errV != nil {
 		ctx.JSON(http.StatusUnprocessableEntity, dto.Error{
@@ -47,7 +56,7 @@ func (authHandler *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	res, err := authHandler.grpcClient.AuthClient.Login(context.Background(), &pbAuth.LoginRequest{
+	res, err := authHandler.grpcClient.AuthClient.Login(ctx2, &pbAuth.LoginRequest{
 		Username: loginDto.Username,
 		Password: loginDto.Password,
 	})
@@ -61,12 +70,15 @@ func (authHandler *AuthHandler) Login(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) Verify(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("Verify", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
 
 	username := ctx.Param("username")
 	code := ctx.Param("code")
 	v := pbAuth.VerifyRequest{Username: username, Code: code}
 
-	res, err := authHandler.grpcClient.AuthClient.Verify(context.Background(), &v)
+	res, err := authHandler.grpcClient.AuthClient.Verify(ctx2, &v)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
 		return
@@ -76,11 +88,14 @@ func (authHandler *AuthHandler) Verify(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) ResendVerify(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("ResendVerify", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
 
 	username := ctx.Param("username")
 	v := pbAuth.ResendVerifyRequest{Username: username}
 
-	res, err := authHandler.grpcClient.AuthClient.ResendVerify(context.Background(), &v)
+	res, err := authHandler.grpcClient.AuthClient.ResendVerify(ctx2, &v)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
 		return
@@ -90,10 +105,13 @@ func (authHandler *AuthHandler) ResendVerify(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) GetRecovery(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetRecovery", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
 
 	username := ctx.Param("username")
 	r := pbAuth.RecoveryRequest{Username: username}
-	res, err := authHandler.grpcClient.AuthClient.Recovery(context.Background(), &r)
+	res, err := authHandler.grpcClient.AuthClient.Recovery(ctx2, &r)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
 		return
@@ -102,6 +120,9 @@ func (authHandler *AuthHandler) GetRecovery(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) Recover(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("Recover", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
 
 	rl := pbAuth.RecoveryRequestLogin{}
 
@@ -117,7 +138,7 @@ func (authHandler *AuthHandler) Recover(ctx *gin.Context) {
 		return
 	}
 
-	res, err := authHandler.grpcClient.AuthClient.Recover(context.Background(), &rl)
+	res, err := authHandler.grpcClient.AuthClient.Recover(ctx2, &rl)
 
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
@@ -128,6 +149,9 @@ func (authHandler *AuthHandler) Recover(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) Register(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("Register", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
 
 	registerDto := dto.RegisterDTO{}
 
@@ -137,11 +161,11 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 	}
 
 	v := validator.New()
-	validators.UsernameValidator(ctx, v)
-	validators.EmailValidator(ctx, v)
-	validators.PasswordValidator(ctx, v)
-	validators.NameValidator(ctx, v)
-	validators.NumberValidator(ctx, v)
+	validators.UsernameValidator(ctx2, v)
+	validators.EmailValidator(ctx2, v)
+	validators.PasswordValidator(ctx2, v)
+	validators.NameValidator(ctx2, v)
+	validators.NumberValidator(ctx2, v)
 	errV := v.Struct(registerDto)
 	if errV != nil {
 		if strings.Contains(errV.Error(), "Position") {
@@ -214,6 +238,10 @@ func (authHandler *AuthHandler) Register(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) SendMailForMagicLinkRegistration(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("SendMailForMagicLinkRegistration", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	authService := authHandler.grpcClient.AuthClient
 	b := pbAuth.EmailForPasswordlessLoginRequest{}
 
@@ -221,7 +249,7 @@ func (authHandler *AuthHandler) SendMailForMagicLinkRegistration(ctx *gin.Contex
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	response, _ := authService.SendEmailForPasswordlessLogin(ctx, &b)
+	response, _ := authService.SendEmailForPasswordlessLogin(ctx2, &b)
 	ctx.JSON(http.StatusOK, &response)
 }
 
@@ -272,13 +300,17 @@ func (authHandler *AuthHandler) registerUserInJobOffer(userID string) error {
 }
 
 func (authHandler *AuthHandler) MagicLinkLogin(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("MagicLinkLogin", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	authService := authHandler.grpcClient.AuthClient
 	passwordlessMessage := pbAuth.PasswordlessLoginRequest{}
 	if err := ctx.BindJSON(&passwordlessMessage); err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	login, err := authService.PasswordlessLogin(ctx, &passwordlessMessage)
+	login, err := authService.PasswordlessLogin(ctx2, &passwordlessMessage)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, &login)
 		return
@@ -287,9 +319,13 @@ func (authHandler *AuthHandler) MagicLinkLogin(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) GenerateApiToken(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GenerateApiToken", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	userId := ctx.Param("userId")
 	authService := authHandler.grpcClient.AuthClient
-	res, err := authService.GenerateApiToken(ctx, &pbAuth.ApiTokenRequest{UserId: userId})
+	res, err := authService.GenerateApiToken(ctx2, &pbAuth.ApiTokenRequest{UserId: userId})
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, &res)
 		return
@@ -303,13 +339,20 @@ func (authHandler *AuthHandler) GenerateApiToken(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) Test(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("Test", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+
 	ctx.JSON(http.StatusOK, "Everything is OK")
 }
 
 func (authHandler *AuthHandler) GenerateQrCode(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GenerateQrCode", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	userId := ctx.Param("id")
 	authService := authHandler.grpcClient.AuthClient
-	res, err := authService.GenerateQr2TF(ctx, &pbAuth.UserIdRequest{UserId: userId})
+	res, err := authService.GenerateQr2TF(ctx2, &pbAuth.UserIdRequest{UserId: userId})
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, &res)
 		return
@@ -323,13 +366,17 @@ func (authHandler *AuthHandler) GenerateQrCode(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) Verify2Factor(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("Verify2Factor", authHandler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	dto := dto.Verify2FactorDto{}
 	if err := ctx.BindJSON(&dto); err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	authService := authHandler.grpcClient.AuthClient
-	res, err := authService.Verify2FactorCode(ctx, &pbAuth.TFARequest{Code: strconv.Itoa(dto.Code), UserId: dto.UserId})
+	res, err := authService.Verify2FactorCode(ctx2, &pbAuth.TFARequest{Code: strconv.Itoa(dto.Code), UserId: dto.UserId})
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, &res)
 		return

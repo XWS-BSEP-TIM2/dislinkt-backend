@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,17 +25,27 @@ func NewApiTokenMongoDBStore(client *mongo.Client) ApiTokenMongoDBStore {
 }
 
 func (store *ApiTokenMongoDBStore) Get(ctx context.Context, id primitive.ObjectID) (*domain.ApiToken, error) {
+	span := tracer.StartSpanFromContext(ctx, "Get")
+	defer span.Finish()
+
 	filter := bson.M{"_id": id}
 	return store.filterOne(filter)
 }
 
 func (store *ApiTokenMongoDBStore) GetByTokenCode(ctx context.Context, tokenCode string) (*domain.ApiToken, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetByTokenCode")
+	defer span.Finish()
+
 	filter := bson.M{"token_code": tokenCode}
 	return store.filterOne(filter)
 }
 
 func (store *ApiTokenMongoDBStore) Insert(ctx context.Context, token *domain.ApiToken) (error, string) {
-	result, err := store.apiTokens.InsertOne(ctx, token)
+	span := tracer.StartSpanFromContext(ctx, "Insert")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	result, err := store.apiTokens.InsertOne(ctx2, token)
 	if err != nil {
 		return err, ""
 	}
@@ -43,7 +54,11 @@ func (store *ApiTokenMongoDBStore) Insert(ctx context.Context, token *domain.Api
 }
 
 func (store ApiTokenMongoDBStore) DeleteById(ctx context.Context, id primitive.ObjectID) (int64, error) {
-	result, err := store.apiTokens.DeleteOne(ctx, bson.M{"_id": id})
+	span := tracer.StartSpanFromContext(ctx, "DeleteById")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	result, err := store.apiTokens.DeleteOne(ctx2, bson.M{"_id": id})
 	if err != nil {
 		return 0, err
 	}
@@ -51,7 +66,11 @@ func (store ApiTokenMongoDBStore) DeleteById(ctx context.Context, id primitive.O
 }
 
 func (store ApiTokenMongoDBStore) DeleteAllUserTokens(ctx context.Context, id primitive.ObjectID) error {
-	_, err := store.apiTokens.DeleteMany(ctx, bson.M{"user_id": id})
+	span := tracer.StartSpanFromContext(ctx, "DeleteAllUserTokens")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	_, err := store.apiTokens.DeleteMany(ctx2, bson.M{"user_id": id})
 	if err != nil {
 		return err
 	}
@@ -59,7 +78,11 @@ func (store ApiTokenMongoDBStore) DeleteAllUserTokens(ctx context.Context, id pr
 }
 
 func (store ApiTokenMongoDBStore) DeleteAllTokens(ctx context.Context) error {
-	_, err := store.apiTokens.DeleteMany(ctx, bson.M{})
+	span := tracer.StartSpanFromContext(ctx, "DeleteAllTokens")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	_, err := store.apiTokens.DeleteMany(ctx2, bson.M{})
 	if err != nil {
 		return err
 	}

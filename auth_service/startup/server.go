@@ -7,6 +7,8 @@ import (
 	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging/nats"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
@@ -36,6 +38,9 @@ const (
 )
 
 func (server *Server) Start() {
+	trace, _ := tracer.Init("auth_service")
+	opentracing.SetGlobalTracer(trace)
+
 	mongoClient := server.initMongoClient()
 	credentialStore := server.initCredentialStore(mongoClient)
 	passwordlessTokenStore := server.initPasswordlessTokenStore(mongoClient)

@@ -21,6 +21,7 @@ services:
       dockerfile: ./auth_service/Dockerfile
     restart: on-failure
     environment:
+      <<: *jaeger-env
       AUTH_SERVICE_PORT: ${AUTH_SERVICE_PORT}
       MONGO_DB_HOST: ${AUTH_MONGO_DB_HOST_DOCKER}
       MONGO_DB_PORT: ${MONGO_DB_PORT}      

@@ -9,7 +9,6 @@ replace github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service => ../auth_servic
 replace github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service => ../profile_service
 
 require (
-	github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway v0.0.0-20220627220935-0cfa5948c274
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220617075150-48a21e06c92f
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -24,12 +23,16 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/nats-io/jwt/v2 v2.2.0 // indirect
 	github.com/nats-io/nats.go v1.14.0 // indirect
 	github.com/nats-io/nkeys v0.3.0 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
+	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
+	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
+	go.uber.org/atomic v1.4.0 // indirect
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
 	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect

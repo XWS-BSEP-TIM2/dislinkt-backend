@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/utils"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -19,10 +20,14 @@ func NewApiTokenService(store domain.ApiTokenStore) *ApiTokenService {
 }
 
 func (service *ApiTokenService) Create(ctx context.Context, userId primitive.ObjectID) (string, error) {
-	service.store.DeleteAllUserTokens(ctx, userId)
+	span := tracer.StartSpanFromContext(ctx, "Create")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	service.store.DeleteAllUserTokens(ctx2, userId)
 	tokenCode, _ := utils.GenerateRandomString(30)
 	token := domain.ApiToken{UserId: userId, ApiCode: tokenCode, CreationDate: time.Now()}
-	err, _ := service.store.Insert(ctx, &token)
+	err, _ := service.store.Insert(ctx2, &token)
 	if err != nil {
 		return "", err
 	}
@@ -30,13 +35,25 @@ func (service *ApiTokenService) Create(ctx context.Context, userId primitive.Obj
 }
 
 func (service *ApiTokenService) Get(ctx context.Context, id primitive.ObjectID) (*domain.ApiToken, error) {
-	return service.store.Get(ctx, id)
+	span := tracer.StartSpanFromContext(ctx, "Get")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	return service.store.Get(ctx2, id)
 }
 
 func (service *ApiTokenService) Delete(ctx context.Context, id primitive.ObjectID) {
-	service.store.DeleteById(ctx, id)
+	span := tracer.StartSpanFromContext(ctx, "Delete")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	service.store.DeleteById(ctx2, id)
 }
 
 func (service *ApiTokenService) GetByTokenCode(ctx context.Context, tokenCode string) (*domain.ApiToken, error) {
-	return service.store.GetByTokenCode(ctx, tokenCode)
+	span := tracer.StartSpanFromContext(ctx, "GetByTokenCode")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	return service.store.GetByTokenCode(ctx2, tokenCode)
 }

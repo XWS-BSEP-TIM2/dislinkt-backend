@@ -19,6 +19,7 @@ func NewPasswordlessTokenService(store domain.PasswordlessTokenStore, emailServi
 }
 
 func (service *PasswordlessTokenService) Create(ctx context.Context, token *domain.PasswordlessToken) (string, error) {
+
 	err, id := service.store.Insert(ctx, token)
 	if err != nil {
 		return "", err

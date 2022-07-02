@@ -37,7 +37,7 @@ func main() {
 	tracer, _ := tracer.Init("api_gateway")
 	opentracing.SetGlobalTracer(tracer)
 
-	auth.RegisterRoutes(r)
+	auth.RegisterRoutes(r, tracer)
 	profile.RegisterRoutes(r, tracer)
 	post.RegisterRoutes(r)
 	connection.RegisterRoutes(r)

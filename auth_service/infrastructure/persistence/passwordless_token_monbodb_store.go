@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service/domain"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,17 +25,27 @@ func NewPasswordlessTokenMongoDBStore(client *mongo.Client) PasswordlessTokenMon
 }
 
 func (store *PasswordlessTokenMongoDBStore) Get(ctx context.Context, id primitive.ObjectID) (*domain.PasswordlessToken, error) {
+	span := tracer.StartSpanFromContext(ctx, "Get")
+	defer span.Finish()
+
 	filter := bson.M{"_id": id}
 	return store.filterOne(filter)
 }
 
 func (store *PasswordlessTokenMongoDBStore) GetByTokenCode(ctx context.Context, tokenCode string) (*domain.PasswordlessToken, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetByTokenCode")
+	defer span.Finish()
+
 	filter := bson.M{"token_code": tokenCode}
 	return store.filterOne(filter)
 }
 
 func (store *PasswordlessTokenMongoDBStore) Insert(ctx context.Context, product *domain.PasswordlessToken) (error, string) {
-	result, err := store.passwordlessTokens.InsertOne(ctx, product)
+	span := tracer.StartSpanFromContext(ctx, "Insert")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	result, err := store.passwordlessTokens.InsertOne(ctx2, product)
 	if err != nil {
 		return err, ""
 	}
@@ -43,7 +54,11 @@ func (store *PasswordlessTokenMongoDBStore) Insert(ctx context.Context, product 
 }
 
 func (store PasswordlessTokenMongoDBStore) DeleteById(ctx context.Context, id primitive.ObjectID) (int64, error) {
-	result, err := store.passwordlessTokens.DeleteOne(ctx, bson.M{"_id": id})
+	span := tracer.StartSpanFromContext(ctx, "DeleteById")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	result, err := store.passwordlessTokens.DeleteOne(ctx2, bson.M{"_id": id})
 	if err != nil {
 		return 0, err
 	}

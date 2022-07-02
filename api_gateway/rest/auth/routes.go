@@ -6,10 +6,11 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/security"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	"github.com/gin-gonic/gin"
+	"github.com/opentracing/opentracing-go"
 )
 
-func RegisterRoutes(r *gin.Engine) {
-	authHandler := handler.InitAuthHandler()
+func RegisterRoutes(r *gin.Engine, tracer opentracing.Tracer) {
+	authHandler := handler.InitAuthHandler(tracer)
 	configuration := config.NewConfig()
 	a := security.NewAuthMiddleware(fmt.Sprintf("%s:%s", configuration.AuthHost, configuration.AuthPort))
 	routes := r.Group("")
