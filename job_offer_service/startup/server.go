@@ -1,8 +1,10 @@
 package startup
 
 import (
+	"crypto/tls"
 	"fmt"
 	joboffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
+	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/infrastructure/persistence"
@@ -26,7 +28,10 @@ func NewServer(config *config.Config) *Server {
 
 func (server *Server) Start() {
 	neo4jClient := server.initNeo4J()
-	jobOfferStore := server.initJobOfferStore(neo4jClient)
+
+	loggingService := server.initLoggingService()
+
+	jobOfferStore := server.initJobOfferStore(neo4jClient, loggingService)
 
 	jobOfferService := server.initJobOfferService(jobOfferStore)
 
@@ -47,8 +52,24 @@ func (server *Server) initNeo4J() *neo4j.Driver {
 	return client
 }
 
-func (server *Server) initJobOfferStore(driver *neo4j.Driver) persistence.JobOfferStore {
-	store := persistence.NewJobOfferDbStore(driver)
+func (server *Server) initLoggingService() pbLogg.LoggingServiceClient {
+	address := fmt.Sprintf("%s:%s", server.config.LoggingHost, server.config.LoggingPort)
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("Gateway failed to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
+	}
+	return pbLogg.NewLoggingServiceClient(conn)
+}
+func getConnection(address string) (*grpc.ClientConn, error) {
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
+}
+
+func (server *Server) initJobOfferStore(driver *neo4j.Driver, loggingService pbLogg.LoggingServiceClient) persistence.JobOfferStore {
+	store := persistence.NewJobOfferDbStore(driver, loggingService)
 	store.Init()
 	return store
 }

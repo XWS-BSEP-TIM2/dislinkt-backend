@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	joboffer_service "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
+	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/domain"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
+	"google.golang.org/grpc/peer"
 )
 
 type JobOfferDbStore struct {
 	driverJobOffer *neo4j.Driver
+	LoggingService pbLogg.LoggingServiceClient
 }
 
 func (store *JobOfferDbStore) Init() {
@@ -32,9 +35,10 @@ func (store *JobOfferDbStore) Init() {
 	}
 }
 
-func NewJobOfferDbStore(driver *neo4j.Driver) JobOfferStore {
+func NewJobOfferDbStore(driver *neo4j.Driver, loggingService pbLogg.LoggingServiceClient) JobOfferStore {
 	return &JobOfferDbStore{
 		driverJobOffer: driver,
+		LoggingService: loggingService,
 	}
 }
 
@@ -56,8 +60,10 @@ func (store *JobOfferDbStore) Delete(ctx context.Context, jobId string) (bool, e
 	})
 
 	if err != nil {
+		store.logg(ctx, "ERROR", "Delete", "", err.Error())
 		return false, err
 	} else {
+		store.logg(ctx, "SUCCESS", "Delete", "", "Successfully deleted jobOffer with id "+jobId)
 		return r.(bool), nil
 	}
 }
@@ -138,9 +144,11 @@ func (store *JobOfferDbStore) getMany(ctx context.Context, getManyParam, param s
 	})
 
 	if err != nil {
+		store.logg(ctx, "ERROR", getManyParam, "", err.Error())
 		return nil, err
 	} else {
 		if r != nil {
+			store.logg(ctx, "SUCCESS", getManyParam, "", "Successfully get jobOffers")
 			return r.([]*domain.JobOffer), nil
 		} else {
 			return nil, nil
@@ -172,6 +180,12 @@ func (store *JobOfferDbStore) Insert(ctx context.Context, jobOffer *domain.JobOf
 		return nil, nil
 	})
 
+	if err != nil {
+		store.logg(ctx, "ERROR", "Insert", "", err.Error())
+	} else {
+		store.logg(ctx, "SUCCESS", "Insert", "", "Successfully inserted new jobOffer id "+jobOffer.Id)
+	}
+
 	return err
 }
 
@@ -197,10 +211,15 @@ func (store *JobOfferDbStore) Update(ctx context.Context, jobOffer *domain.JobOf
 		return false, nil
 	})
 
+	if err != nil {
+		store.logg(ctx, "ERROR", "Update", "", err.Error())
+	}
+
 	if err != nil || result == nil {
 		return false, err
 	}
 
+	store.logg(ctx, "SUCCESS", "Update", "", "Successfully Update jobOffer id "+jobOffer.Id)
 	return result.(bool), nil
 }
 
@@ -223,6 +242,7 @@ func (store *JobOfferDbStore) CreateUser(ctx context.Context, userID string) (*j
 	if err != nil {
 		actionResult.Msg = err.Error()
 		actionResult.Status = 400
+		store.logg(ctx, "ERROR", "CreateUser", userID, err.Error())
 		return actionResult, err
 	}
 
@@ -230,6 +250,7 @@ func (store *JobOfferDbStore) CreateUser(ctx context.Context, userID string) (*j
 		actionResult = actRes.(*joboffer_service.ActionResult)
 	}
 
+	store.logg(ctx, "SUCCESS", "CreateUser", userID, "Successfully created new user")
 	return actionResult, nil
 }
 
@@ -257,6 +278,7 @@ func (store *JobOfferDbStore) UpdateUserSkills(ctx context.Context, userID strin
 	if err != nil {
 		actionResult.Msg = err.Error()
 		actionResult.Status = 400
+		store.logg(ctx, "ERROR", "UpdateUserSkills", userID, err.Error())
 		return actionResult, err
 	}
 
@@ -264,5 +286,24 @@ func (store *JobOfferDbStore) UpdateUserSkills(ctx context.Context, userID strin
 		actionResult = actRes.(*joboffer_service.ActionResult)
 	}
 
+	store.logg(ctx, "SUCCESS", "UpdateUserSkills", userID, "Successfully Update skills for user")
 	return actionResult, nil
+}
+
+func (store *JobOfferDbStore) logg(ctx context.Context, logType, serviceFunctionName, userID, description string) {
+	ipAddress := ""
+	p, ok := peer.FromContext(ctx)
+	if ok {
+		ipAddress = p.Addr.String()
+	}
+	serviceName := "JOB_OFFER_SERVICE"
+	if logType == "ERROR" {
+		store.LoggingService.LoggError(ctx, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "SUCCESS" {
+		store.LoggingService.LoggSuccess(ctx, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "WARNING" {
+		store.LoggingService.LoggWarning(ctx, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	} else if logType == "INFO" {
+		store.LoggingService.LoggInfo(ctx, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+	}
 }
