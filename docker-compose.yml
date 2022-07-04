@@ -322,6 +322,7 @@ services:
       dockerfile: ./connection_service/Dockerfile
     restart: on-failure
     environment:
+      <<: *jaeger-env
       CONNECTION_SERVICE_HOST: ${CONNECTION_SERVICE_HOST_DOCKER}
       CONNECTION_SERVICE_PORT: ${CONNECTION_SERVICE_PORT}
       NEO4J_URI: ${NEO4J_URI}

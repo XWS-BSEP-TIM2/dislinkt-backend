@@ -40,7 +40,7 @@ func main() {
 	auth.RegisterRoutes(r, tracer)
 	profile.RegisterRoutes(r, tracer)
 	post.RegisterRoutes(r, tracer)
-	connection.RegisterRoutes(r)
+	connection.RegisterRoutes(r, tracer)
 	job_offer.RegisterRoutes(r)
 	messages.RegisterRoutes(r)
 	notification.RegisterRoutes(r)

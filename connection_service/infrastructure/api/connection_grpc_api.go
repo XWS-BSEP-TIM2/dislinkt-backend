@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/connection_service/application"
 )
 
@@ -19,6 +20,8 @@ func NewConnectionHandler(service *application.ConnectionService) *ConnectionHan
 }
 
 func (handler *ConnectionHandler) GetFriends(ctx context.Context, request *pb.GetRequest) (*pb.Users, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetFriends")
+	defer span.Finish()
 
 	fmt.Println("[ConnectionHandler]:GetFriends")
 
@@ -36,6 +39,9 @@ func (handler *ConnectionHandler) GetFriends(ctx context.Context, request *pb.Ge
 }
 
 func (handler *ConnectionHandler) GetBlockeds(ctx context.Context, request *pb.GetRequest) (*pb.Users, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetBlockeds")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:GetBlockeds")
 
 	id := request.UserID
@@ -52,6 +58,9 @@ func (handler *ConnectionHandler) GetBlockeds(ctx context.Context, request *pb.G
 }
 
 func (handler *ConnectionHandler) GetFriendRequests(ctx context.Context, request *pb.GetRequest) (*pb.Users, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetFriendRequests")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:GetFriendRequests")
 
 	id := request.UserID
@@ -68,18 +77,27 @@ func (handler *ConnectionHandler) GetFriendRequests(ctx context.Context, request
 }
 
 func (handler *ConnectionHandler) Register(ctx context.Context, request *pb.RegisterRequest) (*pb.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "Register")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:Register")
 	userID := request.User.UserID
 	isPrivate := request.User.IsPrivate
 	return handler.service.Register(userID, isPrivate)
 }
 func (handler *ConnectionHandler) AddFriend(ctx context.Context, request *pb.AddFriendRequest) (*pb.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "AddFriend")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:AddFriend")
 	userIDa := request.AddFriendDTO.UserIDa
 	userIDb := request.AddFriendDTO.UserIDb
 	return handler.service.AddFriend(userIDa, userIDb)
 }
 func (handler *ConnectionHandler) AddBlockUser(ctx context.Context, request *pb.AddBlockUserRequest) (*pb.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "AddBlockUser")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:AddBlockUser")
 	userIDa := request.AddBlockUserDTO.UserIDa
 	userIDb := request.AddBlockUserDTO.UserIDb
@@ -87,6 +105,9 @@ func (handler *ConnectionHandler) AddBlockUser(ctx context.Context, request *pb.
 }
 
 func (handler *ConnectionHandler) RemoveFriend(ctx context.Context, request *pb.RemoveFriendRequest) (*pb.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "RemoveFriend")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:RemoveFriend")
 	userIDa := request.RemoveFriendDTO.UserIDa
 	userIDb := request.RemoveFriendDTO.UserIDb
@@ -94,6 +115,9 @@ func (handler *ConnectionHandler) RemoveFriend(ctx context.Context, request *pb.
 }
 
 func (handler *ConnectionHandler) UnblockUser(ctx context.Context, request *pb.UnblockUserRequest) (*pb.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "UnblockUser")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:UnblockUser")
 	userIDa := request.UnblockUserDTO.UserIDa
 	userIDb := request.UnblockUserDTO.UserIDb
@@ -101,6 +125,9 @@ func (handler *ConnectionHandler) UnblockUser(ctx context.Context, request *pb.U
 }
 
 func (handler *ConnectionHandler) GetRecommendation(ctx context.Context, request *pb.GetRequest) (*pb.Users, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetRecommendation")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:GetRecommendation")
 
 	id := request.UserID
@@ -116,12 +143,18 @@ func (handler *ConnectionHandler) GetRecommendation(ctx context.Context, request
 }
 
 func (handler *ConnectionHandler) SendFriendRequest(ctx context.Context, request *pb.SendFriendRequestRequest) (*pb.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "SendFriendRequest")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:SendFriendRequest")
 	userIDa := request.SendFriendRequestRequestDTO.UserIDa
 	userIDb := request.SendFriendRequestRequestDTO.UserIDb
 	return handler.service.SendFriendRequest(userIDa, userIDb)
 }
 func (handler *ConnectionHandler) UnsendFriendRequest(ctx context.Context, request *pb.UnsendFriendRequestRequest) (*pb.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "UnsendFriendRequest")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:UnsendFriendRequest")
 	userIDa := request.UnsendFriendRequestRequestDTO.UserIDa
 	userIDb := request.UnsendFriendRequestRequestDTO.UserIDb
@@ -129,6 +162,9 @@ func (handler *ConnectionHandler) UnsendFriendRequest(ctx context.Context, reque
 }
 
 func (handler *ConnectionHandler) GetConnectionDetail(ctx context.Context, request *pb.GetConnectionDetailRequest) (*pb.ConnectionDetail, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetConnectionDetail")
+	defer span.Finish()
+
 	fmt.Println("[ConnectionHandler]:GetConnectionDetail")
 	userIDa := request.UserIDa
 	userIDb := request.UserIDb
@@ -136,11 +172,17 @@ func (handler *ConnectionHandler) GetConnectionDetail(ctx context.Context, reque
 }
 
 func (handler *ConnectionHandler) ChangePrivacy(ctx context.Context, request *pb.ChangePrivacyRequest) (*pb.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "ChangePrivacy")
+	defer span.Finish()
+
 	userID := request.ChangePrivacyBody.UserID
 	isPrivate := request.ChangePrivacyBody.IsPrivate
 	return handler.service.ChangePrivacy(userID, isPrivate)
 }
 
 func (handler *ConnectionHandler) GetMyContacts(ctx context.Context, request *pb.GetMyContactsRequest) (*pb.ContactsResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetMyContacts")
+	defer span.Finish()
+
 	return handler.service.GetMyContacts(ctx, request)
 }

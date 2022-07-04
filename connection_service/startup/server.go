@@ -5,6 +5,8 @@ import (
 	"fmt"
 	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging/nats"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
+	"github.com/opentracing/opentracing-go"
 	"log"
 	"net"
 
@@ -36,6 +38,8 @@ const (
 )
 
 func (server *Server) Start() {
+	trace, _ := tracer.Init("connection_service")
+	opentracing.SetGlobalTracer(trace)
 
 	neo4jClient := server.initNeo4J()
 
