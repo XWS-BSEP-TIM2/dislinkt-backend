@@ -5,20 +5,26 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/security"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	pbMessages "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/gin-gonic/gin"
+	"github.com/opentracing/opentracing-go"
 	"net/http"
 )
 
 type MessageHandler struct {
 	grpcClient *rest.ServiceClientGrpc
+	tracer     opentracing.Tracer
 }
 
-func InitMessageHandler() *MessageHandler {
+func InitMessageHandler(tracer opentracing.Tracer) *MessageHandler {
 	client := rest.InitServiceClient(config.NewConfig())
-	return &MessageHandler{grpcClient: client}
+	return &MessageHandler{grpcClient: client, tracer: tracer}
 }
 
 func (handler *MessageHandler) GetMyContacts(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetMyContacts", handler.tracer, ctx.Request)
+	defer span.Finish()
+
 	messageService := handler.grpcClient.MessageClient
 	dataFromToken, _ := security.ExtractTokenDataFromContext(ctx)
 	myContacts, err := messageService.GetMyContacts(ctx, &pbMessages.GetMyContactsRequest{UserID: dataFromToken.Id})
@@ -30,6 +36,9 @@ func (handler *MessageHandler) GetMyContacts(ctx *gin.Context) {
 }
 
 func (handler *MessageHandler) GetChat(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetChat", handler.tracer, ctx.Request)
+	defer span.Finish()
+
 	messageService := handler.grpcClient.MessageClient
 	dataFromToken, _ := security.ExtractTokenDataFromContext(ctx)
 	msgID := ctx.Param("chatId")
@@ -43,6 +52,9 @@ func (handler *MessageHandler) GetChat(ctx *gin.Context) {
 }
 
 func (handler *MessageHandler) SendMessage(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("SendMessage", handler.tracer, ctx.Request)
+	defer span.Finish()
+
 	messageService := handler.grpcClient.MessageClient
 	sendMessageDto := pbMessages.SendMessageRequest{}
 	if err := ctx.BindJSON(&sendMessageDto); err != nil {
@@ -58,6 +70,9 @@ func (handler *MessageHandler) SendMessage(ctx *gin.Context) {
 }
 
 func (handler *MessageHandler) SetSeen(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("SetSeen", handler.tracer, ctx.Request)
+	defer span.Finish()
+
 	messageService := handler.grpcClient.MessageClient
 	setSeenDto := pbMessages.SetSeenRequest{}
 	if err := ctx.BindJSON(&setSeenDto); err != nil {

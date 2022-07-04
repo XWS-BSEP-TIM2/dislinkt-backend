@@ -6,10 +6,12 @@ import (
 	"fmt"
 	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	messageS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/message_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/startup/config"
+	"github.com/opentracing/opentracing-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -28,6 +30,8 @@ func NewServer(config *config.Config) *Server {
 }
 
 func (server *Server) Start() {
+	trace, _ := tracer.Init("message_service")
+	opentracing.SetGlobalTracer(trace)
 
 	mongoClient := server.initMongoClient()
 

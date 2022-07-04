@@ -169,6 +169,7 @@ services:
       dockerfile: ./message_service/Dockerfile
     restart: on-failure
     environment:
+      <<: *jaeger-env
       MESSAGE_SERVICE_PORT: ${MESSAGE_SERVICE_PORT}
       MONGO_DB_HOST: ${MESSAGE_DB_HOST_DOCKER}
       MONGO_DB_PORT: ${MONGO_DB_PORT}

@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/message_service/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -43,12 +44,18 @@ func (store *MessageMongoDbStore) filterOne(filter interface{}) (chat *domain.Ch
 }
 
 func (store *MessageMongoDbStore) GetChat(ctx context.Context, msgID string) (*domain.Chat, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetChat")
+	defer span.Finish()
+
 	id := getIdFromHex(msgID)
 	filter := bson.M{"_id": id}
 	return store.filterOne(filter)
 }
 
 func (store *MessageMongoDbStore) Insert(ctx context.Context, chat *domain.Chat) (string, error) {
+	span := tracer.StartSpanFromContext(ctx, "Insert")
+	defer span.Finish()
+
 	result, err := store.messages.InsertOne(context.TODO(), chat)
 	if err != nil {
 		return "", err
@@ -58,10 +65,17 @@ func (store *MessageMongoDbStore) Insert(ctx context.Context, chat *domain.Chat)
 }
 
 func (store *MessageMongoDbStore) DeleteAll(ctx context.Context) {
+	span := tracer.StartSpanFromContext(ctx, "DeleteAll")
+	defer span.Finish()
+
 	store.messages.DeleteMany(context.TODO(), bson.D{{}})
 }
 
 func (store *MessageMongoDbStore) UpdateWithMessages(ctx context.Context, chat *domain.Chat) error {
+	span := tracer.StartSpanFromContext(ctx, "UpdateWithMessages")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	chatToUpdate := bson.M{"_id": chat.Id}
 	updatedChat := bson.M{"$set": bson.M{
 		"userASeenDate": chat.UserASeenDate,
@@ -69,7 +83,7 @@ func (store *MessageMongoDbStore) UpdateWithMessages(ctx context.Context, chat *
 		"messages":      chat.Messages,
 	}}
 
-	_, err := store.messages.UpdateOne(ctx, chatToUpdate, updatedChat)
+	_, err := store.messages.UpdateOne(ctx2, chatToUpdate, updatedChat)
 
 	if err != nil {
 		return err
@@ -78,13 +92,17 @@ func (store *MessageMongoDbStore) UpdateWithMessages(ctx context.Context, chat *
 }
 
 func (store *MessageMongoDbStore) Update(ctx context.Context, chat *domain.Chat) error {
+	span := tracer.StartSpanFromContext(ctx, "Update")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	chatToUpdate := bson.M{"_id": chat.Id}
 	updatedChat := bson.M{"$set": bson.M{
 		"userASeenDate": chat.UserASeenDate,
 		"userBSeenDate": chat.UserBSeenDate,
 	}}
 
-	_, err := store.messages.UpdateOne(ctx, chatToUpdate, updatedChat)
+	_, err := store.messages.UpdateOne(ctx2, chatToUpdate, updatedChat)
 
 	if err != nil {
 		return err
