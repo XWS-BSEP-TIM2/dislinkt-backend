@@ -207,6 +207,7 @@ services:
       dockerfile: ./notification_service/Dockerfile
     restart: on-failure
     environment:
+      <<: *jaeger-env
       NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
       MONGO_DB_HOST: ${NOTIFICATION_DB_HOST_DOCKER}
       MONGO_DB_PORT: ${MONGO_DB_PORT}
@@ -242,6 +243,7 @@ services:
       dockerfile: ./logging_service/Dockerfile
     restart: on-failure
     environment:
+      <<: *jaeger-env
       LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
       LOGGING_FILE_PATH: ${LOGGING_FILE_PATH}

@@ -7,6 +7,7 @@ import (
 	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
 	profileService "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/application/adapters"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/infrastructure/persistence"
@@ -34,9 +35,13 @@ func NewNotificationService(store persistence.NotificationStore, c *config.Confi
 }
 
 func (service *NotificationService) GetAllNotifications(ctx context.Context, request *pb.GetAllNotificationsRequest) (*pb.GetAllNotificationsResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetAllNotifications")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	userId := request.UserID
 	var userNotifications []*pb.Notification
-	allNotifications, err := service.store.GetAll(ctx)
+	allNotifications, err := service.store.GetAll(ctx2)
 
 	if err == nil {
 		for _, notification := range allNotifications {
@@ -54,22 +59,26 @@ func (service *NotificationService) GetAllNotifications(ctx context.Context, req
 		}
 	}
 
-	service.logg(ctx, "SUCCESS", "GetUserNotifications", request.UserID, "Getting all user's notifications.")
+	service.logg(ctx2, "SUCCESS", "GetUserNotifications", request.UserID, "Getting all user's notifications.")
 	return &pb.GetAllNotificationsResponse{
 		Notifications: userNotifications,
 	}, err
 }
 
 func (service *NotificationService) MarkAllAsSeen(ctx context.Context, request *pb.MarkAllAsSeenRequest) (*pb.MarkAllAsSeenResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "MarkAllAsSeen")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	userId := request.UserID
-	allNotifications, err := service.store.GetAll(ctx)
+	allNotifications, err := service.store.GetAll(ctx2)
 
 	if err == nil {
 		for _, notification := range allNotifications {
 			if notification.OwnerId.Hex() == userId {
 				if !notification.Seen {
-					service.logg(ctx, "SUCCESS", "MarkNotificationsAsSeen", request.UserID, "Marking all unread notifications as seen.")
-					service.store.MarkAsSeen(ctx, notification.Id)
+					service.logg(ctx2, "SUCCESS", "MarkNotificationsAsSeen", request.UserID, "Marking all unread notifications as seen.")
+					service.store.MarkAsSeen(ctx2, notification.Id)
 				}
 			}
 		}
@@ -79,6 +88,10 @@ func (service *NotificationService) MarkAllAsSeen(ctx context.Context, request *
 }
 
 func (service *NotificationService) InsertNotification(ctx context.Context, request *pb.InsertNotificationRequest) (*pb.InsertNotificationRequestResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "InsertNotification")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	ownerId, err := primitive.ObjectIDFromHex(request.Notification.OwnerId)
 
 	notification := &domain.Notification{
@@ -91,10 +104,10 @@ func (service *NotificationService) InsertNotification(ctx context.Context, requ
 	}
 
 	if service.UserAcceptsNotification(notification) {
-		service.logg(ctx, "SUCCESS", "SendNotification", request.Notification.OwnerId, "Sending notification to user.")
-		service.store.Insert(ctx, notification)
+		service.logg(ctx2, "SUCCESS", "SendNotification", request.Notification.OwnerId, "Sending notification to user.")
+		service.store.Insert(ctx2, notification)
 	} else {
-		service.logg(ctx, "WARNING", "SendNotification", request.Notification.OwnerId, "Notification declined by user's settings.")
+		service.logg(ctx2, "WARNING", "SendNotification", request.Notification.OwnerId, "Notification declined by user's settings.")
 	}
 
 	return &pb.InsertNotificationRequestResponse{
@@ -103,11 +116,15 @@ func (service *NotificationService) InsertNotification(ctx context.Context, requ
 }
 
 func (service *NotificationService) GetUserSettings(ctx context.Context, request *pb.GetUserSettingsRequest) (*pb.GetUserSettingsResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetUserSettings")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	userId := request.UserID
 	id, err := primitive.ObjectIDFromHex(userId)
 	if err == nil {
 		settings := service.store.GetOrInitUserSetting(ctx, id)
-		service.logg(ctx, "SUCCESS", "GetUserSettings", request.UserID, "Fetching informations about user's notification settings.")
+		service.logg(ctx2, "SUCCESS", "GetUserSettings", request.UserID, "Fetching informations about user's notification settings.")
 		return &pb.GetUserSettingsResponse{
 			UserID:                  settings.OwnerId.Hex(),
 			PostNotifications:       settings.PostNotifications,
@@ -115,12 +132,16 @@ func (service *NotificationService) GetUserSettings(ctx context.Context, request
 			MessageNotifications:    settings.MessageNotifications,
 		}, nil
 	} else {
-		service.logg(ctx, "ERROR", "GetUserSettings", request.UserID, "No such user.")
+		service.logg(ctx2, "ERROR", "GetUserSettings", request.UserID, "No such user.")
 		return &pb.GetUserSettingsResponse{}, err
 	}
 }
 
 func (service *NotificationService) UpdateUserSettings(ctx context.Context, request *pb.UpdateUserSettingsRequest) (*pb.GetUserSettingsResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "UpdateUserSettings")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	userId := request.UserID
 	id, err := primitive.ObjectIDFromHex(userId)
 	if err == nil {
@@ -161,7 +182,7 @@ func (service *NotificationService) UpdateUserSettings(ctx context.Context, requ
 			settings.MessageNotifications = false
 		}
 
-		service.store.ModifyOrInsertSetting(ctx, &settings)
+		service.store.ModifyOrInsertSetting(ctx2, &settings)
 		return &pb.GetUserSettingsResponse{
 			UserID: settings.OwnerId.Hex(),
 		}, nil
@@ -184,18 +205,22 @@ func (service *NotificationService) UserAcceptsNotification(notification *domain
 }
 
 func (service *NotificationService) logg(ctx context.Context, logType, serviceFunctionName, userID, description string) {
+	span := tracer.StartSpanFromContext(ctx, "logg")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	ipAddress := ""
 	p, ok := peer.FromContext(ctx)
 	if ok {
 		ipAddress = p.Addr.String()
 	}
 	if logType == "ERROR" {
-		service.LoggingService.LoggError(ctx, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+		service.LoggingService.LoggError(ctx2, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	} else if logType == "SUCCESS" {
-		service.LoggingService.LoggSuccess(ctx, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+		service.LoggingService.LoggSuccess(ctx2, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	} else if logType == "WARNING" {
-		service.LoggingService.LoggWarning(ctx, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+		service.LoggingService.LoggWarning(ctx2, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	} else if logType == "INFO" {
-		service.LoggingService.LoggInfo(ctx, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+		service.LoggingService.LoggInfo(ctx2, &loggingS.LogRequest{ServiceName: "NOTIFICATION_SERVICE", ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	}
 }

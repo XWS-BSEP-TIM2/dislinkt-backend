@@ -43,7 +43,7 @@ func main() {
 	connection.RegisterRoutes(r, tracer)
 	job_offer.RegisterRoutes(r, tracer)
 	messages.RegisterRoutes(r, tracer)
-	notification.RegisterRoutes(r)
+	notification.RegisterRoutes(r, tracer)
 
 	//r.Run(":" + c.Port)
 

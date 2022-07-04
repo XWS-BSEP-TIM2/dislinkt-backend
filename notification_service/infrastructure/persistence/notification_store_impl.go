@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/notification_service/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,6 +21,9 @@ type NotificationMongoDbStore struct {
 }
 
 func (store *NotificationMongoDbStore) GetOrInitUserSetting(ctx context.Context, userId primitive.ObjectID) *domain.UserSettings {
+	span := tracer.StartSpanFromContext(ctx, "GetOrInitUserSetting")
+	defer span.Finish()
+
 	settingsFilter := bson.M{"ownerId": userId}
 	settings, _ := store.filterOneSettings(settingsFilter)
 	if settings == nil {
@@ -41,10 +45,16 @@ func (store *NotificationMongoDbStore) GetOrInitUserSetting(ctx context.Context,
 }
 
 func (store *NotificationMongoDbStore) DeleteAllSettings(ctx context.Context) {
+	span := tracer.StartSpanFromContext(ctx, "DeleteAllSettings")
+	defer span.Finish()
+
 	store.userSettings.DeleteMany(context.TODO(), bson.D{{}})
 }
 
 func (store *NotificationMongoDbStore) ModifyOrInsertSetting(ctx context.Context, setting *domain.UserSettings) {
+	span := tracer.StartSpanFromContext(ctx, "ModifyOrInsertSetting")
+	defer span.Finish()
+
 	settingOld := store.GetOrInitUserSetting(ctx, setting.OwnerId)
 	settingToUpdate := bson.M{"_id": settingOld.Id}
 	updatedSetting := bson.M{"$set": bson.M{
@@ -56,6 +66,9 @@ func (store *NotificationMongoDbStore) ModifyOrInsertSetting(ctx context.Context
 }
 
 func (store *NotificationMongoDbStore) InsertSetting(ctx context.Context, setting *domain.UserSettings) error {
+	span := tracer.StartSpanFromContext(ctx, "InsertSetting")
+	defer span.Finish()
+
 	_, err := store.userSettings.InsertOne(context.TODO(), setting)
 	if err != nil {
 		return err
@@ -64,6 +77,9 @@ func (store *NotificationMongoDbStore) InsertSetting(ctx context.Context, settin
 }
 
 func (store *NotificationMongoDbStore) MarkAsSeen(ctx context.Context, notificationId primitive.ObjectID) {
+	span := tracer.StartSpanFromContext(ctx, "MarkAsSeen")
+	defer span.Finish()
+
 	notificationToUpdate := bson.M{"_id": notificationId}
 	updatedNotification := bson.M{"$set": bson.M{
 		"seen": true,
@@ -72,6 +88,9 @@ func (store *NotificationMongoDbStore) MarkAsSeen(ctx context.Context, notificat
 }
 
 func (store *NotificationMongoDbStore) DeleteAllNotifications(ctx context.Context) {
+	span := tracer.StartSpanFromContext(ctx, "DeleteAllNotifications")
+	defer span.Finish()
+
 	store.notifications.DeleteMany(context.TODO(), bson.D{{}})
 }
 
@@ -111,11 +130,17 @@ func decode(cursor *mongo.Cursor) (notifications []*domain.Notification, err err
 }
 
 func (store *NotificationMongoDbStore) GetAll(ctx context.Context) ([]*domain.Notification, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetAll")
+	defer span.Finish()
+
 	filter := bson.D{{}}
 	return store.filter(filter)
 }
 
 func (store *NotificationMongoDbStore) Insert(ctx context.Context, notification *domain.Notification) error {
+	span := tracer.StartSpanFromContext(ctx, "Insert")
+	defer span.Finish()
+
 	_, err := store.notifications.InsertOne(context.TODO(), notification)
 	if err != nil {
 		return err
