@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/domain"
 	"go.mongodb.org/mongo-driver/bson"
@@ -66,8 +67,10 @@ func (store EventsMongoDbStore) Insert(ctx context.Context, event *domain.Event)
 
 	_, err := store.events.InsertOne(context.TODO(), event)
 	if err != nil {
+		panic("Error while saving event!")
 		return err
 	}
+	fmt.Println("Saving event to database!")
 	return nil
 }
 

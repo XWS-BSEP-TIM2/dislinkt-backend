@@ -68,7 +68,7 @@ func (store *JobOfferDbStore) Delete(ctx context.Context, jobId string) (bool, e
 		return false, err
 	} else {
 		store.logg(ctx, "SUCCESS", "Delete", "", "Successfully deleted jobOffer with id "+jobId)
-		store.createEvent(ctx, "Job Offer Delete", "Job offer has been deleted", "-")
+		store.createEvent(context.TODO(), "Job Offer Delete", "Job offer has been deleted", jobId)
 
 		return r.(bool), nil
 	}
