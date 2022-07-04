@@ -5,6 +5,8 @@ import (
 	"fmt"
 	joboffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging/nats"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/infrastructure/api"
@@ -28,6 +30,10 @@ func NewServer(config *config.Config) *Server {
 	}
 }
 
+const (
+	QueueGroup = "joboffer_service"
+)
+
 func (server *Server) Start() {
 	trace, _ := tracer.Init("job_offer_service")
 	opentracing.SetGlobalTracer(trace)
@@ -41,6 +47,10 @@ func (server *Server) Start() {
 	jobOfferService := server.initJobOfferService(jobOfferStore)
 
 	jobOfferHandler := server.initJobOfferHandler(jobOfferService)
+
+	commandSubscriber := server.initSubscriber(server.config.RegisterUserCommandSubject, QueueGroup)
+	replyPublisher := server.initPublisher(server.config.RegisterUserReplySubject)
+	server.initRegisterUserHandler(jobOfferService, replyPublisher, commandSubscriber)
 
 	fmt.Println("Job offer service started.")
 	server.startGrpcServer(jobOfferHandler)
@@ -85,6 +95,33 @@ func (server *Server) initJobOfferService(store persistence.JobOfferStore) *appl
 
 func (server *Server) initJobOfferHandler(service *application.JobOfferService) *api.JobOfferHandler {
 	return api.NewJobOfferHandler(service)
+}
+
+func (server *Server) initRegisterUserHandler(connectionService *application.JobOfferService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := api.NewRegisterUserCommandHandler(connectionService, publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (server *Server) initPublisher(subject string) saga.Publisher {
+	publisher, err := nats.NewNATSPublisher(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return publisher
+}
+
+func (server *Server) initSubscriber(subject, queueGroup string) saga.Subscriber {
+	subscriber, err := nats.NewNATSSubscriber(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject, queueGroup)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return subscriber
 }
 
 func (server *Server) startGrpcServer(profileHandler *api.JobOfferHandler) {

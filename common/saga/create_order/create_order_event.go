@@ -23,6 +23,8 @@ const (
 	RollbackCreateUserProfile
 	CreateNodeInConnectionBase
 	RollbackCreateNodeInConnectionBase
+	CreateNodeInJobOfferBase
+	RollbackCreateNodeInJobOfferBase
 	UserRegistered
 	UnknownCommand
 )
@@ -40,7 +42,11 @@ const (
 	UserProfileNotCreated
 	NodeInConnectionBaseCreated
 	NodeInConnectionBaseNotCreated
+	NodeInJobOfferBaseCreated
+	NodeInJobOfferBaseNotCreated
 	DoneRollbackOfProfile
+	DoneRollBackInConnection
+	DoneRollBackInJobOffer
 	UserNotRegistered
 	UnknownReply
 )

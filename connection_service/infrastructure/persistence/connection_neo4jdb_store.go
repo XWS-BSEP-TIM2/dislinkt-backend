@@ -173,6 +173,46 @@ func (store *ConnectionDBStore) Register(userID string, isPrivate bool) (*pb.Act
 		return result.(*pb.ActionResult), err
 	}
 }
+
+func (store *ConnectionDBStore) DeleteUser(userID string) (*pb.ActionResult, error) {
+
+	session := (*store.connectionDB).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	result, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+
+		actionResult := &pb.ActionResult{}
+
+		if !checkIfUserExist(userID, transaction) {
+			actionResult.Status = 404
+			actionResult.Msg = "error user with ID:" + userID + " does not exist"
+			return actionResult, nil
+		}
+
+		_, err := transaction.Run(
+			"MATCH (u:USER) WHERE u.userID=$userID DETACH DELETE u ",
+			map[string]interface{}{"userID": userID})
+
+		if err != nil {
+			actionResult.Msg = "error delete user with ID:" + userID
+			actionResult.Status = 501
+			return actionResult, err
+		}
+
+		actionResult.Msg = "successfully deleted user with ID:" + userID
+		actionResult.Status = 200
+
+		return actionResult, err
+	})
+
+	if result == nil {
+		return &pb.ActionResult{Msg: "error", Status: 500}, err
+	} else {
+		store.logg(context.TODO(), "SUCCESS", "DeleteUser", userID, "successfully deleted  user")
+		return result.(*pb.ActionResult), err
+	}
+}
+
 func (store *ConnectionDBStore) AddFriend(userIDa, userIDb string) (*pb.ActionResult, error) {
 	/*
 				Dodavanje novog prijatelja je moguce ako:

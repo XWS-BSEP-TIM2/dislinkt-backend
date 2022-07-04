@@ -33,13 +33,28 @@ func (handler *RegisterUserCommandHandler) handle(command *events.RegisterUserCo
 	switch command.Type {
 
 	case events.CreateNodeInConnectionBase:
-		err, _ := handler.connectionService.Register(command.Order.Id, command.Order.IsPrivate)
-		if err.Status != 201 {
-			fmt.Println("Connection service:Ne mogu da kreiram node")
+		actionResult, err := handler.connectionService.Register(command.Order.Id, command.Order.IsPrivate)
+		if err != nil {
+			fmt.Println("Kreiranje usera nije uspelo" + err.Error())
 			reply.Type = events.NodeInConnectionBaseNotCreated
-		} else {
+		} else if actionResult != nil && actionResult.Status == 201 {
 			reply.Type = events.NodeInConnectionBaseCreated
+		} else {
+			reply.Type = events.NodeInConnectionBaseNotCreated
 		}
+		break
+	case events.RollbackCreateNodeInConnectionBase:
+		actionResult, err := handler.connectionService.DeleteUser(command.Order.Id)
+		if err != nil {
+			fmt.Println("Rollback brisanje usera nije uspelo " + err.Error())
+			reply.Type = events.UnknownReply
+		} else if actionResult != nil && actionResult.Status == 200 {
+			fmt.Println("Rollback brisanje usera uspesno")
+			reply.Type = events.DoneRollBackInConnection
+		} else {
+			reply.Type = events.UnknownReply
+		}
+		break
 	default:
 		reply.Type = events.UnknownReply
 	}
