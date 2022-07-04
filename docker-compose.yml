@@ -135,6 +135,7 @@ services:
       dockerfile: ./job_offer_service/Dockerfile
     restart: on-failure
     environment:
+      <<: *jaeger-env
       JOB_OFFER_SERVICE_PORT: ${JOB_OFFER_SERVICE_PORT}
       JOB_OFFER_NEO4J_URI: ${JOB_OFFER_NEO4J_URI}
       JOB_OFFER_NEO4J_HOST: ${JOB_OFFER_NEO4J_HOST_DOCKER}

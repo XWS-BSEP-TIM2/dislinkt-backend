@@ -5,11 +5,13 @@ import (
 	"fmt"
 	joboffer "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/startup/config"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"log"
@@ -27,6 +29,9 @@ func NewServer(config *config.Config) *Server {
 }
 
 func (server *Server) Start() {
+	trace, _ := tracer.Init("job_offer_service")
+	opentracing.SetGlobalTracer(trace)
+
 	neo4jClient := server.initNeo4J()
 
 	loggingService := server.initLoggingService()

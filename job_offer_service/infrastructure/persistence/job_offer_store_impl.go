@@ -5,6 +5,7 @@ import (
 	"fmt"
 	joboffer_service "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/job_offer_service"
 	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/job_offer_service/domain"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"google.golang.org/grpc/peer"
@@ -43,6 +44,9 @@ func NewJobOfferDbStore(driver *neo4j.Driver, loggingService pbLogg.LoggingServi
 }
 
 func (store *JobOfferDbStore) Delete(ctx context.Context, jobId string) (bool, error) {
+	span := tracer.StartSpanFromContext(ctx, "Delete")
+	defer span.Finish()
+
 	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 
@@ -69,6 +73,9 @@ func (store *JobOfferDbStore) Delete(ctx context.Context, jobId string) (bool, e
 }
 
 func (store *JobOfferDbStore) Get(ctx context.Context, jobId string) (*domain.JobOffer, error) {
+	span := tracer.StartSpanFromContext(ctx, "Get")
+	defer span.Finish()
+
 	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close()
 
@@ -93,22 +100,36 @@ func (store *JobOfferDbStore) Get(ctx context.Context, jobId string) (*domain.Jo
 }
 
 func (store *JobOfferDbStore) GetUserJobOffers(ctx context.Context, userID string) ([]*domain.JobOffer, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetUserJobOffers")
+	defer span.Finish()
+
 	return store.getMany(ctx, "GetUserJobOffers", userID)
 }
 
 func (store *JobOfferDbStore) GetAll(ctx context.Context) ([]*domain.JobOffer, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetAll")
+	defer span.Finish()
+
 	return store.getMany(ctx, "GetAll", "")
 }
 
 func (store *JobOfferDbStore) Search(ctx context.Context, search string) ([]*domain.JobOffer, error) {
+	span := tracer.StartSpanFromContext(ctx, "Search")
+	defer span.Finish()
+
 	return store.getMany(ctx, "Search", search)
 }
 
 func (store *JobOfferDbStore) GetRecommendationJobOffer(ctx context.Context, userID string) ([]*domain.JobOffer, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetRecommendationJobOffer")
+	defer span.Finish()
+
 	return store.getMany(ctx, "recommendation", userID)
 }
 
 func (store *JobOfferDbStore) getMany(ctx context.Context, getManyParam, param string) ([]*domain.JobOffer, error) {
+	span := tracer.StartSpanFromContext(ctx, "getMany")
+	defer span.Finish()
 
 	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close()
@@ -157,6 +178,8 @@ func (store *JobOfferDbStore) getMany(ctx context.Context, getManyParam, param s
 }
 
 func (store *JobOfferDbStore) Insert(ctx context.Context, jobOffer *domain.JobOffer) error {
+	span := tracer.StartSpanFromContext(ctx, "Insert")
+	defer span.Finish()
 
 	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
@@ -190,6 +213,9 @@ func (store *JobOfferDbStore) Insert(ctx context.Context, jobOffer *domain.JobOf
 }
 
 func (store *JobOfferDbStore) Update(ctx context.Context, jobOffer *domain.JobOffer) (bool, error) {
+	span := tracer.StartSpanFromContext(ctx, "Update")
+	defer span.Finish()
+
 	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 
@@ -224,6 +250,9 @@ func (store *JobOfferDbStore) Update(ctx context.Context, jobOffer *domain.JobOf
 }
 
 func (store *JobOfferDbStore) CreateUser(ctx context.Context, userID string) (*joboffer_service.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "CreateUser")
+	defer span.Finish()
+
 	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 
@@ -255,6 +284,9 @@ func (store *JobOfferDbStore) CreateUser(ctx context.Context, userID string) (*j
 }
 
 func (store *JobOfferDbStore) UpdateUserSkills(ctx context.Context, userID string, skills []string) (*joboffer_service.ActionResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "UpdateUserSkills")
+	defer span.Finish()
+
 	session := (*store.driverJobOffer).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 
@@ -291,6 +323,10 @@ func (store *JobOfferDbStore) UpdateUserSkills(ctx context.Context, userID strin
 }
 
 func (store *JobOfferDbStore) logg(ctx context.Context, logType, serviceFunctionName, userID, description string) {
+	span := tracer.StartSpanFromContext(ctx, "logg")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	ipAddress := ""
 	p, ok := peer.FromContext(ctx)
 	if ok {
@@ -298,12 +334,12 @@ func (store *JobOfferDbStore) logg(ctx context.Context, logType, serviceFunction
 	}
 	serviceName := "JOB_OFFER_SERVICE"
 	if logType == "ERROR" {
-		store.LoggingService.LoggError(ctx, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+		store.LoggingService.LoggError(ctx2, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	} else if logType == "SUCCESS" {
-		store.LoggingService.LoggSuccess(ctx, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+		store.LoggingService.LoggSuccess(ctx2, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	} else if logType == "WARNING" {
-		store.LoggingService.LoggWarning(ctx, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+		store.LoggingService.LoggWarning(ctx2, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	} else if logType == "INFO" {
-		store.LoggingService.LoggInfo(ctx, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
+		store.LoggingService.LoggInfo(ctx2, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	}
 }
