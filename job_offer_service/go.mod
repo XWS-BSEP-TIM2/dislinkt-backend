@@ -8,7 +8,7 @@ replace github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service => ../auth_servic
 
 require (
 	github.com/XWS-BSEP-TIM2/dislinkt-backend/auth_service v0.0.0-20220617075150-48a21e06c92f
-	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220617075150-48a21e06c92f
+	github.com/XWS-BSEP-TIM2/dislinkt-backend/common v0.0.0-20220628164921-4855d59d77f8
 	github.com/joho/godotenv v1.4.0
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.3
 	go.mongodb.org/mongo-driver v1.9.1
@@ -23,6 +23,9 @@ require (
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
+	github.com/nats-io/nats.go v1.14.0 // indirect
+	github.com/nats-io/nkeys v0.3.0 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect

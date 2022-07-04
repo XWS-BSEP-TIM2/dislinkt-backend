@@ -60,6 +60,10 @@ func (service *ConnectionService) Register(userID string, isPublic bool) (*pb.Ac
 	return service.store.Register(userID, isPublic)
 }
 
+func (service *ConnectionService) DeleteUser(userID string) (*pb.ActionResult, error) {
+	return service.store.DeleteUser(userID)
+}
+
 func (service *ConnectionService) AddFriend(userIDa, userIDb string) (*pb.ActionResult, error) {
 	sender, _ := service.ProfileClient.Get(context.TODO(), &profileService.GetRequest{Id: userIDa})
 	var notification notificationService.Notification

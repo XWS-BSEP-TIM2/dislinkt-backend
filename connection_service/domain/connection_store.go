@@ -21,4 +21,5 @@ type ConnectionStore interface {
 	GetFriendRequests(userID string) ([]UserConn, error)
 	ChangePrivacy(userID string, private bool) (*pb.ActionResult, error)
 	GetMyContacts(ctx context.Context, request *pb.GetMyContactsRequest) (*pb.ContactsResponse, error)
+	DeleteUser(userID string) (*pb.ActionResult, error)
 }

@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	events "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/create_order"
 	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
 )
@@ -41,16 +42,41 @@ func (o *RegisterUserOrchestrator) handle(reply *events.RegisterUserReply) {
 
 func (o *RegisterUserOrchestrator) nextCommandType(reply events.RegisterUserReplyType) events.RegisterUserCommandType {
 	switch reply {
+	// Happy
 	case events.UserCredentialsCreated:
+		fmt.Println("NEXT CreateUserProfile")
 		return events.CreateUserProfile
 	case events.UserProfileCreated:
+		fmt.Println("NEXT CreateNodeInConnectionBase")
 		return events.CreateNodeInConnectionBase
-	case events.UserProfileNotCreated:
-		return events.RollbackCreateUserCredentials
+	case events.NodeInConnectionBaseCreated:
+		fmt.Println("NEXT CreateNodeInJobOfferBase")
+		return events.CreateNodeInJobOfferBase
+	case events.NodeInJobOfferBaseCreated:
+		fmt.Println("SUPER ODLICNO SAGA JE USPESNO PROSLA :)")
+		return events.UnknownCommand
+
+	// fails
+	case events.NodeInJobOfferBaseNotCreated:
+		fmt.Println("NEXT RollbackCreateNodeInConnectionBase")
+		return events.RollbackCreateNodeInConnectionBase
+
 	case events.NodeInConnectionBaseNotCreated:
+		fmt.Println("NEXT RollbackCreateUserProfile")
 		return events.RollbackCreateUserProfile
-	case events.DoneRollbackOfProfile:
+
+	case events.UserProfileNotCreated:
+		fmt.Println("NEXT RollbackCreateUserCredentials")
 		return events.RollbackCreateUserCredentials
+
+	case events.DoneRollBackInConnection:
+		fmt.Println("NEXT RollbackCreateUserProfile")
+		return events.RollbackCreateUserProfile
+
+	case events.DoneRollbackOfProfile:
+		fmt.Println("NEXT RollbackCreateUserCredentials")
+		return events.RollbackCreateUserCredentials
+
 	default:
 		return events.UnknownCommand
 	}
