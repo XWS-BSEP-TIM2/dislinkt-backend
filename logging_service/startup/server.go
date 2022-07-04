@@ -4,10 +4,12 @@ import (
 	"crypto/tls"
 	"fmt"
 	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/startup/config"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	myLogger "gopkg.in/natefinch/lumberjack.v2"
@@ -26,6 +28,8 @@ func NewServer(config *config.Config) *Server {
 }
 
 func (server *Server) Start() {
+	trace, _ := tracer.Init("logging_service")
+	opentracing.SetGlobalTracer(trace)
 
 	loggingStore := server.initLoggingStore()
 

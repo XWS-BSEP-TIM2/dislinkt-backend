@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/startup/config"
 	"github.com/google/uuid"
@@ -24,13 +25,20 @@ func NewLoggingDbStore(c *config.Config, logg *myLogger.Logger) LoggingStore {
 }
 
 func (l *LoggingDbStore) SaveLog(ctx context.Context, log *domain.Log) (*logging_service.LogResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "SaveLog")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
 	id := uuid.New()
 	log.Id = id.String()
 	fmt.Println(log.ToString())
-	return l.SaveText(ctx, log.ToString())
+	return l.SaveText(ctx2, log.ToString())
 }
 
 func (l *LoggingDbStore) Save(ctx context.Context, log string) (*logging_service.LogResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "Save")
+	defer span.Finish()
+
 	result := &logging_service.LogResult{Msg: "Error", Status: 0}
 
 	f, err := os.OpenFile(l.Con.FilePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
@@ -55,6 +63,9 @@ func (l *LoggingDbStore) Save(ctx context.Context, log string) (*logging_service
 }
 
 func (l *LoggingDbStore) SaveText(ctx context.Context, log string) (*logging_service.LogResult, error) {
+	span := tracer.StartSpanFromContext(ctx, "SaveText")
+	defer span.Finish()
+
 	result := &logging_service.LogResult{Msg: "Error", Status: 0}
 	_, err := l.Logg.Write([]byte(log + "\n"))
 	if err != nil {
