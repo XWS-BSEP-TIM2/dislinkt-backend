@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
 	psa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/profile_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
@@ -27,17 +28,21 @@ func NewFeedCreator(
 }
 
 func (creator *FeedCreator) CreateFeedForUser(ctx context.Context, userId primitive.ObjectID) []*domain.Post {
+	span := tracer.StartSpanFromContext(ctx, "CreateFeedForUser")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	var posts []*domain.Post
 
 	var connections []*primitive.ObjectID
 	if userId != primitive.NilObjectID {
-		connections = creator.connectionAdapter.GetAllUserConnections(ctx, userId)
+		connections = creator.connectionAdapter.GetAllUserConnections(ctx2, userId)
 		if len(connections) > 0 {
 			posts = append(posts, creator.store.GetAllPostsFromIds(connections)...)
 		}
 	}
 
-	publicProfilesIds := creator.profileAdapter.GetAllPublicProfilesIds(ctx)
+	publicProfilesIds := creator.profileAdapter.GetAllPublicProfilesIds(ctx2)
 	var filtered []*primitive.ObjectID
 	for _, ppId := range publicProfilesIds {
 		shouldAppend := true

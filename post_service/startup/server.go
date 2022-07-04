@@ -3,12 +3,14 @@ package startup
 import (
 	"fmt"
 	postGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/api"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/startup/config"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/startup/data"
+	"github.com/opentracing/opentracing-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -27,6 +29,9 @@ func NewServer(config *config.Config) *Server {
 }
 
 func (server *Server) Start() {
+	trace, _ := tracer.Init("post_service")
+	opentracing.SetGlobalTracer(trace)
+
 	mongoClient := server.initMongoClient()
 	postStore := server.initPostStore(mongoClient)
 	postService := server.initPostService(postStore)

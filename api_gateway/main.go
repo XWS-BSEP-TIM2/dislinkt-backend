@@ -39,7 +39,7 @@ func main() {
 
 	auth.RegisterRoutes(r, tracer)
 	profile.RegisterRoutes(r, tracer)
-	post.RegisterRoutes(r)
+	post.RegisterRoutes(r, tracer)
 	connection.RegisterRoutes(r)
 	job_offer.RegisterRoutes(r)
 	messages.RegisterRoutes(r)

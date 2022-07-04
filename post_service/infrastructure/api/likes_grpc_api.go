@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
@@ -23,6 +24,10 @@ func NewLikeHandler(service *application.PostService) *LikeSubHandler {
 }
 
 func (h *LikeSubHandler) GetLike(ctx context.Context, request *pb.GetSubresourceRequest) (*pb.ReactionResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetLike")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	postId, err1 := primitive.ObjectIDFromHex(request.PostId)
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
@@ -31,12 +36,16 @@ func (h *LikeSubHandler) GetLike(ctx context.Context, request *pb.GetSubresource
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given reaction id is invalid."))
 	}
-	likeDetails := h.service.GetLike(ctx, postId, reactionId)
+	likeDetails := h.service.GetLike(ctx2, postId, reactionId)
 	return &pb.ReactionResponse{Reaction: mapLike(likeDetails)}, nil
 
 }
 
 func (h *LikeSubHandler) GiveLike(ctx context.Context, request *pb.CreateReactionRequest) (*pb.ReactionResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "GiveLike")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	postId, err1 := primitive.ObjectIDFromHex(request.PostId)
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
@@ -45,7 +54,7 @@ func (h *LikeSubHandler) GiveLike(ctx context.Context, request *pb.CreateReactio
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given owner id is invalid."))
 	}
-	likeDetails := h.service.GiveLike(ctx, postId, &domain.Like{
+	likeDetails := h.service.GiveLike(ctx2, postId, &domain.Like{
 		OwnerId:      ownerId,
 		CreationTime: time.Now(),
 	})
@@ -54,11 +63,15 @@ func (h *LikeSubHandler) GiveLike(ctx context.Context, request *pb.CreateReactio
 }
 
 func (h *LikeSubHandler) GetLikes(ctx context.Context, request *pb.GetPostRequest) (*pb.MultipleReactionsResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetLikes")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	postId, err1 := primitive.ObjectIDFromHex(request.PostId)
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
 	}
-	likeDetails := h.service.GetLikesForPost(ctx, postId)
+	likeDetails := h.service.GetLikesForPost(ctx2, postId)
 	reactionsResponse, ok := funk.Map(likeDetails, func(dto *domain.LikeDetailsDTO) *pb.Reaction { return mapLike(dto) }).([]*pb.Reaction)
 	if !ok {
 		panic(fmt.Errorf("error during conversion of posts"))
@@ -67,6 +80,10 @@ func (h *LikeSubHandler) GetLikes(ctx context.Context, request *pb.GetPostReques
 }
 
 func (h *LikeSubHandler) UndoLike(ctx context.Context, request *pb.GetSubresourceRequest) (*pb.EmptyRequest, error) {
+	span := tracer.StartSpanFromContext(ctx, "UndoLike")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	postId, err1 := primitive.ObjectIDFromHex(request.PostId)
 	if err1 != nil {
 		panic(errors.NewInvalidArgumentError("Given post id is invalid."))
@@ -75,6 +92,6 @@ func (h *LikeSubHandler) UndoLike(ctx context.Context, request *pb.GetSubresourc
 	if err2 != nil {
 		panic(errors.NewInvalidArgumentError("Given reaction id is invalid."))
 	}
-	h.service.UndoLike(ctx, postId, reactionId)
+	h.service.UndoLike(ctx2, postId, reactionId)
 	return &pb.EmptyRequest{}, nil
 }

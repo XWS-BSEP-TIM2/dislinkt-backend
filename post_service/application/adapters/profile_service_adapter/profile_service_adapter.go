@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters"
 	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
@@ -21,12 +22,16 @@ func NewProfileServiceAdapter(address string, loggingServiceAdapter lsa.ILogging
 }
 
 func (p *ProfileServiceAdapter) GetAllProfiles(ctx context.Context) []*domain.Owner {
+	span := tracer.StartSpanFromContext(ctx, "GetAllProfiles")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	profileClient := adapters.NewProfileClient(p.address)
-	response, profileErr := profileClient.GetAll(ctx, &pb.EmptyRequest{})
+	response, profileErr := profileClient.GetAll(ctx2, &pb.EmptyRequest{})
 
 	if profileErr != nil {
 		message := "Error during getting all profiles: Profile Service"
-		p.loggingServiceAdapter.Log(ctx, "ERROR", "GetAllProfiles", "N/A", message)
+		p.loggingServiceAdapter.Log(ctx2, "ERROR", "GetAllProfiles", "N/A", message)
 		panic(fmt.Errorf(message))
 	}
 	res, ok := funk.Map(response.Profiles, mapProfileToOwner).([]*domain.Owner)
@@ -37,24 +42,32 @@ func (p *ProfileServiceAdapter) GetAllProfiles(ctx context.Context) []*domain.Ow
 }
 
 func (p *ProfileServiceAdapter) GetSingleProfile(ctx context.Context, profileId primitive.ObjectID) *domain.Owner {
+	span := tracer.StartSpanFromContext(ctx, "GetSingleProfile")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	profileClient := adapters.NewProfileClient(p.address)
-	response, profileErr := profileClient.Get(ctx, &pb.GetRequest{Id: profileId.Hex()})
+	response, profileErr := profileClient.Get(ctx2, &pb.GetRequest{Id: profileId.Hex()})
 
 	if profileErr != nil {
 		message := "Error during getting all profiles: Profile Service"
-		p.loggingServiceAdapter.Log(ctx, "ERROR", "GetSingleProfile", "N/A", message)
+		p.loggingServiceAdapter.Log(ctx2, "ERROR", "GetSingleProfile", "N/A", message)
 		panic(fmt.Errorf(message))
 	}
 	return mapProfileToOwner(response.Profile)
 }
 
 func (p *ProfileServiceAdapter) GetAllPublicProfilesIds(ctx context.Context) []*primitive.ObjectID {
+	span := tracer.StartSpanFromContext(ctx, "GetAllPublicProfilesIds")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	profileClient := adapters.NewProfileClient(p.address)
-	response, profileErr := profileClient.GetAll(ctx, &pb.EmptyRequest{})
+	response, profileErr := profileClient.GetAll(ctx2, &pb.EmptyRequest{})
 
 	if profileErr != nil {
 		message := "Error during getting all profiles: Profile Service"
-		p.loggingServiceAdapter.Log(ctx, "ERROR", "GetAllPublicProfilesIds", "N/A", message)
+		p.loggingServiceAdapter.Log(ctx2, "ERROR", "GetAllPublicProfilesIds", "N/A", message)
 		panic(fmt.Errorf(message))
 	}
 

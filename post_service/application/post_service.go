@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/notification_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
 	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
@@ -60,31 +61,39 @@ func NewPostService(
 }
 
 func (service *PostService) GetPost(ctx context.Context, id primitive.ObjectID) *domain.PostDetailsDTO {
-	service.postAccessValidator.ValidateUserAccessPost(ctx, id)
+	span := tracer.StartSpanFromContext(ctx, "GetPost")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	service.postAccessValidator.ValidateUserAccessPost(ctx2, id)
 	post, postNotFoundErr := service.store.Get(id)
-	requesterId := service.authServiceAdapter.GetRequesterId(ctx)
+	requesterId := service.authServiceAdapter.GetRequesterId(ctx2)
 
 	if postNotFoundErr != nil {
 		message := fmt.Sprintf("Post with id: %s not found", id.Hex())
-		service.loggingServiceAdapter.Log(ctx, "WARNING", "GetPost", requesterId.Hex(), message)
+		service.loggingServiceAdapter.Log(ctx2, "WARNING", "GetPost", requesterId.Hex(), message)
 		panic(errors.NewEntityNotFoundError("Post with given id does not exist."))
 	}
-	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetPost", requesterId.Hex(), "User fetched post.")
-	return service.getPostDetailsMapper(ctx)(post)
+	service.loggingServiceAdapter.Log(ctx2, "SUCCESS", "GetPost", requesterId.Hex(), "User fetched post.")
+	return service.getPostDetailsMapper(ctx2)(post)
 }
 
 func (service *PostService) CreatePost(ctx context.Context, post *domain.Post) *domain.PostDetailsDTO {
-	service.authServiceAdapter.ValidateCurrentUser(ctx, post.OwnerId)
+	span := tracer.StartSpanFromContext(ctx, "CreatePost")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	service.authServiceAdapter.ValidateCurrentUser(ctx2, post.OwnerId)
 	err := service.store.Insert(post)
 	if err != nil {
 		message := "Error during post creation."
-		service.loggingServiceAdapter.Log(ctx, "ERROR", "CreatePost", post.OwnerId.Hex(), message)
+		service.loggingServiceAdapter.Log(ctx2, "ERROR", "CreatePost", post.OwnerId.Hex(), message)
 		panic(fmt.Errorf(message))
 	}
 
-	postOwner := service.profileServiceAdapter.GetSingleProfile(ctx, post.OwnerId)
+	postOwner := service.profileServiceAdapter.GetSingleProfile(ctx2, post.OwnerId)
 
-	connectionIds := service.connectionServiceAdapter.GetAllUserConnections(ctx, postOwner.UserId)
+	connectionIds := service.connectionServiceAdapter.GetAllUserConnections(ctx2, postOwner.UserId)
 
 	for _, id := range connectionIds {
 		var notification pb.Notification
@@ -92,44 +101,56 @@ func (service *PostService) CreatePost(ctx context.Context, post *domain.Post) *
 		notification.ForwardUrl = "posts/" + post.Id.Hex()
 		notification.Text = "posted on their profile"
 		notification.UserFullName = postOwner.Name + " " + postOwner.Surname
-		service.notificationServiceAdapter.InsertNotification(ctx, &pb.InsertNotificationRequest{Notification: &notification})
+		service.notificationServiceAdapter.InsertNotification(ctx2, &pb.InsertNotificationRequest{Notification: &notification})
 	}
 
-	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "CreatePost", post.OwnerId.Hex(), "User created a new post.")
-	return service.getPostDetailsMapper(ctx)(post)
+	service.loggingServiceAdapter.Log(ctx2, "SUCCESS", "CreatePost", post.OwnerId.Hex(), "User created a new post.")
+	return service.getPostDetailsMapper(ctx2)(post)
 }
 
 func (service *PostService) GetPosts(ctx context.Context) []*domain.PostDetailsDTO {
-	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
-	posts := service.feedCreator.CreateFeedForUser(ctx, currentUserId)
-	requesterId := service.authServiceAdapter.GetRequesterId(ctx)
-	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetPosts", requesterId.Hex(), "User fetched posts for feed.")
-	return service.getMultiplePostsDetails(ctx, posts)
+	span := tracer.StartSpanFromContext(ctx, "GetPosts")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	currentUserId := service.authServiceAdapter.GetRequesterId(ctx2)
+	posts := service.feedCreator.CreateFeedForUser(ctx2, currentUserId)
+	requesterId := service.authServiceAdapter.GetRequesterId(ctx2)
+	service.loggingServiceAdapter.Log(ctx2, "SUCCESS", "GetPosts", requesterId.Hex(), "User fetched posts for feed.")
+	return service.getMultiplePostsDetails(ctx2, posts)
 }
 
 func (service *PostService) GetPostsFromUser(ctx context.Context, userId primitive.ObjectID) []*domain.PostDetailsDTO {
-	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
+	span := tracer.StartSpanFromContext(ctx, "GetPostsFromUser")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	currentUserId := service.authServiceAdapter.GetRequesterId(ctx2)
 	if currentUserId != userId {
-		result := service.connectionServiceAdapter.CanUserAccessPostFromOwner(ctx, currentUserId, userId)
+		result := service.connectionServiceAdapter.CanUserAccessPostFromOwner(ctx2, currentUserId, userId)
 		if !result {
 			message := fmt.Sprintf("Current user (id: %s) cannot access posts from user with id: %s.", currentUserId.Hex(), userId.Hex())
-			service.loggingServiceAdapter.Log(ctx, "WARNING", "GetPostsFromUser", currentUserId.Hex(), message)
+			service.loggingServiceAdapter.Log(ctx2, "WARNING", "GetPostsFromUser", currentUserId.Hex(), message)
 			panic(errors.NewEntityForbiddenError(message))
 		}
 	}
 	posts, err := service.store.GetPostsFromUser(userId)
 	if err != nil {
 		message := fmt.Sprintf("Posts from user id: %s unavailabe", userId.Hex())
-		service.loggingServiceAdapter.Log(ctx, "WARNING", "GetPostsFromUser", currentUserId.Hex(), message)
+		service.loggingServiceAdapter.Log(ctx2, "WARNING", "GetPostsFromUser", currentUserId.Hex(), message)
 		panic(errors.NewEntityNotFoundError(message))
 	}
 
-	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetPostsFromUser", currentUserId.Hex(), "User fetched posts from other profile.")
-	return service.getMultiplePostsDetails(ctx, posts)
+	service.loggingServiceAdapter.Log(ctx2, "SUCCESS", "GetPostsFromUser", currentUserId.Hex(), "User fetched posts from other profile.")
+	return service.getMultiplePostsDetails(ctx2, posts)
 }
 
 func (service *PostService) getMultiplePostsDetails(ctx context.Context, posts []*domain.Post) []*domain.PostDetailsDTO {
-	postsDetails, ok := funk.Map(posts, service.getPostDetailsMapper(ctx)).([]*domain.PostDetailsDTO)
+	span := tracer.StartSpanFromContext(ctx, "getMultiplePostsDetails")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	postsDetails, ok := funk.Map(posts, service.getPostDetailsMapper(ctx2)).([]*domain.PostDetailsDTO)
 	if !ok {
 		log("Error in conversion of posts to postDetails")
 		panic(fmt.Errorf("posts unavailable"))
@@ -138,8 +159,12 @@ func (service *PostService) getMultiplePostsDetails(ctx context.Context, posts [
 }
 
 func (service *PostService) getPostDetailsMapper(ctx context.Context) func(post *domain.Post) *domain.PostDetailsDTO {
-	currentUserId := service.authServiceAdapter.GetRequesterId(ctx)
-	getOwner := service.ownerFinder.GetOwnerFinderFunction(ctx)
+	span := tracer.StartSpanFromContext(ctx, "getPostDetailsMapper")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	currentUserId := service.authServiceAdapter.GetRequesterId(ctx2)
+	getOwner := service.ownerFinder.GetOwnerFinderFunction(ctx2)
 	return func(post *domain.Post) *domain.PostDetailsDTO {
 		var reactions *domain.Reactions
 		if currentUserId == primitive.NilObjectID {

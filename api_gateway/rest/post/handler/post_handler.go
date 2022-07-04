@@ -6,7 +6,9 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/rest/post/dto"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/api_gateway/startup/config"
 	pbPost "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/gin-gonic/gin"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"net/http"
@@ -15,18 +17,27 @@ import (
 type PostHandler struct {
 	grpcClient  *rest.ServiceClientGrpc
 	errorMapper *GrpcToHttpErrorCodeMapper
+	tracer      opentracing.Tracer
 }
 
-func InitPostHandler() *PostHandler {
+func InitPostHandler(tracer opentracing.Tracer) *PostHandler {
 	client := rest.InitServiceClient(config.NewConfig())
 	mapper := NewGrpcToHttpErrorCodeMapper()
-	return &PostHandler{grpcClient: client, errorMapper: mapper}
+	return &PostHandler{
+		grpcClient:  client,
+		errorMapper: mapper,
+		tracer:      tracer,
+	}
 }
 
 func (handler *PostHandler) Get(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("Get", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
-	res, err := postClient.GetPosts(ctxt, &pbPost.EmptyRequest{})
+	res, err := postClient.GetPosts(ctx2, &pbPost.EmptyRequest{})
 	if err != nil {
 		handler.handleError(ctx, err)
 		return
@@ -35,7 +46,11 @@ func (handler *PostHandler) Get(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) CreatePost(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("CreatePost", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	newPost := dto.CreatePostDto{}
 	if err := ctx.BindJSON(&newPost); err != nil {
@@ -44,7 +59,7 @@ func (handler *PostHandler) CreatePost(ctx *gin.Context) {
 	}
 
 	newPostProto := pbPost.NewPost{OwnerId: newPost.OwnerId, Content: newPost.Content, Links: newPost.Links, ImageBase64: newPost.ImageBase64}
-	res, err := postClient.CreatePost(ctxt, &pbPost.CreatePostRequest{NewPost: &newPostProto})
+	res, err := postClient.CreatePost(ctx2, &pbPost.CreatePostRequest{NewPost: &newPostProto})
 	if err != nil {
 		handler.handleError(ctx, err)
 		return
@@ -53,10 +68,14 @@ func (handler *PostHandler) CreatePost(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetPostById(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetPostById", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	id := ctx.Param("id")
-	res, err := postClient.GetPost(ctxt, &pbPost.GetPostRequest{
+	res, err := postClient.GetPost(ctx2, &pbPost.GetPostRequest{
 		PostId: id,
 	})
 	if err != nil {
@@ -67,10 +86,14 @@ func (handler *PostHandler) GetPostById(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetPostsFromUser(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetPostsFromUser", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	id := ctx.Param("user-id")
-	res, err := postClient.GetPostsFromUser(ctxt, &pbPost.GetPostsFromUserRequest{
+	res, err := postClient.GetPostsFromUser(ctx2, &pbPost.GetPostsFromUserRequest{
 		UserId: id,
 	})
 	if err != nil {
@@ -81,10 +104,14 @@ func (handler *PostHandler) GetPostsFromUser(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetPostComments(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetPostComments", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	id := ctx.Param("id")
-	res, err := postClient.GetComments(ctxt, &pbPost.GetPostRequest{
+	res, err := postClient.GetComments(ctx2, &pbPost.GetPostRequest{
 		PostId: id,
 	})
 	if err != nil {
@@ -96,7 +123,11 @@ func (handler *PostHandler) GetPostComments(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) CreateComment(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("CreateComment", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	comment := dto.CreateCommentDto{}
@@ -104,7 +135,7 @@ func (handler *PostHandler) CreateComment(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	res, err := postClient.CreateComment(ctxt, &pbPost.CreateCommentRequest{
+	res, err := postClient.CreateComment(ctx2, &pbPost.CreateCommentRequest{
 		NewComment: &pbPost.NewComment{
 			OwnerId: comment.OwnerId,
 			Content: comment.Content,
@@ -120,11 +151,15 @@ func (handler *PostHandler) CreateComment(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetPostComment(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetPostComment", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	commentId := ctx.Param("comment-id")
-	res, err := postClient.GetComment(ctxt, &pbPost.GetSubresourceRequest{
+	res, err := postClient.GetComment(ctx2, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: commentId,
 	})
@@ -136,10 +171,14 @@ func (handler *PostHandler) GetPostComment(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetLikes(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetLikes", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
-	res, err := postClient.GetLikes(ctxt, &pbPost.GetPostRequest{
+	res, err := postClient.GetLikes(ctx2, &pbPost.GetPostRequest{
 		PostId: postId,
 	})
 	if err != nil {
@@ -150,7 +189,11 @@ func (handler *PostHandler) GetLikes(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) LikePost(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("LikePost", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	reaction := dto.ReactionDto{}
@@ -160,7 +203,7 @@ func (handler *PostHandler) LikePost(ctx *gin.Context) {
 	}
 
 	reactionProto := pbPost.NewReaction{OwnerId: reaction.OwnerId}
-	res, err := postClient.GiveLike(ctxt, &pbPost.CreateReactionRequest{
+	res, err := postClient.GiveLike(ctx2, &pbPost.CreateReactionRequest{
 		PostId:      postId,
 		NewReaction: &reactionProto,
 	})
@@ -172,11 +215,15 @@ func (handler *PostHandler) LikePost(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetLike(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetLike", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	likeId := ctx.Param("like-id")
-	res, err := postClient.GetLike(ctxt, &pbPost.GetSubresourceRequest{
+	res, err := postClient.GetLike(ctx2, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: likeId,
 	})
@@ -188,11 +235,15 @@ func (handler *PostHandler) GetLike(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) RemoveLike(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("RemoveLike", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	likeId := ctx.Param("like-id")
-	res, err := postClient.UndoLike(ctxt, &pbPost.GetSubresourceRequest{
+	res, err := postClient.UndoLike(ctx2, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: likeId,
 	})
@@ -204,10 +255,14 @@ func (handler *PostHandler) RemoveLike(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetDislikes(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetDislikes", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
-	res, err := postClient.GetDislikes(ctxt, &pbPost.GetPostRequest{
+	res, err := postClient.GetDislikes(ctx2, &pbPost.GetPostRequest{
 		PostId: postId,
 	})
 	if err != nil {
@@ -218,7 +273,11 @@ func (handler *PostHandler) GetDislikes(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) DislikePost(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("DislikePost", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	reaction := dto.ReactionDto{}
@@ -227,7 +286,7 @@ func (handler *PostHandler) DislikePost(ctx *gin.Context) {
 		return
 	}
 	reactionProto := pbPost.NewReaction{OwnerId: reaction.OwnerId}
-	res, err := postClient.GiveDislike(ctxt, &pbPost.CreateReactionRequest{
+	res, err := postClient.GiveDislike(ctx2, &pbPost.CreateReactionRequest{
 		PostId:      postId,
 		NewReaction: &reactionProto,
 	})
@@ -239,11 +298,15 @@ func (handler *PostHandler) DislikePost(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) GetDislike(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("GetDislike", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	dislikeId := ctx.Param("dislike-id")
-	res, err := postClient.GetDislike(ctxt, &pbPost.GetSubresourceRequest{
+	res, err := postClient.GetDislike(ctx2, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: dislikeId,
 	})
@@ -255,11 +318,15 @@ func (handler *PostHandler) GetDislike(ctx *gin.Context) {
 }
 
 func (handler *PostHandler) RemoveDislike(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("RemoveDislike", handler.tracer, ctx.Request)
+	defer span.Finish()
 	ctxt := handler.appendTokenToContext(ctx)
+	ctx2 := tracer.ContextWithSpan(ctxt, span)
+
 	postClient := handler.grpcClient.PostClient
 	postId := ctx.Param("id")
 	dislikeId := ctx.Param("dislike-id")
-	res, err := postClient.UndoDislike(ctxt, &pbPost.GetSubresourceRequest{
+	res, err := postClient.UndoDislike(ctx2, &pbPost.GetSubresourceRequest{
 		PostId:        postId,
 		SubresourceId: dislikeId,
 	})

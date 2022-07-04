@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	asa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/auth_service_adapter"
 	csa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/connection_service_adapter"
 	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
@@ -37,74 +38,94 @@ func NewDislikeService(postService *PostService) *DislikeService {
 }
 
 func (service *DislikeService) GiveDislike(ctx context.Context, postId primitive.ObjectID, dislike *domain.Dislike) *domain.DislikeDetailsDTO {
-	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
-	service.authServiceAdapter.ValidateCurrentUser(ctx, dislike.OwnerId)
+	span := tracer.StartSpanFromContext(ctx, "GiveDislike")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	service.postAccessValidator.ValidateUserAccessPost(ctx2, postId)
+	service.authServiceAdapter.ValidateCurrentUser(ctx2, dislike.OwnerId)
 	err := service.store.InsertDislike(postId, dislike)
 	if err != nil {
 		message := fmt.Sprintf("Error during dislike creation on post with id: %s", postId.Hex())
-		service.loggingServiceAdapter.Log(ctx, "ERROR", "GiveDislike", dislike.OwnerId.Hex(), message)
+		service.loggingServiceAdapter.Log(ctx2, "ERROR", "GiveDislike", dislike.OwnerId.Hex(), message)
 		panic(fmt.Errorf(message))
 	}
 	message := fmt.Sprintf("User disliked post with id: %s", postId.Hex())
-	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GiveDislike", dislike.OwnerId.Hex(), message)
+	service.loggingServiceAdapter.Log(ctx2, "SUCCESS", "GiveDislike", dislike.OwnerId.Hex(), message)
 
-	return service.getDislikeDetailsMapper(ctx, postId)(dislike)
+	return service.getDislikeDetailsMapper(ctx2, postId)(dislike)
 }
 
 func (service *DislikeService) GetDislike(ctx context.Context, postId primitive.ObjectID, dislikeId primitive.ObjectID) *domain.DislikeDetailsDTO {
-	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
+	span := tracer.StartSpanFromContext(ctx, "GetDislike")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	service.postAccessValidator.ValidateUserAccessPost(ctx2, postId)
 	dislike, err := service.store.GetDislike(postId, dislikeId)
-	requesterId := service.authServiceAdapter.GetRequesterId(ctx)
+	requesterId := service.authServiceAdapter.GetRequesterId(ctx2)
 
 	if err != nil {
 		message := fmt.Sprintf("Disike with id: %s not found on post with id %s", dislikeId.Hex(), postId.Hex())
-		service.loggingServiceAdapter.Log(ctx, "WARNING", "GetDislike", requesterId.Hex(), message)
+		service.loggingServiceAdapter.Log(ctx2, "WARNING", "GetDislike", requesterId.Hex(), message)
 		panic(fmt.Errorf(message))
 	}
 	message := fmt.Sprintf("User fetched dislike with id: %s on post with id %s", dislikeId.Hex(), postId.Hex())
-	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetDislike", requesterId.Hex(), message)
-	return service.getDislikeDetailsMapper(ctx, postId)(dislike)
+	service.loggingServiceAdapter.Log(ctx2, "SUCCESS", "GetDislike", requesterId.Hex(), message)
+	return service.getDislikeDetailsMapper(ctx2, postId)(dislike)
 }
 
 func (service *DislikeService) GetDislikesForPost(ctx context.Context, postId primitive.ObjectID) []*domain.DislikeDetailsDTO {
-	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
+	span := tracer.StartSpanFromContext(ctx, "GetDislikesForPost")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	service.postAccessValidator.ValidateUserAccessPost(ctx2, postId)
 	dislikes, err := service.store.GetDislikesForPost(postId)
-	requesterId := service.authServiceAdapter.GetRequesterId(ctx)
+	requesterId := service.authServiceAdapter.GetRequesterId(ctx2)
 
 	if err != nil {
 		message := fmt.Sprintf("Dislikes on post with id %s unavailable.", postId.Hex())
-		service.loggingServiceAdapter.Log(ctx, "ERROR", "GetDislikesForPost", requesterId.Hex(), message)
+		service.loggingServiceAdapter.Log(ctx2, "ERROR", "GetDislikesForPost", requesterId.Hex(), message)
 		panic(fmt.Errorf(message))
 	}
-	dislikeDetails, ok := funk.Map(dislikes, service.getDislikeDetailsMapper(ctx, postId)).([]*domain.DislikeDetailsDTO)
+	dislikeDetails, ok := funk.Map(dislikes, service.getDislikeDetailsMapper(ctx2, postId)).([]*domain.DislikeDetailsDTO)
 	if !ok {
 		log("Error in conversion of dislikes to commentDetails")
 		panic(fmt.Errorf("dislikes unavailable"))
 	}
 
 	message := fmt.Sprintf("User fetched dislikes on post with id %s", postId.Hex())
-	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "GetDislikesForPost", requesterId.Hex(), message)
+	service.loggingServiceAdapter.Log(ctx2, "SUCCESS", "GetDislikesForPost", requesterId.Hex(), message)
 	return dislikeDetails
 }
 
 func (service *DislikeService) UndoDislike(ctx context.Context, postId primitive.ObjectID, reactionId primitive.ObjectID) {
-	service.postAccessValidator.ValidateUserAccessPost(ctx, postId)
+	span := tracer.StartSpanFromContext(ctx, "UndoDislike")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	service.postAccessValidator.ValidateUserAccessPost(ctx2, postId)
 	dislike, err := service.store.GetDislike(postId, reactionId)
-	requesterId := service.authServiceAdapter.GetRequesterId(ctx)
+	requesterId := service.authServiceAdapter.GetRequesterId(ctx2)
 
 	if err != nil {
 		message := fmt.Sprintf("Cannot remove dislike with id: %s (not found)", reactionId.Hex())
-		service.loggingServiceAdapter.Log(ctx, "ERROR", "UndoDislike", requesterId.Hex(), message)
+		service.loggingServiceAdapter.Log(ctx2, "ERROR", "UndoDislike", requesterId.Hex(), message)
 		panic(errors.NewEntityNotFoundError(message))
 	}
-	service.authServiceAdapter.ValidateCurrentUser(ctx, dislike.OwnerId)
+	service.authServiceAdapter.ValidateCurrentUser(ctx2, dislike.OwnerId)
 	message := fmt.Sprintf("User removed dislike with id: %s from post with id: %s", reactionId.Hex(), postId.Hex())
-	service.loggingServiceAdapter.Log(ctx, "SUCCESS", "UndoDislike", requesterId.Hex(), message)
+	service.loggingServiceAdapter.Log(ctx2, "SUCCESS", "UndoDislike", requesterId.Hex(), message)
 	service.store.UndoDislike(postId, reactionId)
 }
 
 func (service *DislikeService) getDislikeDetailsMapper(ctx context.Context, postId primitive.ObjectID) func(dislike *domain.Dislike) *domain.DislikeDetailsDTO {
-	getOwner := service.ownerFinder.GetOwnerFinderFunction(ctx)
+	span := tracer.StartSpanFromContext(ctx, "getDislikeDetailsMapper")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	getOwner := service.ownerFinder.GetOwnerFinderFunction(ctx2)
 	return func(dislike *domain.Dislike) *domain.DislikeDetailsDTO {
 		return &domain.DislikeDetailsDTO{
 			Owner:   getOwner(dislike.OwnerId),

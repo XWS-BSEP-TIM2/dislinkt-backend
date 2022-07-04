@@ -60,6 +60,7 @@ services:
       dockerfile: ./post_service/Dockerfile
     restart: on-failure
     environment:
+      <<: *jaeger-env
       POST_SERVICE_PORT: ${POST_SERVICE_PORT}
       MONGO_DB_HOST: ${POST_MONGO_DB_HOST_DOCKER}
       MONGO_DB_PORT: ${MONGO_DB_PORT}

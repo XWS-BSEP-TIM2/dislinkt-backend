@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	cb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/connection_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters"
 	lsa "github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application/adapters/logging_service_adapter"
 	"github.com/thoas/go-funk"
@@ -20,11 +21,15 @@ func NewConnectionServiceAdapter(address string, loggingServiceAdapter lsa.ILogg
 }
 
 func (conn *ConnectionServiceAdapter) GetAllUserConnections(ctx context.Context, id primitive.ObjectID) []*primitive.ObjectID {
+	span := tracer.StartSpanFromContext(ctx, "GetAllUserConnections")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	connClient := adapters.NewConnectionClient(conn.address)
-	response, connErr := connClient.GetFriends(ctx, &cb.GetRequest{UserID: id.Hex()})
+	response, connErr := connClient.GetFriends(ctx2, &cb.GetRequest{UserID: id.Hex()})
 	if connErr != nil {
 		message := "Error during getting all connections: Connection Service"
-		conn.loggingServiceAdapter.Log(ctx, "ERROR", "GetAllUserConnections", id.Hex(), message)
+		conn.loggingServiceAdapter.Log(ctx2, "ERROR", "GetAllUserConnections", id.Hex(), message)
 		panic(fmt.Errorf(message))
 	}
 	res, ok := funk.Map(response.Users, mapUserToUserId).([]*primitive.ObjectID)
@@ -35,14 +40,18 @@ func (conn *ConnectionServiceAdapter) GetAllUserConnections(ctx context.Context,
 }
 
 func (conn *ConnectionServiceAdapter) CanUserAccessPostFromOwner(ctx context.Context, userId primitive.ObjectID, ownerId primitive.ObjectID) bool {
+	span := tracer.StartSpanFromContext(ctx, "CanUserAccessPostFromOwner")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
 	connClient := adapters.NewConnectionClient(conn.address)
-	details, connErr := connClient.GetConnectionDetail(ctx, &cb.GetConnectionDetailRequest{
+	details, connErr := connClient.GetConnectionDetail(ctx2, &cb.GetConnectionDetailRequest{
 		UserIDa: userId.Hex(),
 		UserIDb: ownerId.Hex(),
 	})
 	if connErr != nil {
 		message := "Error during getting connection details: Connection Service"
-		conn.loggingServiceAdapter.Log(ctx, "ERROR", "CanUserAccessPostFromOwner", userId.Hex(), message)
+		conn.loggingServiceAdapter.Log(ctx2, "ERROR", "CanUserAccessPostFromOwner", userId.Hex(), message)
 		panic(fmt.Errorf(message))
 	}
 	if details.IsPrivate {
