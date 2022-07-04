@@ -26,6 +26,8 @@ type LoggingServiceClient interface {
 	LoggError(ctx context.Context, in *LogRequest, opts ...grpc.CallOption) (*LogResult, error)
 	LoggWarning(ctx context.Context, in *LogRequest, opts ...grpc.CallOption) (*LogResult, error)
 	LoggSuccess(ctx context.Context, in *LogRequest, opts ...grpc.CallOption) (*LogResult, error)
+	InsertEvent(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetEvents(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetEventsResponse, error)
 }
 
 type loggingServiceClient struct {
@@ -72,6 +74,24 @@ func (c *loggingServiceClient) LoggSuccess(ctx context.Context, in *LogRequest, 
 	return out, nil
 }
 
+func (c *loggingServiceClient) InsertEvent(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/logging_service.LoggingService/InsertEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loggingServiceClient) GetEvents(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetEventsResponse, error) {
+	out := new(GetEventsResponse)
+	err := c.cc.Invoke(ctx, "/logging_service.LoggingService/GetEvents", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoggingServiceServer is the server API for LoggingService service.
 // All implementations must embed UnimplementedLoggingServiceServer
 // for forward compatibility
@@ -80,6 +100,8 @@ type LoggingServiceServer interface {
 	LoggError(context.Context, *LogRequest) (*LogResult, error)
 	LoggWarning(context.Context, *LogRequest) (*LogResult, error)
 	LoggSuccess(context.Context, *LogRequest) (*LogResult, error)
+	InsertEvent(context.Context, *EventRequest) (*Empty, error)
+	GetEvents(context.Context, *Empty) (*GetEventsResponse, error)
 	mustEmbedUnimplementedLoggingServiceServer()
 }
 
@@ -98,6 +120,12 @@ func (UnimplementedLoggingServiceServer) LoggWarning(context.Context, *LogReques
 }
 func (UnimplementedLoggingServiceServer) LoggSuccess(context.Context, *LogRequest) (*LogResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoggSuccess not implemented")
+}
+func (UnimplementedLoggingServiceServer) InsertEvent(context.Context, *EventRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InsertEvent not implemented")
+}
+func (UnimplementedLoggingServiceServer) GetEvents(context.Context, *Empty) (*GetEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetEvents not implemented")
 }
 func (UnimplementedLoggingServiceServer) mustEmbedUnimplementedLoggingServiceServer() {}
 
@@ -184,6 +212,42 @@ func _LoggingService_LoggSuccess_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoggingService_InsertEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoggingServiceServer).InsertEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/logging_service.LoggingService/InsertEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoggingServiceServer).InsertEvent(ctx, req.(*EventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoggingService_GetEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoggingServiceServer).GetEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/logging_service.LoggingService/GetEvents",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoggingServiceServer).GetEvents(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LoggingService_ServiceDesc is the grpc.ServiceDesc for LoggingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -206,6 +270,14 @@ var LoggingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoggSuccess",
 			Handler:    _LoggingService_LoggSuccess_Handler,
+		},
+		{
+			MethodName: "InsertEvent",
+			Handler:    _LoggingService_InsertEvent_Handler,
+		},
+		{
+			MethodName: "GetEvents",
+			Handler:    _LoggingService_GetEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

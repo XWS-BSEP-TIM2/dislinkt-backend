@@ -3,6 +3,8 @@ package persistence
 import (
 	"context"
 	"fmt"
+	pbLogg "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/domain/errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,13 +18,15 @@ const (
 )
 
 type PostMongoDBStore struct {
-	posts *mongo.Collection
+	posts          *mongo.Collection
+	LoggingService pbLogg.LoggingServiceClient
 }
 
-func NewPostMongoDBStore(client *mongo.Client) domain.PostStore {
+func NewPostMongoDBStore(client *mongo.Client, loggingService pbLogg.LoggingServiceClient) domain.PostStore {
 	posts := client.Database(DATABASE).Collection(COLLECTION)
 	return &PostMongoDBStore{
-		posts: posts,
+		posts:          posts,
+		LoggingService: loggingService,
 	}
 }
 
@@ -47,6 +51,8 @@ func (store *PostMongoDBStore) Insert(post *domain.Post) error {
 		return err
 	}
 	post.Id = result.InsertedID.(primitive.ObjectID)
+
+	store.createEvent(context.TODO(), "Post", "User has published a new post", post.OwnerId.Hex())
 	return nil
 }
 
@@ -55,6 +61,7 @@ func (store *PostMongoDBStore) Update(post *domain.Post) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -70,6 +77,8 @@ func (store *PostMongoDBStore) InsertComment(postId primitive.ObjectID, comment 
 	if err != nil {
 		return err
 	}
+
+	store.createEvent(context.TODO(), "Post", "User has commented on a post", comment.OwnerId.Hex())
 	return nil
 }
 
@@ -333,4 +342,18 @@ func RemoveIndexLike(s []*domain.Like, index int) []*domain.Like {
 
 func RemoveIndexDislike(s []*domain.Dislike, index int) []*domain.Dislike {
 	return append(s[:index], s[index+1:]...)
+}
+
+func (store *PostMongoDBStore) createEvent(ctx context.Context, title, description, userId string) {
+	span := tracer.StartSpanFromContext(ctx, "createEvent")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	event := pbLogg.EventRequest{
+		UserId:      userId,
+		Title:       title,
+		Description: description,
+	}
+
+	store.LoggingService.InsertEvent(ctx2, &event)
 }

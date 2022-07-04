@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	profile "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
 	saga "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/messaging/nats"
@@ -39,7 +40,10 @@ func (server *Server) Start() {
 	opentracing.SetGlobalTracer(trace)
 
 	mongoClient := server.initMongoClient()
-	profileStore := server.initProfileStore(mongoClient)
+
+	loggingService := server.initLoggingService()
+
+	profileStore := server.initProfileStore(mongoClient, loggingService)
 
 	profileService := server.initProfileService(profileStore)
 
@@ -88,8 +92,8 @@ func (server *Server) initMongoClient() *mongo.Client {
 	return client
 }
 
-func (server *Server) initProfileStore(client *mongo.Client) persistence.ProfileStore {
-	store := persistence.NewProfileMongoDbStore(client)
+func (server *Server) initProfileStore(client *mongo.Client, loggingService loggingS.LoggingServiceClient) persistence.ProfileStore {
+	store := persistence.NewProfileMongoDbStore(client, loggingService)
 
 	store.DeleteAll(context.TODO())
 	for _, user := range users {
@@ -100,6 +104,23 @@ func (server *Server) initProfileStore(client *mongo.Client) persistence.Profile
 	}
 
 	return store
+}
+
+func (server *Server) initLoggingService() loggingS.LoggingServiceClient {
+	address := fmt.Sprintf("%s:%s", server.config.LoggingHost, server.config.LoggingPort)
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("Gateway failed to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
+	}
+	return loggingS.NewLoggingServiceClient(conn)
+}
+
+func getConnection(address string) (*grpc.ClientConn, error) {
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 }
 
 func (server *Server) initProfileService(store persistence.ProfileStore) *application.ProfileService {

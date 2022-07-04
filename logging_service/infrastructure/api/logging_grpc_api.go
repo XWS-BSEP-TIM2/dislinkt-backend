@@ -49,3 +49,19 @@ func (handler *LoggingHandler) LoggSuccess(ctx context.Context, request *pb.LogR
 
 	return handler.service.LoggSuccess(ctx2, request)
 }
+
+func (handler *LoggingHandler) GetEvents(ctx context.Context, in *pb.Empty) (*pb.GetEventsResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "LoggSuccess")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	return handler.service.GetEvents(ctx2, in)
+}
+
+func (handler *LoggingHandler) InsertEvent(ctx context.Context, in *pb.EventRequest) (*pb.Empty, error) {
+	span := tracer.StartSpanFromContext(ctx, "LoggSuccess")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	return handler.service.InsertEvent(ctx2, in)
+}

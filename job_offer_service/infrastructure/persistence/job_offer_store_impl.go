@@ -68,6 +68,8 @@ func (store *JobOfferDbStore) Delete(ctx context.Context, jobId string) (bool, e
 		return false, err
 	} else {
 		store.logg(ctx, "SUCCESS", "Delete", "", "Successfully deleted jobOffer with id "+jobId)
+		store.createEvent(ctx, "Job Offer Delete", "Job offer has been deleted", "-")
+
 		return r.(bool), nil
 	}
 }
@@ -207,6 +209,7 @@ func (store *JobOfferDbStore) Insert(ctx context.Context, jobOffer *domain.JobOf
 		store.logg(ctx, "ERROR", "Insert", "", err.Error())
 	} else {
 		store.logg(ctx, "SUCCESS", "Insert", "", "Successfully inserted new jobOffer id "+jobOffer.Id)
+		store.createEvent(ctx, "Job Offer", "User has made a new job offer", jobOffer.UserId)
 	}
 
 	return err
@@ -246,6 +249,8 @@ func (store *JobOfferDbStore) Update(ctx context.Context, jobOffer *domain.JobOf
 	}
 
 	store.logg(ctx, "SUCCESS", "Update", "", "Successfully Update jobOffer id "+jobOffer.Id)
+	store.createEvent(ctx, "Job Offer Update", "User has updated their job offer", jobOffer.UserId)
+
 	return result.(bool), nil
 }
 
@@ -342,4 +347,18 @@ func (store *JobOfferDbStore) logg(ctx context.Context, logType, serviceFunction
 	} else if logType == "INFO" {
 		store.LoggingService.LoggInfo(ctx2, &pbLogg.LogRequest{ServiceName: serviceName, ServiceFunctionName: serviceFunctionName, UserID: userID, IpAddress: ipAddress, Description: description})
 	}
+}
+
+func (store *JobOfferDbStore) createEvent(ctx context.Context, title, description, userId string) {
+	span := tracer.StartSpanFromContext(ctx, "createEvent")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	event := pbLogg.EventRequest{
+		UserId:      userId,
+		Title:       title,
+		Description: description,
+	}
+
+	store.LoggingService.InsertEvent(ctx2, &event)
 }

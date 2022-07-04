@@ -1,7 +1,9 @@
 package startup
 
 import (
+	"crypto/tls"
 	"fmt"
+	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	postGw "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/post_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/post_service/application"
@@ -33,7 +35,8 @@ func (server *Server) Start() {
 	opentracing.SetGlobalTracer(trace)
 
 	mongoClient := server.initMongoClient()
-	postStore := server.initPostStore(mongoClient)
+	loggingService := server.initLoggingService()
+	postStore := server.initPostStore(mongoClient, loggingService)
 	postService := server.initPostService(postStore)
 	postHandler := server.initPostHandler(postService)
 
@@ -49,8 +52,8 @@ func (server *Server) initMongoClient() *mongo.Client {
 	return client
 }
 
-func (server *Server) initPostStore(client *mongo.Client) domain.PostStore {
-	store := persistence.NewPostMongoDBStore(client)
+func (server *Server) initPostStore(client *mongo.Client, loggingService loggingS.LoggingServiceClient) domain.PostStore {
+	store := persistence.NewPostMongoDBStore(client, loggingService)
 	data.InitializePostStore(store)
 	return store
 }
@@ -89,4 +92,21 @@ func (server *Server) startGrpcServer(postHandler *api.PostHandler) {
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
+}
+
+func (server *Server) initLoggingService() loggingS.LoggingServiceClient {
+	address := fmt.Sprintf("%s:%s", server.config.LoggingServiceHost, server.config.LoggingServicePort)
+	conn, err := getConnection(address)
+	if err != nil {
+		fmt.Println("Gateway failed to start", "Failed to start")
+		log.Fatalf("Failed to start gRPC connection to Logging service: %v", err)
+	}
+	return loggingS.NewLoggingServiceClient(conn)
+}
+
+func getConnection(address string) (*grpc.ClientConn, error) {
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	return grpc.Dial(address, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 }
