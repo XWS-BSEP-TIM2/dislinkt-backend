@@ -260,7 +260,7 @@ func (store *JobOfferDbStore) CreateUser(ctx context.Context, userID string) (*j
 
 	actRes, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		actRes := &joboffer_service.ActionResult{Status: 0, Msg: "Error"}
-		if checkIfUserExist(userID, transaction) {
+		if !checkIfUserExist(userID, transaction) {
 			createNewUser(userID, transaction)
 			actRes.Msg = "Successfully created new user " + userID
 			actRes.Status = 200
