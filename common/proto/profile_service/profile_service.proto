@@ -16,6 +16,8 @@ service ProfileService{
 
   rpc UpdateProfile(CreateProfileRequest) returns(CreateProfileResponse){}
 
+  rpc UpdateProfileSkills(UpdateProfileSkillsRequest) returns(UpdateProfileSkillsResponse){}
+
   rpc SearchProfile(SearchProfileRequest) returns(GetAllResponse){
 
   }
@@ -25,6 +27,15 @@ message SearchProfileRequest{
   string param = 1;
 }
 
+message UpdateProfileSkillsResponse{
+  int64 status = 1;
+  string msg = 2;
+}
+
+message UpdateProfileSkillsRequest{
+  string id = 1;
+  repeated Skill skills = 2;
+}
 
 
 message GetAllResponse{

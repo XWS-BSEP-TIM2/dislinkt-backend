@@ -83,3 +83,20 @@ func MapProfile(profile *pb.Profile) domain.Profile {
 
 	return domainProfile
 }
+
+func MapProfileOnlySkills(userID string, skills []*pb.Skill) domain.Profile {
+	domainProfile := domain.Profile{
+		Id:     converter.GetObjectId(userID),
+		Skills: []domain.Skill{},
+	}
+
+	for _, skill := range skills {
+		domainProfile.Skills = append(domainProfile.Skills, domain.Skill{
+			Id:   converter.GetObjectId(skill.Id),
+			Name: skill.Name,
+			Type: enums.ToEnumSkill(skill.SkillType),
+		})
+	}
+
+	return domainProfile
+}

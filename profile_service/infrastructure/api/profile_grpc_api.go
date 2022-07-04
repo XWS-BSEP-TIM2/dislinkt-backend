@@ -3,19 +3,23 @@ package api
 import (
 	"context"
 	pb "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/profile_service"
+	events "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/saga/update_skills"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/application"
+	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/domain"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ProfileHandler struct {
 	pb.UnimplementedProfileServiceServer
-	service *application.ProfileService
+	service                  *application.ProfileService
+	updateSkillsOrchestrator *application.UpdateSkillsOrchestrator
 }
 
-func NewProfileHandler(service *application.ProfileService) *ProfileHandler {
+func NewProfileHandler(service *application.ProfileService, updateSkillsOrchestrator *application.UpdateSkillsOrchestrator) *ProfileHandler {
 	return &ProfileHandler{
-		service: service,
+		service:                  service,
+		updateSkillsOrchestrator: updateSkillsOrchestrator,
 	}
 }
 
@@ -78,6 +82,51 @@ func (handler *ProfileHandler) UpdateProfile(ctx context.Context, request *pb.Cr
 	handler.service.Update(ctx2, &profile)
 
 	return &pb.CreateProfileResponse{Profile: mapProfile(&profile)}, nil
+}
+
+func (handler *ProfileHandler) UpdateProfileSkills(ctx context.Context, request *pb.UpdateProfileSkillsRequest) (*pb.UpdateProfileSkillsResponse, error) {
+	span := tracer.StartSpanFromContext(ctx, "UpdateProfileSkills")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	profile := MapProfileOnlySkills(request.Id, request.Skills)
+
+	oldProfile, errGetOldProfile := handler.service.Get(ctx2, profile.Id)
+	if errGetOldProfile != nil {
+		return &pb.UpdateProfileSkillsResponse{Status: 400, Msg: errGetOldProfile.Error()}, errGetOldProfile
+	}
+
+	err := handler.service.UpdateSkills(ctx2, &profile)
+
+	if err != nil {
+		return &pb.UpdateProfileSkillsResponse{Status: 400, Msg: err.Error()}, err
+	}
+
+	//poziv saga
+	newSkillsForJobOffer := handler.getNewSkills(&profile)
+	handler.updateSkillsOrchestrator.Start(events.UpdateSkillsDetails{UserID: request.Id, OldSkills: oldProfile.Skills, NewSkillsForJobOffer: newSkillsForJobOffer})
+
+	return &pb.UpdateProfileSkillsResponse{Status: 200, Msg: "ok"}, nil
+}
+
+func (handler *ProfileHandler) getNewSkills(profile *domain.Profile) []string {
+
+	var technologies []string
+	addTechnologie := true
+	for _, s1 := range profile.Skills {
+		addTechnologie = true
+		for _, t := range technologies {
+			if s1.Name == t {
+				addTechnologie = false
+				break
+			}
+		}
+		if addTechnologie {
+			technologies = append(technologies, s1.Name)
+		}
+	}
+
+	return technologies
 }
 
 func (handler *ProfileHandler) SearchProfile(ctx context.Context, request *pb.SearchProfileRequest) (*pb.GetAllResponse, error) {

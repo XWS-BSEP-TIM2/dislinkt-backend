@@ -32,9 +32,25 @@ func (store *ProfileMongoDbStore) Update(ctx context.Context, profile *domain.Pr
 		"phoneNumber": profile.PhoneNumber,
 		"birthDate":   profile.BirthDate,
 		"isPrivate":   profile.IsPrivate,
-		"skills":      profile.Skills,
+		//"skills":      profile.Skills,
 		"experiences": profile.Experiences,
 		"isTwoFactor": profile.IsTwoFactor,
+	}}
+
+	_, err := store.profiles.UpdateOne(context.TODO(), profileToUpdate, updatedProfile)
+
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (store *ProfileMongoDbStore) UpdateSkills(ctx context.Context, profile *domain.Profile) error {
+
+	profileToUpdate := bson.M{"_id": profile.Id}
+	updatedProfile := bson.M{"$set": bson.M{
+		"skills": profile.Skills,
 	}}
 
 	_, err := store.profiles.UpdateOne(context.TODO(), profileToUpdate, updatedProfile)

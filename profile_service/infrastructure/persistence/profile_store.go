@@ -14,4 +14,5 @@ type ProfileStore interface {
 	Search(ctx context.Context, search string) ([]*domain.Profile, error)
 	DeleteAll(ctx context.Context)
 	DeleteById(ctx context.Context, id primitive.ObjectID) (int64, error)
+	UpdateSkills(ctx context.Context, profile *domain.Profile) error
 }

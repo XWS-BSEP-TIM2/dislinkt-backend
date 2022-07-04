@@ -31,7 +31,8 @@ func NewServer(config *config.Config) *Server {
 }
 
 const (
-	QueueGroup = "profile_service"
+	QueueGroup       = "profile_service"
+	QueueGroupSkills = "profile_service_skills"
 )
 
 func (server *Server) Start() {
@@ -43,18 +44,42 @@ func (server *Server) Start() {
 
 	profileService := server.initProfileService(profileStore)
 
-	profileHandler := server.initProfileHandler(profileService)
-
 	commandSubscriber := server.initSubscriber(server.config.RegisterUserCommandSubject, QueueGroup)
 	replyPublisher := server.initPublisher(server.config.RegisterUserReplySubject)
 	server.initRegisterUserHandler(profileService, replyPublisher, commandSubscriber)
+
+	// saga for update skills
+	commandUpdateSkillsPublisher := server.initPublisher(server.config.UpdateSkillsCommandSubject)
+	replyUpdateSkillsSubscriber := server.initSubscriber(server.config.UpdateSkillsReplySubject, QueueGroup)
+	registerUpdateSkillsOrhcestrator := server.initUpdateSkillsOrchestrator(commandUpdateSkillsPublisher, replyUpdateSkillsSubscriber)
+
+	commandUpdateSkillsSubscriber := server.initSubscriber(server.config.UpdateSkillsCommandSubject, QueueGroup)
+	replyUpdateSkillsPublisher := server.initPublisher(server.config.UpdateSkillsReplySubject)
+	server.initUpdateSkillsHandler(profileService, replyUpdateSkillsPublisher, commandUpdateSkillsSubscriber)
+
+	profileHandler := server.initProfileHandler(profileService, registerUpdateSkillsOrhcestrator)
 
 	fmt.Println("Profile service started.")
 	server.startGrpcServer(profileHandler)
 }
 
+func (server *Server) initUpdateSkillsOrchestrator(publisher saga.Publisher, subscriber saga.Subscriber) *application.UpdateSkillsOrchestrator {
+	orchestrator, err := application.NewUpdateSkillsOrchestrator(publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return orchestrator
+}
+
 func (server *Server) initRegisterUserHandler(authService *application.ProfileService, publisher saga.Publisher, subscriber saga.Subscriber) {
 	_, err := api.NewRegisterUserCommandHandler(authService, publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (server *Server) initUpdateSkillsHandler(profileService *application.ProfileService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := api.NewUpdateSkillsCommandHandler(profileService, publisher, subscriber)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -106,8 +131,8 @@ func (server *Server) initProfileService(store persistence.ProfileStore) *applic
 	return application.NewProfileService(store)
 }
 
-func (server *Server) initProfileHandler(service *application.ProfileService) *api.ProfileHandler {
-	return api.NewProfileHandler(service)
+func (server *Server) initProfileHandler(service *application.ProfileService, updateSkillsOrchestrator *application.UpdateSkillsOrchestrator) *api.ProfileHandler {
+	return api.NewProfileHandler(service, updateSkillsOrchestrator)
 }
 
 func (server *Server) startGrpcServer(profileHandler *api.ProfileHandler) {

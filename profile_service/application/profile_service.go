@@ -66,3 +66,11 @@ func (service *ProfileService) DeleteById(ctx context.Context, id primitive.Obje
 
 	service.store.DeleteById(ctx2, id)
 }
+
+func (service *ProfileService) UpdateSkills(ctx context.Context, profile *domain.Profile) error {
+	span := tracer.StartSpanFromContext(ctx, "Update")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(ctx, span)
+
+	return service.store.UpdateSkills(ctx2, profile)
+}

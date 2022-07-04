@@ -26,6 +26,7 @@ type ProfileServiceClient interface {
 	GetAll(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*GetAllResponse, error)
 	CreateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error)
 	UpdateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error)
+	UpdateProfileSkills(ctx context.Context, in *UpdateProfileSkillsRequest, opts ...grpc.CallOption) (*UpdateProfileSkillsResponse, error)
 	SearchProfile(ctx context.Context, in *SearchProfileRequest, opts ...grpc.CallOption) (*GetAllResponse, error)
 }
 
@@ -73,6 +74,15 @@ func (c *profileServiceClient) UpdateProfile(ctx context.Context, in *CreateProf
 	return out, nil
 }
 
+func (c *profileServiceClient) UpdateProfileSkills(ctx context.Context, in *UpdateProfileSkillsRequest, opts ...grpc.CallOption) (*UpdateProfileSkillsResponse, error) {
+	out := new(UpdateProfileSkillsResponse)
+	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/UpdateProfileSkills", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *profileServiceClient) SearchProfile(ctx context.Context, in *SearchProfileRequest, opts ...grpc.CallOption) (*GetAllResponse, error) {
 	out := new(GetAllResponse)
 	err := c.cc.Invoke(ctx, "/profile_service.ProfileService/SearchProfile", in, out, opts...)
@@ -90,6 +100,7 @@ type ProfileServiceServer interface {
 	GetAll(context.Context, *EmptyRequest) (*GetAllResponse, error)
 	CreateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error)
 	UpdateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error)
+	UpdateProfileSkills(context.Context, *UpdateProfileSkillsRequest) (*UpdateProfileSkillsResponse, error)
 	SearchProfile(context.Context, *SearchProfileRequest) (*GetAllResponse, error)
 	mustEmbedUnimplementedProfileServiceServer()
 }
@@ -109,6 +120,9 @@ func (UnimplementedProfileServiceServer) CreateProfile(context.Context, *CreateP
 }
 func (UnimplementedProfileServiceServer) UpdateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProfile not implemented")
+}
+func (UnimplementedProfileServiceServer) UpdateProfileSkills(context.Context, *UpdateProfileSkillsRequest) (*UpdateProfileSkillsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProfileSkills not implemented")
 }
 func (UnimplementedProfileServiceServer) SearchProfile(context.Context, *SearchProfileRequest) (*GetAllResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchProfile not implemented")
@@ -198,6 +212,24 @@ func _ProfileService_UpdateProfile_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProfileService_UpdateProfileSkills_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProfileSkillsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).UpdateProfileSkills(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile_service.ProfileService/UpdateProfileSkills",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).UpdateProfileSkills(ctx, req.(*UpdateProfileSkillsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ProfileService_SearchProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchProfileRequest)
 	if err := dec(in); err != nil {
@@ -238,6 +270,10 @@ var ProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateProfile",
 			Handler:    _ProfileService_UpdateProfile_Handler,
+		},
+		{
+			MethodName: "UpdateProfileSkills",
+			Handler:    _ProfileService_UpdateProfileSkills_Handler,
 		},
 		{
 			MethodName: "SearchProfile",

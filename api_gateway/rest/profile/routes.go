@@ -17,6 +17,7 @@ func RegisterRoutes(r *gin.Engine, tracer opentracing.Tracer) {
 	authorizedRoutes := r.Group("/profile")
 	authorizedRoutes.Use(a.AuthRequired)
 	authorizedRoutes.PUT("", a.Authorize("updateProfile", "update", false), profileHandler.Update)
+	authorizedRoutes.PUT("/skills", a.Authorize("updateProfileSkills", "update", false), profileHandler.UpdateSkills)
 	authorizedRoutes.POST("/changepassword", a.Authorize("changePassword", "update", false), profileHandler.ChangePassword)
 	authorizedRoutes.GET("/admin-view", a.Authorize("getProfilesByAdmin", "read", false), profileHandler.Get)
 

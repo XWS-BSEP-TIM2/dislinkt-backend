@@ -54,7 +54,7 @@ func (handler *ProfileHandler) GetById(ctx *gin.Context) {
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
 	}
-	ctx.JSON(http.StatusCreated, &res)
+	ctx.JSON(http.StatusOK, &res)
 }
 
 func (handler *ProfileHandler) Update(ctx *gin.Context) {
@@ -83,10 +83,10 @@ func (handler *ProfileHandler) Update(ctx *gin.Context) {
 	if err2 != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err2)
 	}
-	errUpdateSkillsInJobOfferService := handler.updateSkillsInJobOfferService(ctx2, &profile)
-	if errUpdateSkillsInJobOfferService != nil {
-		ctx.AbortWithError(http.StatusBadGateway, errUpdateSkillsInJobOfferService)
-	}
+	//errUpdateSkillsInJobOfferService := handler.updateSkillsInJobOfferService(ctx2, &profile)
+	//if errUpdateSkillsInJobOfferService != nil {
+	//	ctx.AbortWithError(http.StatusBadGateway, errUpdateSkillsInJobOfferService)
+	//}
 
 	ctx.JSON(http.StatusCreated, &res)
 }
@@ -118,6 +118,28 @@ func (handler *ProfileHandler) updateSkillsInJobOfferService(ctx context.Context
 		fmt.Println(err.Error())
 	}
 	return err
+}
+
+func (handler *ProfileHandler) UpdateSkills(ctx *gin.Context) {
+	span := tracer.StartSpanFromRequest("UpdateSkills", handler.tracer, ctx.Request)
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	profileService := handler.grpcClient.ProfileClient
+
+	profile := pbProfile.Profile{}
+
+	if err := ctx.BindJSON(&profile); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	res, err1 := profileService.UpdateProfileSkills(ctx2, &pbProfile.UpdateProfileSkillsRequest{Id: profile.Id, Skills: profile.Skills})
+	if err1 != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err1)
+	}
+
+	ctx.JSON(http.StatusCreated, &res)
 }
 
 func (handler *ProfileHandler) ChangePassword(ctx *gin.Context) {
