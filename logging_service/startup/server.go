@@ -1,6 +1,7 @@
 package startup
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
@@ -10,6 +11,7 @@ import (
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/infrastructure/persistence"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/logging_service/startup/config"
 	"github.com/opentracing/opentracing-go"
+	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	myLogger "gopkg.in/natefinch/lumberjack.v2"
@@ -31,15 +33,41 @@ func (server *Server) Start() {
 	trace, _ := tracer.Init("logging_service")
 	opentracing.SetGlobalTracer(trace)
 
+	mongoClient := server.initMongoClient()
+
+	eventsStore := server.initEventsStore(mongoClient)
+
 	loggingStore := server.initLoggingStore()
 
-	loggingService := server.initLoggingService(loggingStore)
+	loggingService := server.initLoggingService(loggingStore, eventsStore)
 
 	loggingHandler := server.initLoggingHandler(loggingService)
 	//loggingService.LoggSuccess(context.TODO(), &loggingS.LogRequest{ServiceName: "LOG_SERVICE", ServiceFunctionName: "Start", Description: "Testiramo da li ovo radi", IpAddress: "localHost", UserID: "rasti"})
 
 	fmt.Println("Logging service started.")
 	server.startGrpcServer(loggingHandler)
+}
+
+func (server *Server) initMongoClient() *mongo.Client {
+	client, err := persistence.GetClient(server.config.EventsDBHost, server.config.EventsDBPort)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return client
+}
+
+func (server *Server) initEventsStore(client *mongo.Client) persistence.EventsStore {
+	store := persistence.NewEventsMongoDbStore(client)
+
+	store.DeleteAll(context.TODO())
+	for _, event := range events {
+		err := store.Insert(context.TODO(), event)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return store
 }
 
 func (server *Server) initLoggingStore() persistence.LoggingStore {
@@ -53,8 +81,8 @@ func (server *Server) initLoggingStore() persistence.LoggingStore {
 	return persistence.NewLoggingDbStore(server.config, logg)
 }
 
-func (server *Server) initLoggingService(store persistence.LoggingStore) *application.LoggingService {
-	return application.NewLoggingService(store)
+func (server *Server) initLoggingService(store persistence.LoggingStore, eventsStore persistence.EventsStore) *application.LoggingService {
+	return application.NewLoggingService(store, eventsStore)
 }
 
 func (server *Server) initLoggingHandler(service *application.LoggingService) *api.LoggingHandler {

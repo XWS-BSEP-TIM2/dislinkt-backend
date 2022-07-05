@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -17,6 +18,8 @@ type Config struct {
 	RegisterUserReplySubject   string
 	UpdateSkillsCommandSubject string
 	UpdateSkillsReplySubject   string
+	LoggingHost                string
+	LoggingPort                string
 }
 
 func NewConfig() *Config {
@@ -34,6 +37,8 @@ func NewConfig() *Config {
 		RegisterUserReplySubject:   goDotEnvVariable("REGISTER_USER_REPLY_SUBJECT"),
 		UpdateSkillsCommandSubject: goDotEnvVariable("UPDATE_SKILLS_COMMAND_SUBJECT"),
 		UpdateSkillsReplySubject:   goDotEnvVariable("UPDATE_SKILLS_REPLY_SUBJECT"),
+		LoggingHost:                goDotEnvVariable("LOGGING_SERVICE_HOST"),
+		LoggingPort:                goDotEnvVariable("LOGGING_SERVICE_PORT"),
 	}
 }
 

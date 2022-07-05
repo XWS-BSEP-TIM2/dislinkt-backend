@@ -143,6 +143,7 @@ services:
       JOB_OFFER_NEO4J_PORT_2: ${JOB_OFFER_NEO4J_PORT_2}
       JOB_OFFER_NEO4J_USERNAME: ${JOB_OFFER_NEO4J_USERNAME}
       JOB_OFFER_NEO4J_PASSWORD: ${JOB_OFFER_NEO4J_PASSWORD}
+      LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
       NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
@@ -247,6 +248,8 @@ services:
       LOGGING_SERVICE_HOST: ${LOGGING_SERVICE_HOST_DOCKER}
       LOGGING_SERVICE_PORT: ${LOGGING_SERVICE_PORT}
       LOGGING_FILE_PATH: ${LOGGING_FILE_PATH}
+      MONGO_DB_HOST: ${EVENTS_DB_HOST_DOCKER}
+      MONGO_DB_PORT: ${MONGO_DB_PORT}
       NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
       NATS_USER: ${NATS_USER}
@@ -403,6 +406,16 @@ services:
     command: mongod --quiet --logpath /dev/null
     restart: on-failure
     logging:  *fluent-bit
+    networks:
+      - network
+      - monitoring
+
+  events_mongo_db:
+    image: mongo
+    container_name: events_mongo_db
+    command: mongod --quiet --logpath /dev/null
+    restart: on-failure
+    logging: *fluent-bit
     networks:
       - network
       - monitoring

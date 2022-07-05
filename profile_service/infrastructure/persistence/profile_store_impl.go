@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	loggingS "github.com/XWS-BSEP-TIM2/dislinkt-backend/common/proto/logging_service"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/common/tracer"
 	"github.com/XWS-BSEP-TIM2/dislinkt-backend/profile_service/domain"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,7 +17,8 @@ const (
 )
 
 type ProfileMongoDbStore struct {
-	profiles *mongo.Collection
+	profiles       *mongo.Collection
+	LoggingService loggingS.LoggingServiceClient
 }
 
 func (store *ProfileMongoDbStore) Update(ctx context.Context, profile *domain.Profile) error {
@@ -86,13 +88,16 @@ func (store *ProfileMongoDbStore) Insert(ctx context.Context, profile *domain.Pr
 	if err != nil {
 		return err
 	}
+
+	store.createEvent(ctx, "Registration", "A new user has registered", "-")
 	return nil
 }
 
-func NewProfileMongoDbStore(client *mongo.Client) ProfileStore {
+func NewProfileMongoDbStore(client *mongo.Client, loggingService loggingS.LoggingServiceClient) ProfileStore {
 	profiles := client.Database(DATABASE).Collection(COLLECTION)
 	return &ProfileMongoDbStore{
-		profiles: profiles,
+		profiles:       profiles,
+		LoggingService: loggingService,
 	}
 }
 
@@ -192,4 +197,18 @@ func (store *ProfileMongoDbStore) DeleteAll(ctx context.Context) {
 	defer span.Finish()
 
 	store.profiles.DeleteMany(context.TODO(), bson.D{{}})
+}
+
+func (store *ProfileMongoDbStore) createEvent(ctx context.Context, title, description, userId string) {
+	span := tracer.StartSpanFromContext(ctx, "createEvent")
+	defer span.Finish()
+	ctx2 := tracer.ContextWithSpan(context.Background(), span)
+
+	event := loggingS.EventRequest{
+		UserId:      userId,
+		Title:       title,
+		Description: description,
+	}
+
+	store.LoggingService.InsertEvent(ctx2, &event)
 }

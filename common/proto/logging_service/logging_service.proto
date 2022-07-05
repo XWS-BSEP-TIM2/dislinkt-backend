@@ -17,6 +17,10 @@ service LoggingService{
 
   rpc LoggSuccess(LogRequest) returns(LogResult){}
 
+  rpc InsertEvent(EventRequest) returns(Empty) {}
+
+  rpc GetEvents(Empty) returns(GetEventsResponse) {}
+
 }
 
 message LogRequest{
@@ -32,5 +36,17 @@ message LogResult{
   string msg = 2;
 }
 
+message Empty{
+}
 
+message EventRequest{
+  string userId = 1;
+  string title = 2;
+  string description = 3;
+  google.protobuf.Timestamp date = 4;
+}
+
+message GetEventsResponse{
+  repeated EventRequest events = 1;
+}
 

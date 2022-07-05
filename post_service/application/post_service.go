@@ -104,7 +104,6 @@ func (service *PostService) CreatePost(ctx context.Context, post *domain.Post) *
 		service.notificationServiceAdapter.InsertNotification(ctx2, &pb.InsertNotificationRequest{Notification: &notification})
 	}
 
-	service.loggingServiceAdapter.Log(ctx2, "SUCCESS", "CreatePost", post.OwnerId.Hex(), "User created a new post.")
 	return service.getPostDetailsMapper(ctx2)(post)
 }
 

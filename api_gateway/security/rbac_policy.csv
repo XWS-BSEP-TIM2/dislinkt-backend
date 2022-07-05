@@ -39,3 +39,4 @@ p, USER, markAllNotificationsAsRead, update
 p, USER, getUserSettings, read
 p, USER, updateUserSettings, update
 p, USER, updateProfileSkills, update
+p, ADMIN, getAllEvents, read
