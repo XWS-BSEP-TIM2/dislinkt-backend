@@ -380,7 +380,7 @@ func createNewUser(userID string, transaction neo4j.Transaction) bool {
 
 func updateSkillsForUser(userID string, newSkills []string, transaction neo4j.Transaction) (bool, error) {
 	skills, errS := getUserSkills(userID, transaction)
-	if errS != nil || skills == nil {
+	if errS != nil {
 		return false, errS
 	}
 

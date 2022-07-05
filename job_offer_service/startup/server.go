@@ -52,6 +52,10 @@ func (server *Server) Start() {
 	replyPublisher := server.initPublisher(server.config.RegisterUserReplySubject)
 	server.initRegisterUserHandler(jobOfferService, replyPublisher, commandSubscriber)
 
+	commandUpdateSkillsSubscriber := server.initSubscriber(server.config.UpdateSkillsCommandSubject, QueueGroup)
+	replyUpdateSkillsPublisher := server.initPublisher(server.config.UpdateSkillsReplySubject)
+	server.initUpdateSkillsHandler(jobOfferService, replyUpdateSkillsPublisher, commandUpdateSkillsSubscriber)
+
 	fmt.Println("Job offer service started.")
 	server.startGrpcServer(jobOfferHandler)
 }
@@ -97,8 +101,15 @@ func (server *Server) initJobOfferHandler(service *application.JobOfferService) 
 	return api.NewJobOfferHandler(service)
 }
 
-func (server *Server) initRegisterUserHandler(connectionService *application.JobOfferService, publisher saga.Publisher, subscriber saga.Subscriber) {
-	_, err := api.NewRegisterUserCommandHandler(connectionService, publisher, subscriber)
+func (server *Server) initRegisterUserHandler(jobOfferService *application.JobOfferService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := api.NewRegisterUserCommandHandler(jobOfferService, publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (server *Server) initUpdateSkillsHandler(jobOfferService *application.JobOfferService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := api.NewUpdateSkillsCommandHandler(jobOfferService, publisher, subscriber)
 	if err != nil {
 		log.Fatal(err)
 	}
